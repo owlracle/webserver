@@ -10,11 +10,11 @@ const mustacheExpress = require('mustache-express');
 const configFile = JSON.parse(fs.readFileSync(`${__dirname}/config.json`));
 
 const app = express();
-let port = 4200;
+let port = 4210;
 
 const args = {
-    saveDB: true,
-    updateCredit: true,
+    saveDB: false,
+    updateCredit: false,
 };
 
 const USAGE_LIMIT = 100;

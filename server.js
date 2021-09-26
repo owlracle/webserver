@@ -129,17 +129,14 @@ app.get('/gas', cors(corsOptions), async (req, res) => {
     
         resp.timestamp = new Date().toISOString();
     
-        if (data.standard){
-            resp.slow = data.safeLow;
-            resp.standard = data.standard;
-            resp.fast = data.fast;
-            resp.instant = data.fastest;
-            resp.block_time = data.block_time;
-            resp.last_block = data.blockNum;
-        }
-
-        if (!req.query.apikey){
-            resp.warning = 'Requests made without an api key will no longer be served starting 2021-09-20 00:00:00. Consider generating an api key and using on your future requests.';
+        if (data.speeds){
+            resp.slow = data.speeds[0];
+            resp.standard = data.speeds[1];
+            resp.fast = data.speeds[2];
+            resp.instant = data.speeds[3];
+            resp.avgTime = data.avgTime;
+            resp.avgTx = data.avgTx;
+            resp.lastBlock = data.lastBlock;
         }
 
         return resp;
@@ -938,12 +935,41 @@ const db = {
 db.connect();
 
 
-async function requestOracle(){
-    try{
+async function requestOracle(network='bsc'){
+    try{        
         if (configFile.production){
-            return (await fetch('http://bscgas-oracle.tk')).json();
+            const oracleData = await (await fetch(`http://owlracle.tk:8080/${network}`)).json();
+    
+            const avgTx = oracleData.ntx.reduce((p,c) => p+c, 0) / oracleData.ntx.length;
+            const avgTime = (oracleData.timestamp.slice(-1)[0] - oracleData.timestamp[0]) / (oracleData.timestamp.length - 1);
+    
+            // sort gwei array ascending so I can pick directly by index
+            const sortedGwei = oracleData.minGwei.sort((a,b) => parseFloat(a) - parseFloat(b));
+    
+            const speedSize = {
+                safeLow: 35,
+                standard: 60,
+                fast: 90,
+                fastest: 100
+            };
+    
+            const speeds = Object.values(speedSize).map(speed => {
+                // get gwei corresponding to the slice of the array
+                const poolIndex = parseInt(speed / 100 * oracleData.minGwei.length) - 1;
+                const speedGwei = sortedGwei[poolIndex];
+                return speedGwei;
+            });
+    
+            const result = {
+                lastBlock: oracleData.lastBlock,
+                avgTx: avgTx,
+                avgTime: avgTime,
+                speeds: speeds,
+            };
+    
+            return result;
         }
-        return new Promise(resolve => resolve({"safeLow":5.0,"standard":5.0,"fast":5.0,"fastest":5.0,"block_time":15,"blockNum":7499408}));    
+        return new Promise(resolve => resolve({ lastBlock: 7499408, avgTx: 150, avgTime: 3, speeds: [5,5,5,5] }));    
     }
     catch (error){
         return { error: {
@@ -961,12 +987,12 @@ async function buildHistory(){
     try{
         const data = await requestOracle();
 
-        if (data.standard){
+        if (data.speeds){
             const [rows, error] = await db.insert(`price_history`, {
-                instant: data.fastest,
-                fast: data.fast,
-                standard: data.standard,
-                slow: data.safeLow,
+                slow: data.speeds[0],
+                standard: data.speeds[1],
+                fast: data.speeds[2],
+                instant: data.speeds[3],
             });
             
             if (error){

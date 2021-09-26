@@ -737,8 +737,9 @@ gasTimer.onUpdate = function(data, requestTime){
     <span class="json key">"standard"</span>: <span class="json number">${data.standard || 0}</span>,
     <span class="json key">"fast"</span>: <span class="json number">${data.fast || 0}</span>,
     <span class="json key">"instant"</span>: <span class="json number">${data.instant || 0}</span>
-    <span class="json key">"block_time"</span>: <span class="json number">${data.block_time || 0}</span>
-    <span class="json key">"last_block"</span>: <span class="json number">${data.last_block || 0}</span>
+    <span class="json key">"avgTime"</span>: <span class="json number">${data.avgTime || 0}</span>
+    <span class="json key">"avgTx"</span>: <span class="json number">${data.avgTx || 0}</span>
+    <span class="json key">"lastBlock"</span>: <span class="json number">${data.lastBlock || 0}</span>
 }`;
         
         sample.innerHTML = formatted;

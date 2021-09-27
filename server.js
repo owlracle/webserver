@@ -99,13 +99,21 @@ class Session {
 }
 
 
-app.get('/', (req, res) => {
+app.get('/', indexRoute);
+app.get('/bsc', indexRoute);
+app.get('/poly', indexRoute);
+app.get('/avax', indexRoute);
+app.get('/ftm', indexRoute);
+app.get('/eth', indexRoute);
+
+function indexRoute(req, res) {
     res.render(`index`, {
         usagelimit: USAGE_LIMIT,
         requestcost: REQUEST_COST,
         recaptchakey: configFile.recaptcha.key,
     });
-});
+}
+
 
 app.use(express.static(__dirname + '/public/'));
 

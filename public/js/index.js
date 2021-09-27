@@ -1633,3 +1633,43 @@ document.querySelector('#faq').innerHTML = `<ul>${faq.map(e => `<li><ul><li clas
 document.querySelectorAll('#faq .question').forEach(e => e.addEventListener('click', () => e.parentNode.classList.toggle('open')));
 
 document.querySelector('#link-reset-key').addEventListener('click', () => api.showModal('edit'));
+
+
+// set the corresponding network in header
+
+(obj => {
+    const networks = {
+        eth: { name: 'Ethereum' },
+        avax: { name: 'Avalanche' },
+        poly: { name: 'Polygon' },
+        ftm: { name: 'Fantom' },
+        bsc: { name: 'BSC' },
+    };
+    const netName = window.location.pathname.split('/')[1] || 'bsc';
+    obj.classList.add(netName);
+    obj.querySelector('.name').innerHTML = networks[netName].name;
+    obj.querySelector('.icon').src = `img/${netName}.png`;
+
+    obj.addEventListener('click', function() {
+        const dropdown = document.createElement('div');
+        dropdown.id = 'dropdown';
+    
+        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != netName).map(([k,v]) => `<div id="${k}" class="item"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></div>`).join('');
+    
+        dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
+        dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
+    
+        dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => window.location.href = `/${e.id}`));
+        
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+        fog.classList.add('invisible');
+    
+    
+        document.body.appendChild(fog);
+        fog.appendChild(dropdown);
+    
+        fog.addEventListener('click', () => fog.remove());
+    });
+
+})(document.querySelector('#network'));

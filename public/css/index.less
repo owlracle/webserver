@@ -5,21 +5,26 @@
 @size-1400:   ~"only screen and (min-width: 1400px)";
 @size-1600:   ~"only screen and (min-width: 1600px)";
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
 body {
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Roboto', Helvetica, Arial, sans-serif;
     font-size: 16px;
     margin: 0;
     transition: 0.3s background-color, 0.3s color;
     background-color: var(--bg-color);
     color: var(--text-color);
     
+    --text-dark-color: #e3dcd0;
+    --text-dark-intense-color: #ffffff;
+    
     &.light {
         --bg-color: #e2e2e2;
         --bg-intense-color: #eeeeee;
-        --text-color: #511814;
+        --text-color: #3b2424;
         --text-intense-color: #000000;
-        --main-color: #f9eeea;
-        --border-color: #c9c9c9;
+        --main-color: #4a2616;
+        --border-color: #bbbbbb;
         --json-key: #1378C3;
         --json-string: #A21360;
         --json-number: #148659;
@@ -91,10 +96,14 @@ body {
             }
     
             h1 {
-                text-shadow: 2px 1px 3px #cc4b13;
                 display: flex;
                 align-items: center;
                 margin-bottom: 50px;
+
+                #title {
+                    font-size: 2.5rem;
+                    margin-right: 15px;
+                }
     
                 img {
                     height: 35px;
@@ -395,7 +404,7 @@ body {
                     width: 100%;
                     max-width: 300px;
                     background-color: var(--main-color);
-                    color: var(--text-color);
+                    color: var(--text-dark-color);
                     border-radius: 3px;
                     border: 1px solid var(--border-color);
                     outline: none;
@@ -405,7 +414,8 @@ body {
                     font-size: 1.2rem;
     
                     &:hover {
-                        filter: invert(10%);
+                        color: var(--text-dark-intense-color);
+                        filter: brightness(1.2);
                     }
     
                     i {
@@ -524,6 +534,7 @@ body {
         align-items: center;
         margin-top: 50px;
         background-color: var(--main-color);      
+        color: var(--text-dark-color);
         
         .row {
             display: flex;
@@ -555,7 +566,7 @@ body {
 
                 i {
                     font-size: 1.4rem;
-                    color: var(--text-color);
+                    color: var(--text-dark-color);
 
                     &:hover {
                         opacity: 0.8;
@@ -575,7 +586,7 @@ body {
                     align-items: center;
                     margin-bottom: 5px;
 
-                    color: var(--text-color);
+                    color: var(--text-dark-color);
                     text-decoration: none;
 
                     &:hover {
@@ -647,7 +658,7 @@ body {
 
                     #wallet {
                         font-family: monospace;
-                        color: var(--text-intense-color);
+                        color: var(--text-dark-intense-color);
                         
                         @media @size-600 {
                             margin-left: 10px;
@@ -672,7 +683,7 @@ body {
             
                     .fa-qrcode {
                         margin-left: 5px;
-                        color: var(--text-intense-color);
+                        color: var(--text-dark-intense-color);
                         
                         @media @size-600 {
                             font-size: 1.5rem;
@@ -693,6 +704,7 @@ body {
         justify-content: space-between;
         margin-bottom: 50px;
         background-color: var(--main-color);
+        color: var(--text-dark-color);
 
         .col {
             display: flex;
@@ -770,9 +782,10 @@ body {
                 align-items: center;
                 cursor: pointer;
                 margin-right: 15px;
+                transition: 0.3s all;
 
                 &:hover {
-                    opacity: 0.8;
+                    filter: brightness(1.2);
                 }
             }
 
@@ -860,6 +873,50 @@ body {
                             }
                         }
                     }
+                }
+            }
+
+            #network {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                padding: 2px 10px;
+                background-color: transparent;
+                border: 1px solid var(--text-dark-intense-color);
+                border-radius: 3px;
+                font-weight: bold;
+                cursor: pointer;
+
+                .icon {
+                    height: 20px;
+                    margin-right: 5px;
+                }
+
+                &.bsc {
+                    background-color: darken(#F0B90B, 20%);
+                    border-color: #F0B90B;
+
+                }
+                &.poly {
+                    background-color: darken(#7533E2, 20%);
+                    border-color: #7533E2;
+
+                }
+                &.avax {
+                    background-color: darken(#E84142, 20%);
+                    border-color: #E84142;
+
+                }
+                &.ftm {
+                    background-color: darken(#1A7CE4, 20%);
+                    border-color: #1A7CE4;
+
+                }
+                &.eth {
+                    background-color: darken(#5c5c5c, 20%);
+                    border-color: #5c5c5c;
+
                 }
             }
         }
@@ -1246,21 +1303,25 @@ body {
                         height: 35px;
                         width: 200px;
                         outline: none;
-                        background-color: var(--bg-intense-color);
-                        color: var(--text-intense-color);
+                        background-color: var(--main-color);
+                        color: var(--text-dark-color);
                         cursor: pointer;
                         transition: 0.3s all;
                         font-size: 1.1rem;
                         margin: 0 5px;
     
                         &:hover {
-                            box-shadow: 0px 0px 3px var(--text-color);
+                            color: var(--text-dark-intense-color);
+                            filter: brightness(1.2);
                         }
     
                         &:disabled {
-                            background-color: #9c9c9c;
+                            background-color: #727272;
                             box-shadow: none;
                             cursor: default;
+                            cursor: not-allowed;
+                            filter: none;
+                            color: var(--text-dark-color);
                         }
                     }
                 }
@@ -1273,12 +1334,12 @@ body {
         display: flex;
         align-items: center;
         padding: 5px 10px;
-        background-color: var(--main-color);
+        background-color: var(--bg-intense-color);
         color: var(--text-intense-color);
         border-radius: 3px;
-        border: 1px solid var(--text-intense-color);
+        border: 1px solid var(--border-color);
         pointer-events: none;
-        box-shadow: 0px 0px 3px var(--text-color);
+        box-shadow: 0px 0px 2px var(--border-color);
         font-size: 1rem;
         text-shadow: none;
         font-weight: normal;
@@ -1327,15 +1388,21 @@ body {
             display: flex;
             align-items: center;
             height: 30px;
-            background-color: #3498db4d;
+            background-color: #3498db67;
             color: var(--text-color);
             border-bottom: 1px solid #3498db61;
             box-sizing: border-box;
             transition: 0.3s all;
             cursor: pointer;
+            text-shadow: 0 0 1px var(--text-color);
 
             &:hover {
                 background-color: #3498db;
+            }
+
+            .icon {
+                height: 20px;
+                margin-right: 5px;
             }
         }
     }

@@ -15,57 +15,74 @@ const corsOptions = {
 
 module.exports = app => {
     
+    // old endpoint. will still work for now
+
+    app.get('/gas', cors(corsOptions), async (req, res, next) => {
+        if (!req.query.version){
+            req.query.version = 1;
+        }
+
+        req.url = '/bsc/gas?' + new URLSearchParams(req.query).toString();
+        next();
+    });
+
     // discover gas prices right now
-    app.get('/gas', cors(corsOptions), async (req, res) => {
+
+    app.get('/:network/gas', cors(corsOptions), async (req, res) => {
         const dataRun = async () => {
             const resp = {};
     
             const networks = ['eth', 'bsc', 'poly', 'ftm', 'avax'];
-            if (!networks.includes(req.query.network)){
+            if (!networks.includes(req.params.network)){
                 return { error: {
                     status: 404,
                     error: 'Not found',
                     message: 'The requested network is not available.'
                 }};
             }
+
+            // accept and blocks only work when using v2
+            const defaultSpeeds = [35, 60, 90, 100];
+            const version = parseInt(req.query.version) || 2;
+            const blocks = req.query.blocks && version == 2 ? parseInt(req.query.blocks) : 200;
+            const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => parseInt(e)) : defaultSpeeds;
     
-            const data = await requestOracle(req.query.network);
+            const data = await requestOracle(req.params.network, blocks);
             if (data.error){
                 return { error: data.error };
             }
         
-            resp.timestamp = new Date().toISOString();
-        
-            if (data.speeds){
-                resp.slow = data.speeds[0];
-                resp.standard = data.speeds[1];
-                resp.fast = data.speeds[2];
-                resp.instant = data.speeds[3];
-                resp.avgTime = data.avgTime;
-                resp.avgTx = data.avgTx;
-                resp.lastBlock = data.lastBlock;
+            if (data.minGwei) {
+                resp.timestamp = new Date().toISOString();
+
+                const avgTx = data.ntx.reduce((p, c) => p + c, 0) / data.ntx.length;
+                const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
+
+                // sort gwei array ascending so I can pick directly by index
+                const sortedGwei = data.minGwei.sort((a, b) => parseFloat(a) - parseFloat(b));
+
+                const speeds = accept.map(speed => {
+                    // get gwei corresponding to the slice of the array
+                    const poolIndex = parseInt(speed / 100 * data.minGwei.length) - 1;
+                    return sortedGwei[poolIndex];
+                });
+
+                if (version === 1){
+                    resp.slow = speeds[0];
+                    resp.standard = speeds[1];
+                    resp.fast = speeds[2];
+                    resp.instant = speeds[3];
+                    resp.block_time = avgTime;
+                    resp.last_block = data.lastBlock;
+                }
+                else if (version === 2){
+                    resp.lastBlock = data.lastBlock;
+                    resp.avgTime = avgTime;
+                    resp.avgTx = avgTx;
+                    resp.speeds = speeds;
+                    resp.lastBlock = data.lastBlock;
+                }
             }
-    
-            // v2 oracle
-            // if (data.minGwei){
-            //     const avgTx = data.ntx.reduce((p,c) => p+c, 0) / data.ntx.length;
-            //     const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
-                
-            //     // sort gwei array ascending so I can pick directly by index
-            //     const sortedGwei = data.minGwei.sort((a,b) => parseFloat(a) - parseFloat(b));
-            //     const speeds = speedSize.map(speed => {
-            //         // get gwei corresponding to the slice of the array
-            //         const poolIndex = parseInt(speed / 100 * data.minGwei.length) - 1;
-            //         return sortedGwei[poolIndex];
-            //     });
-    
-            //     resp.lastBlock = data.lastBlock;
-            //     resp.avgTime = avgTime;
-            //     resp.avgTx = avgTx;
-            //     resp.speeds = speeds;
-            //     resp.lastBlock = data.lastBlock;
-            // }
-    
     
             return resp;
         }
@@ -106,8 +123,8 @@ module.exports = app => {
             origin: req.header('Origin'),
             ip: req.header('x-real-ip'),
             endpoint: 'gas',
-            version: 1,
-            network: 'bsc',
+            version: parseInt(req.query.version) || 2,
+            network: req.params.network,
             action: {
                 data: {},
                 run: dataRun,
@@ -225,7 +242,7 @@ module.exports = app => {
             origin: req.header('Origin'),
             ip: req.header('x-real-ip'),
             endpoint: 'history',
-            version: 1,
+            version: 2,
             network: 'bsc',
             action: {
                 data: {
@@ -893,7 +910,7 @@ const api = {
             return { error: resp.error };
         }
 
-        const actionResp = action.run(action.data);
+        const actionResp = await action.run(action.data);
         if (actionResp.error){
             return { error: actionResp.error };
         }
@@ -904,13 +921,9 @@ const api = {
         }
 
         sqlData.endpoint = endpoint;
-        
-        if (version){
-            sqlData.version = version;
-        }
-        if (network){
-            sqlData.network = network;
-        }
+        sqlData.version = version;
+        sqlData.network = network;
+
         if (ip){
             sqlData.ip = ip;
         }

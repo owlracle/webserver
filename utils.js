@@ -112,10 +112,10 @@ async function verifyRecaptcha(token){
 }
 
 
-async function requestOracle(network='bsc'){
+async function requestOracle(network='bsc', blocks=200){
     try{        
         if (configFile.production){
-            const oracleData = await (await fetch(`http://owlracle.tk:8080/${network}`)).json();
+            const oracleData = await (await fetch(`http://owlracle.tk:8080/${network}?blocks=${blocks}`)).json();
     
             const avgTx = oracleData.ntx.reduce((p,c) => p+c, 0) / oracleData.ntx.length;
             const avgTime = (oracleData.timestamp.slice(-1)[0] - oracleData.timestamp[0]) / (oracleData.timestamp.length - 1);
@@ -146,7 +146,10 @@ async function requestOracle(network='bsc'){
     
             return result;
         }
-        return new Promise(resolve => resolve({ lastBlock: 7499408, avgTx: 150, avgTime: 3, speeds: [5,5,5,5] }));    
+
+        // in dev mode. load test data
+        const testData = Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(`${__dirname}/testData.json`))).map(([k,v]) => [k, Array.isArray(v) ? v.slice(-blocks) : v]));
+        return new Promise(resolve => resolve(testData));    
     }
     catch (error){
         return { error: {

@@ -1,3 +1,5 @@
+let network;
+
 // request google recaptcha v3 token
 
 const recaptcha = {
@@ -685,7 +687,7 @@ const gasTimer = {
         const sessionid = await session.get();
         const token = await recaptcha.getToken();
         const startTime = new Date();
-        const data = await (await fetch(`/gas?grc=${token}&sid=${sessionid}`)).json();
+        const data = await (await fetch(`/gas?grc=${token}&sid=${sessionid}&network=${network.symbol}`)).json();
         const requestTime = new Date() - startTime;
 
         if (data.error){
@@ -1618,6 +1620,10 @@ document.querySelectorAll('.template-var').forEach(e => e.remove());
 
 // build faq
 const faq = [
+    [`Your website looks so much like <a href="https://bscgas.info" target="_blank">bscgas</a>. Is it a coincidence?`,
+    `Not at all. We are the same as bscgas. But as soon as we noticed the demand to expand to other networks, we created owlracle to be a gas price oracle hub on every major chains. We also developed our own oracle software, so we thought we should rebrand ourselves.`],
+    [`How do you predict the gas price fee?`,
+    `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
     [`Why does gas prices are always showing 5 GWei? Is the service bugged?`,
     `It is perfectly fine. Binance Smart Chain gas prices are almost always 5 GWei. If ever the network becomes congested we should see a price spike.`],
     [`My app have thousands of user requesting bscgas service. The API limit seems too low.`,
@@ -1640,21 +1646,26 @@ document.querySelector('#link-reset-key').addEventListener('click', () => api.sh
 (obj => {
     const networks = {
         eth: { name: 'Ethereum' },
-        avax: { name: 'Avalanche' },
-        poly: { name: 'Polygon' },
-        ftm: { name: 'Fantom' },
-        bsc: { name: 'BSC' },
+        avax: { name: 'Avalanche'},
+        poly: { name: 'Polygon'},
+        ftm: { name: 'Fantom'},
+        bsc: { name: 'BSC', longName: 'Binance Smart Chain' },
     };
-    const netName = window.location.pathname.split('/')[1] || 'bsc';
-    obj.classList.add(netName);
-    obj.querySelector('.name').innerHTML = networks[netName].name;
-    obj.querySelector('.icon').src = `img/${netName}.png`;
+    const symbol = window.location.pathname.split('/')[1] || 'bsc';
+    network = networks[symbol];
+    network.symbol = symbol;
+
+    obj.classList.add(symbol);
+    obj.querySelector('.name').innerHTML = network.name;
+    obj.querySelector('.icon').src = `img/${symbol}.png`;
+
+    document.querySelector('#title #network-name').innerHTML = `${network.longName || network.name}'s`;
 
     obj.addEventListener('click', function() {
         const dropdown = document.createElement('div');
         dropdown.id = 'dropdown';
     
-        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != netName).map(([k,v]) => `<div id="${k}" class="item"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></div>`).join('');
+        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></div>`).join('');
     
         dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;

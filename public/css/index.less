@@ -5,7 +5,7 @@
 @size-1400:   ~"only screen and (min-width: 1400px)";
 @size-1600:   ~"only screen and (min-width: 1600px)";
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@1,700&family=Roboto&display=swap');
 
 body {
     font-family: 'Roboto', Helvetica, Arial, sans-serif;
@@ -95,42 +95,50 @@ body {
                 font-size: 0.9rem;
             }
     
-            h1 {
+            #title {
+                margin: 50px 0 100px 0;
                 display: flex;
+                justify-content: center;
                 align-items: center;
-                margin-bottom: 50px;
 
-                #title {
-                    font-size: 2.5rem;
-                    margin-right: 15px;
-                }
-    
                 img {
-                    height: 35px;
+                    height: 130px;
                     margin-right: 10px;
                     box-shadow: 1px 1px 3px var(--bg-intense-color);
-                    border-radius: 3px 11px 3px 3px;
     
                     @media @size-600 {
-                        margin-right: 20px;
+                        margin-right: 40px;
                     }
+                }        
+                
+                h1 {
+                    font-size: 4rem;
+                    font-family: 'Grandstander',sans-serif;
+                    margin: 10px 0;
+                    text-shadow: 4px 4px 4px var(--border-color);
+                    color: var(--text-intense-color);
                 }
-    
+
+                h2 {
+                    margin: 0;
+                }
+
                 #time-sign {
                     height: 15px;
                     width: 15px;
-                    display: inline-block;
+                    // display: inline-block;
+                    display: none;
                     border-radius: 100%;
                     margin-left: 15px;
                     transition: 3s background;
                     box-shadow: 0 0 5px #2c2c2c inset;
                 }
             }
-    
+
             h2 {
                 margin-top: 40px;
             }
-    
+
             h3 {
                 margin-top: 40px;
                 margin-bottom: 30px;

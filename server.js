@@ -130,7 +130,16 @@ app.get('/gas', cors(corsOptions), async (req, res) => {
     const dataRun = async () => {
         const resp = {};
 
-        const data = await requestOracle();
+        const networks = ['eth', 'bsc', 'poly', 'ftm', 'avax'];
+        if (!networks.includes(req.query.network)){
+            return { error: {
+                status: 404,
+                error: 'Not found',
+                message: 'The requested network is not available.'
+            }};
+        }
+
+        const data = await requestOracle(req.query.network);
         if (data.error){
             return { error: data.error };
         }

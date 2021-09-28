@@ -60,14 +60,15 @@ process.argv.forEach((val, index, array) => {
 
 
 app.get('/', indexRoute);
-app.get('/bsc', indexRoute);
-app.get('/poly', indexRoute);
-app.get('/avax', indexRoute);
-app.get('/ftm', indexRoute);
-app.get('/eth', indexRoute);
+// app.get('/', (req, res) => res.redirect('/bsc'));
+// app.get('/bsc', indexRoute);
+// app.get('/poly', indexRoute);
+// app.get('/avax', indexRoute);
+// app.get('/ftm', indexRoute);
+// app.get('/eth', indexRoute);
 
 function indexRoute(req, res) {
-    res.render(`index`, {
+    res.render(`soon`, {
         usagelimit: api.USAGE_LIMIT,
         requestcost: api.REQUEST_COST,
         recaptchakey: configFile.recaptcha.key,

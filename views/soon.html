@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Owlracle - Gas Oracle API</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="multichain gas price oracle.">
+    <meta name="keywords" content="binance smart chain, avalanche, polygon, ethereum, fantom, crypto, ETH, MATIC, FTM, AVAX, BNB, defi, gas, gas fee, gas price, oracle, bsc, gas api">
+    <meta name="”robots”" content="index, follow">
+    <meta property="og:image" content="https://owlracle.info/img/logo_pad.jpg">
+    <meta property="og:title" content="Owlracle - Gas Oracle API" />
+    <meta property="og:url" content="https://owlracle.info/" />
+    <meta property="og:description" content="Multichain gas price oracle and API.">
+    <meta property="og:site_name" content="owlracle.info">
+    <meta name="twitter:image" content="https://owlracle.info/img/logo_pad.jpg">
+    <meta name="twitter:description" content="Multichain gas price oracle and API.">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Owlracle - Gas Oracle API" />
+    <meta name="twitter:site" content="https://owlracle.info/" />
+
+    <link rel="shortcut icon" href="img/favicon.ico">
+    
+    <link rel="stylesheet" href="css/index.css">
+
+    <script type="module" src="https://kit.fontawesome.com/c1a16f97ec.js" defer></script>
+
+    <style>
+        h2 {
+            text-align: center;
+        }
+        #content {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+
+    <script defer>
+        class DynamicScript {
+            constructor(url, onload) {
+                const script = document.createElement('script');
+                script.onload = onload;
+                script.src = url;
+                script.async = true;
+
+                document.head.appendChild(script);
+            }
+        }
+        const particles = new DynamicScript('http://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js', () => particlesJS.load('frame', 'config/particles-dark.json'));
+    </script>
+</head>
+
+<body class="dark">
+    <div id="frame">
+        <div id="content">
+            <div id="title">
+                <img src="img/logo.png" alt="Bscgas logo">
+                <div>
+                    <h1>OWLRACLE</h1>
+                    <h2>The multichain Gas Price Oracle</h2>
+                </div>
+            </div>
+            <h1>Get ready! We are coming to your favorite network. Soon.</h1>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -72,13 +72,13 @@ const session = {
 
 // load a custom script on window object
 class DynamicScript {
-    constructor(url) {
+    constructor(url, onload) {
         const script = document.createElement('script');
+        script.onload = onload;
         script.src = url;
         script.async = true;
 
         document.head.appendChild(script);
-        script.onLoad = this.onLoad;
     }
 }
 new DynamicScript('https://kit.fontawesome.com/c1a16f97ec.js');
@@ -724,7 +724,8 @@ gasTimer.onUpdate = function(data, requestTime){
     const speedList = ['slow', 'standard', 'fast', 'instant'];
     document.querySelectorAll('.gas .body').forEach((e,i) => {
         if (data[speedList[i]]){
-            e.querySelector('.gwei').innerHTML = `${data[speedList[i]]} GWei`;
+            const gas = (gas => gas.toFixed(gas == parseInt(gas) ? 0 : 2))(data[speedList[i]]);
+            e.querySelector('.gwei').innerHTML = `${gas} GWei`;
             // e.querySelector('.usd').innerHTML = `$${data[speedList[i]] * 0.000000001}`;
         }
     });

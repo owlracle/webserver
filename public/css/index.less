@@ -19,7 +19,7 @@ body {
     --text-dark-intense-color: #ffffff;
     
     &.light {
-        --bg-color: #e2e2e2;
+        --bg-color: #cbcbcb;
         --bg-intense-color: #eeeeee;
         --text-color: #3b2424;
         --text-intense-color: #000000;
@@ -51,8 +51,9 @@ body {
         
         canvas {
             position: fixed;
+            z-index: -1;
         }
-        
+
         #content {
             width: 100%;
             max-width: 1200px;
@@ -571,10 +572,6 @@ body {
                 width: 100px;
                 justify-content: space-between;
                 flex-direction: row;
-
-                @media @size-600 {
-
-                }
 
                 i {
                     font-size: 1.4rem;

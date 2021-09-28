@@ -23,8 +23,6 @@
     
     <link rel="stylesheet" href="css/index.css">
 
-    <script type="module" src="https://kit.fontawesome.com/c1a16f97ec.js" defer></script>
-
     <style>
         h2 {
             text-align: center;
@@ -36,6 +34,21 @@
             align-items: center;
             flex-direction: column;
         }
+        #social {
+                display: flex;
+                width: 100px;
+                justify-content: space-between;
+                flex-direction: row;
+        }
+
+        #social i {
+            font-size: 1.4rem;
+            color: var(--text-dark-color);
+        }
+
+        #social i:hover {
+            opacity: 0.8;
+        }
     </style>
 
     <script defer>
@@ -45,11 +58,13 @@
                 script.onload = onload;
                 script.src = url;
                 script.async = true;
-
+                
                 document.head.appendChild(script);
             }
         }
-        const particles = new DynamicScript('http://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js', () => particlesJS.load('frame', 'config/particles-dark.json'));
+
+        new DynamicScript('https://kit.fontawesome.com/c1a16f97ec.js');
+        const particles = new DynamicScript('http://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js', () => particlesJS.load('frame', `config/particles-${document.body.classList.contains('dark') ? 'dark' : 'light'}.json`));
     </script>
 </head>
 
@@ -64,6 +79,11 @@
                 </div>
             </div>
             <h1>Get ready! We are coming to your favorite network. Soon.</h1>
+            <div id="social">
+                <div class="item"><a href="https://github.com/werlang/owlracle-oracle" target="_blank" aria-label="github" rel="noopener"><i class="fab fa-github"></i></a></div>
+                <div class="item"><a href="https://twitter.com/bscgas" target="_blank" aria-label="twitter" rel="noopener"><i class="fab fa-twitter"></i></a></div>
+                <div class="item"><a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener"><i class="fab fa-telegram-plane"></i></a></div>
+            </div>
         </div>
     </div>
 </body>

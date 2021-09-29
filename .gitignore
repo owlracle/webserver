@@ -3,3 +3,4 @@ cwp*
 node_modules
 config.json
 testData.json
+tokenPrice.json

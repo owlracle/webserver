@@ -2,7 +2,7 @@ const express = require('express');
 const mustacheExpress = require('mustache-express');
 
 const { configFile, Session, verifyRecaptcha } = require('./utils');
-const { buildHistory, updateAllCredit } = require('./background');
+const { buildHistory, updateAllCredit, updateTokenPrice } = require('./background');
 
 let port = 4210;
 
@@ -131,4 +131,6 @@ if (configFile.production){
         updateAllCredit();
     }
 }
+
+updateTokenPrice();
 

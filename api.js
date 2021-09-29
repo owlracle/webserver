@@ -2,6 +2,8 @@ const fetch = require('node-fetch');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
+const fs = require('fs');
+
 
 const { Session, verifyRecaptcha, requestOracle, bscscan } = require('./utils');
 const db = require('./database');
@@ -32,11 +34,11 @@ module.exports = app => {
         const dataRun = async () => {
             const resp = {};
             const networks = {
-                eth: 'ethereum',
-                bsc: 'bsc',
-                poly: 'polygon',
-                ftm: 'fantom',
-                avax: 'avax',
+                eth: { name: 'ethereum', token: 'ETH'},
+                bsc: { name: 'bsc', token: 'BNB'},
+                poly: { name: 'polygon', token: 'MATIC'},
+                ftm: { name: 'fantom', token: 'FTM'},
+                avax: { name: 'avax', token: 'AVAX'},
             };
             if (!Object.keys(networks).includes(req.params.network)){
                 return { error: {
@@ -53,7 +55,7 @@ module.exports = app => {
             const blocks = req.query.blocks && version == 2 ? parseInt(req.query.blocks) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => parseInt(e)) : defaultSpeeds;
     
-            const data = await requestOracle(network, blocks);
+            const data = await requestOracle(network.name, blocks);
             if (data.error){
                 return { error: data.error };
             }
@@ -69,9 +71,15 @@ module.exports = app => {
 
                 const speeds = accept.map(speed => {
                     // get gwei corresponding to the slice of the array
-                    const poolIndex = parseInt(speed / 100 * data.minGwei.length) - 1;
+                    const poolIndex = parseInt(speed / 100 * sortedGwei.length) - 1;
                     return sortedGwei[poolIndex];
                 });
+                
+                // avg gas and estimated gas fee price (in $)
+                const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
+                const tokenPrice = parseFloat(JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`)).filter(e => e.symbol == `${network.token}USDT`)[0].price);
+                // gwei to ether
+                const estFee = speeds.map(speed => (speed * 0.000000001) * avgGas * tokenPrice);
 
                 if (version === 1){
                     resp.slow = speeds[0];
@@ -85,7 +93,9 @@ module.exports = app => {
                     resp.lastBlock = data.lastBlock;
                     resp.avgTime = avgTime;
                     resp.avgTx = avgTx;
-                    resp.speeds = speeds;
+                    resp.gasPrice = speeds;
+                    resp.avgGas = avgGas;
+                    resp.estimatedFee = estFee;
                     resp.lastBlock = data.lastBlock;
                 }
             }

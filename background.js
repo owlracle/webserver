@@ -1,5 +1,7 @@
 const { requestOracle, bscscan } = require('./utils');
 const db = require('./database');
+const fetch = require('node-fetch');
+const fs = require('fs');
 
 
 // get prices to build database with price history
@@ -43,4 +45,12 @@ async function updateAllCredit(){
 }
 
 
-module.exports = { buildHistory, updateAllCredit }
+// update native token prices, and hold a cached price to avoid fetching at every api call
+async function updateTokenPrice(){
+    const prices = await (await fetch(`https://api.binance.com/api/v3/ticker/price`)).json();
+    fs.writeFileSync(`${__dirname}/tokenPrice.json`, JSON.stringify(prices));
+
+    setTimeout(() => updateTokenPrice(), 1000 * 60 * 5); // 5 minutes
+}
+
+module.exports = { buildHistory, updateAllCredit, updateTokenPrice };

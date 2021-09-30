@@ -31,15 +31,21 @@ module.exports = app => {
     app.get('/:network/gas', cors(corsOptions), async (req, res) => {
         const dataRun = async () => {
             const resp = {};
-    
-            const networks = ['eth', 'bsc', 'poly', 'ftm', 'avax'];
-            if (!networks.includes(req.params.network)){
+            const networks = {
+                eth: 'ethereum',
+                bsc: 'bsc',
+                poly: 'polygon',
+                ftm: 'fantom',
+                avax: 'avax',
+            };
+            if (!Object.keys(networks).includes(req.params.network)){
                 return { error: {
                     status: 404,
                     error: 'Not found',
                     message: 'The requested network is not available.'
                 }};
             }
+            const network = networks[req.params.network];
 
             // accept and blocks only work when using v2
             const defaultSpeeds = [35, 60, 90, 100];
@@ -47,7 +53,7 @@ module.exports = app => {
             const blocks = req.query.blocks && version == 2 ? parseInt(req.query.blocks) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => parseInt(e)) : defaultSpeeds;
     
-            const data = await requestOracle(req.params.network, blocks);
+            const data = await requestOracle(network, blocks);
             if (data.error){
                 return { error: data.error };
             }

@@ -115,36 +115,7 @@ async function verifyRecaptcha(token){
 async function requestOracle(network='bsc', blocks=200){
     try{        
         if (configFile.production){
-            const oracleData = await (await fetch(`http://owlracle.tk:8080/${network}?blocks=${blocks}`)).json();
-    
-            const avgTx = oracleData.ntx.reduce((p,c) => p+c, 0) / oracleData.ntx.length;
-            const avgTime = (oracleData.timestamp.slice(-1)[0] - oracleData.timestamp[0]) / (oracleData.timestamp.length - 1);
-    
-            // sort gwei array ascending so I can pick directly by index
-            const sortedGwei = oracleData.minGwei.sort((a,b) => parseFloat(a) - parseFloat(b));
-    
-            const speedSize = {
-                safeLow: 35,
-                standard: 60,
-                fast: 90,
-                fastest: 100
-            };
-    
-            const speeds = Object.values(speedSize).map(speed => {
-                // get gwei corresponding to the slice of the array
-                const poolIndex = parseInt(speed / 100 * oracleData.minGwei.length) - 1;
-                const speedGwei = sortedGwei[poolIndex];
-                return speedGwei;
-            });
-    
-            const result = {
-                lastBlock: oracleData.lastBlock,
-                avgTx: avgTx,
-                avgTime: avgTime,
-                speeds: speeds,
-            };
-    
-            return result;
+            return await (await fetch(`http://owlracle.tk:8080/${network}?blocks=${blocks}`)).json();
         }
 
         // in dev mode. load test data

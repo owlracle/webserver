@@ -24,7 +24,7 @@ const api = require('./api')(app);
 
 const args = {
     saveDB: true,
-    updateCredit: false,
+    updateCredit: true,
 };
 
 // read node env

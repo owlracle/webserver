@@ -133,4 +133,14 @@ async function requestOracle(network='bsc', blocks=200){
 }
 
 
-module.exports = { configFile, Session, verifyRecaptcha, requestOracle, bscscan };
+// network list
+const networkList = {
+    eth: { name: 'ethereum', token: 'ETH'},
+    bsc: { name: 'bsc', token: 'BNB'},
+    poly: { name: 'polygon', token: 'MATIC'},
+    ftm: { name: 'fantom', token: 'FTM'},
+    avax: { name: 'avax', token: 'AVAX'},
+};
+
+
+module.exports = { configFile, Session, verifyRecaptcha, requestOracle, bscscan, networkList };

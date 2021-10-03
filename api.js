@@ -5,7 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 
 
-const { Session, verifyRecaptcha, requestOracle, bscscan } = require('./utils');
+const { Session, verifyRecaptcha, requestOracle, bscscan, networkList } = require('./utils');
 const db = require('./database');
 
 
@@ -33,21 +33,14 @@ module.exports = app => {
     app.get('/:network/gas', cors(corsOptions), async (req, res) => {
         const dataRun = async () => {
             const resp = {};
-            const networks = {
-                eth: { name: 'ethereum', token: 'ETH'},
-                bsc: { name: 'bsc', token: 'BNB'},
-                poly: { name: 'polygon', token: 'MATIC'},
-                ftm: { name: 'fantom', token: 'FTM'},
-                avax: { name: 'avax', token: 'AVAX'},
-            };
-            if (!Object.keys(networks).includes(req.params.network)){
+            if (!Object.keys(networkList).includes(req.params.network)){
                 return { error: {
                     status: 404,
                     error: 'Not found',
                     message: 'The requested network is not available.'
                 }};
             }
-            const network = networks[req.params.network];
+            const network = networkList[req.params.network];
 
             // accept and blocks only work when using v2
             const defaultSpeeds = [35, 60, 90, 100];
@@ -157,7 +150,7 @@ module.exports = app => {
     
     
     // price history
-    app.get('/history', cors(corsOptions), async (req, res) => {
+    app.get('/:network/history', cors(corsOptions), async (req, res) => {
         const timeframe = req.query.timeframe;
         const candles = req.query.candles;
         const page = req.query.page;
@@ -165,6 +158,16 @@ module.exports = app => {
         const to = req.query.to;
     
         const dataRun = async ({ timeframe, candles, page, from, to }) => {
+            if (!Object.keys(networkList).includes(req.params.network)){
+                return { error: {
+                    status: 404,
+                    error: 'Not found',
+                    message: 'The requested network is not available.'
+                }};
+            }
+            const network = req.params.network;
+            // const version = parseInt(req.query.version) || 2;
+
             const listTimeframes = {
                 '10m': 10,
                 '30m': 30,
@@ -179,12 +182,14 @@ module.exports = app => {
         
             candles = Math.max(Math.min(candles || 1000, 1000), 1);
             const offset = (parseInt(page) - 1) * candles || 0;
-            const speeds = ['instant', 'fast', 'standard', 'slow'];
-        
-            const templateSpeed = speeds.map(speed => `(SELECT p2.${speed} FROM price_history p2 WHERE p2.id = MIN(p.id)) as '${speed}.open', (SELECT p2.${speed} FROM price_history p2 WHERE p2.id = MAX(p.id)) as '${speed}.close', MIN(p.${speed}) as '${speed}.low', MAX(p.${speed}) as '${speed}.high'`).join(',');
-            
-            const sql = `SELECT MIN(p.timestamp) AS 'timestamp', ${templateSpeed}, count(p.id) AS 'samples' FROM price_history p WHERE UNIX_TIMESTAMP(timestamp) BETWEEN ? AND ? GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
+
+            const gasPriceOpenSql = `(SELECT open FROM price_history WHERE id = MIN(p.id))`;
+            const gasPriceCloseSql = `(SELECT close FROM price_history WHERE id = MAX(p.id))`;
+            const tokenOpenSql = `(SELECT token_price FROM price_history WHERE id = MIN(p.id))`;
+            const tokenCloseSql = `(SELECT token_price FROM price_history WHERE id = MAX(p.id))`;
+            const sql = `SELECT MAX(p.timestamp) AS 'timestamp', count(p.id) AS 'samples', MIN(p.low) AS 'gas.low', MAX(p.high) AS 'gas.high', ${gasPriceOpenSql} AS 'gas.open', ${gasPriceCloseSql} AS 'gas.close', ${req.query.tokenprice ? `MIN(token_price) AS 'token.low', MAX(token_price) AS 'token.high', ${tokenOpenSql} AS 'token.open', ${tokenCloseSql} AS 'token.close',` : ''} AVG(avg_gas) AS 'avg_gas' FROM price_history p WHERE network = ? AND UNIX_TIMESTAMP(timestamp) BETWEEN ? AND ? GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
             const data = [
+                network,
                 from || 0,
                 to || new Date().getTime() / 1000,
                 timeframe * 60,
@@ -202,14 +207,32 @@ module.exports = app => {
                 }};
             }
     
-            const fields = ['open', 'close', 'low', 'high'];
-    
             return rows.map(row => {
-                const tempRow = Object.fromEntries(speeds.map(speed => 
-                    [speed, Object.fromEntries(fields.map(field => 
-                        [field, row[`${speed}.${field}`]]
-                    ))]
-                ));
+                const tempRow = {};
+                tempRow.gasPrice = {
+                    open: parseFloat(row['gas.open']),
+                    close: parseFloat(row['gas.close']),
+                    low: parseFloat(row['gas.low']),
+                    high: parseFloat(row['gas.high']),
+                }
+                if (req.query.tokenprice){
+                    tempRow.tokenPrice = {
+                        open: parseFloat(row['token.open']),
+                        close: parseFloat(row['token.close']),
+                        low: parseFloat(row['token.low']),
+                        high: parseFloat(row['token.high']),
+                    }                    
+                }
+                if (req.query.txfee){
+                    tempRow.txFee = {
+                        open: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.open']),
+                        close: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.close']),
+                        low: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.low']),
+                        high: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.high']),
+                    }                    
+                }
+
+                tempRow.avgGas = row['avg_gas'];
                 tempRow.timestamp = row.timestamp;
                 tempRow.samples = row.samples;
                 return tempRow;
@@ -258,8 +281,8 @@ module.exports = app => {
             origin: req.header('Origin'),
             ip: req.header('x-real-ip'),
             endpoint: 'history',
-            version: 2,
-            network: 'bsc',
+            version: parseInt(req.query.version) || 2,
+            network: req.params.network,
             action: {
                 data: {
                     timeframe: timeframe,

@@ -1,20 +1,37 @@
-const { requestOracle, bscscan } = require('./utils');
+const { requestOracle, bscscan, networkList } = require('./utils');
 const db = require('./database');
 const fetch = require('node-fetch');
 const fs = require('fs');
 
 
 // get prices to build database with price history
-async function buildHistory(){
+async function buildHistory(network, blocks){
     try{
-        const data = await requestOracle();
+        const data = await requestOracle(network, blocks || 60);
 
-        if (data.speeds){
+        if (data.minGwei){
+            const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
+            // how many blocks to fetch next time
+            blocks = parseInt(60 / avgTime + 1);
+
+            if (data.minGwei.length > blocks){
+                data.avgGas = data.avgGas.slice(-blocks);
+                data.minGwei = data.minGwei.slice(-blocks);
+            }
+
+            const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
+
+            const tokenPrice = parseFloat(JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`)).filter(e => e.symbol == `${networkList[network].token}USDT`)[0].price);
+
             const [rows, error] = await db.insert(`price_history`, {
-                slow: data.speeds[0],
-                standard: data.speeds[1],
-                fast: data.speeds[2],
-                instant: data.speeds[3],
+                network: network,
+                last_block: data.lastBlock,
+                token_price: tokenPrice,
+                avg_gas: avgGas,
+                open: data.minGwei[0],
+                close: data.minGwei.slice(-1)[0],
+                low: Math.min(...data.minGwei),
+                high: Math.max(...data.minGwei),
             });
             
             if (error){
@@ -26,7 +43,7 @@ async function buildHistory(){
         console.log(error);
     }
     finally {
-        setTimeout(() => buildHistory(), 1000 * 60); // 1 minute
+        setTimeout(() => buildHistory(network, blocks), 1000 * 60); // 1 minute
     }
 }
 

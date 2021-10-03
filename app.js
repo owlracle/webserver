@@ -1,7 +1,7 @@
 const express = require('express');
 const mustacheExpress = require('mustache-express');
 
-const { configFile, Session, verifyRecaptcha } = require('./utils');
+const { configFile, Session, verifyRecaptcha, networkList } = require('./utils');
 const { buildHistory, updateAllCredit, updateTokenPrice } = require('./background');
 
 let port = 4210;
@@ -23,7 +23,7 @@ const api = require('./api')(app);
 
 
 const args = {
-    saveDB: false,
+    saveDB: true,
     updateCredit: false,
 };
 
@@ -125,7 +125,7 @@ app.listen(port, () => {
 
 if (configFile.production){
     if (args.saveDB){
-        buildHistory();
+        Object.keys(networkList).forEach(n => buildHistory(n));
     }
     if (args.updateCredit){
         updateAllCredit();

@@ -183,11 +183,8 @@ module.exports = app => {
             candles = Math.max(Math.min(candles || 1000, 1000), 1);
             const offset = (parseInt(page) - 1) * candles || 0;
 
-            const gasPriceOpenSql = `(SELECT open FROM price_history WHERE id = MIN(p.id))`;
-            const gasPriceCloseSql = `(SELECT close FROM price_history WHERE id = MAX(p.id))`;
-            const tokenOpenSql = `(SELECT token_price FROM price_history WHERE id = MIN(p.id))`;
-            const tokenCloseSql = `(SELECT token_price FROM price_history WHERE id = MAX(p.id))`;
-            const sql = `SELECT MAX(p.timestamp) AS 'timestamp', count(p.id) AS 'samples', MIN(p.low) AS 'gas.low', MAX(p.high) AS 'gas.high', ${gasPriceOpenSql} AS 'gas.open', ${gasPriceCloseSql} AS 'gas.close', ${req.query.tokenprice ? `MIN(token_price) AS 'token.low', MAX(token_price) AS 'token.high', ${tokenOpenSql} AS 'token.open', ${tokenCloseSql} AS 'token.close',` : ''} AVG(avg_gas) AS 'avg_gas' FROM price_history p WHERE network = ? AND UNIX_TIMESTAMP(timestamp) BETWEEN ? AND ? GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
+            const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(p.id) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network = ? AND UNIX_TIMESTAMP(timestamp) BETWEEN ? AND ? GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
+            // console.log(sql)
             const data = [
                 network,
                 from || 0,
@@ -208,31 +205,40 @@ module.exports = app => {
             }
     
             return rows.map(row => {
+                const open = row.open.split(',').map(e => parseFloat(e));
+                const close = row.close.split(',').map(e => parseFloat(e));
+                const low = row.low.split(',').map(e => parseFloat(e));
+                const high = row.high.split(',').map(e => parseFloat(e));
+                const tokenprice = row.tokenprice.split(',').map(e => parseFloat(e));
+                const avgGas = row.avg_gas.split(',').map(e => parseFloat(e));
+
                 const tempRow = {};
                 tempRow.gasPrice = {
-                    open: parseFloat(row['gas.open']),
-                    close: parseFloat(row['gas.close']),
-                    low: parseFloat(row['gas.low']),
-                    high: parseFloat(row['gas.high']),
+                    open: open[0],
+                    close: close.slice(-1)[0],
+                    low: Math.min(...low),
+                    high: Math.max(...high),
                 }
                 if (req.query.tokenprice){
                     tempRow.tokenPrice = {
-                        open: parseFloat(row['token.open']),
-                        close: parseFloat(row['token.close']),
-                        low: parseFloat(row['token.low']),
-                        high: parseFloat(row['token.high']),
-                    }                    
+                        open: tokenprice[0],
+                        close: tokenprice.slice(-1)[0],
+                        low: Math.min(...tokenprice),
+                        high: Math.max(...tokenprice),
+                    }
                 }
                 if (req.query.txfee){
+                    const txfee = tokenprice.map((t,i) => close[i] * avgGas[i] * t * 0.000000001);
+
                     tempRow.txFee = {
-                        open: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.open']),
-                        close: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.close']),
-                        low: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.low']),
-                        high: parseInt(row['avg_gas']) * 0.000000001 * parseFloat(row['gas.high']),
-                    }                    
+                        open: txfee[0],
+                        close: txfee.slice(-1)[0],
+                        low: Math.min(...txfee),
+                        high: Math.max(...txfee),
+                    }
                 }
 
-                tempRow.avgGas = row['avg_gas'];
+                tempRow.avgGas = avgGas.reduce((p,c) => p + c, 0) / avgGas.length;
                 tempRow.timestamp = row.timestamp;
                 tempRow.samples = row.samples;
                 return tempRow;

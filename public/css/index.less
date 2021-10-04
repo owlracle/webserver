@@ -214,48 +214,13 @@ body {
                         &:hover {
                             background-color: var(--border-color);
                         }
-    
-                        &#instant {
-                            &.active .mark {
-                                background-color: #ff0000cc;
-                            }
-    
-                            .mark {
-                                border: 2px solid #ff0000;
-                            }
+
+                        &.active .mark {
+                            background-color: #ff0000cc;
                         }
                         
-                        &#fast {
-                            &.active .mark {
-                                background-color: #ff00ffcc;
-                            }
-    
-                            .mark {
-                                border: 2px solid #ff00ff;
-                            }
-                        }
-                        
-                        &#standard {
-                            &.active .mark {
-                                background-color: #0000ffcc;
-                            }
-    
-                            .mark {
-                                border: 2px solid #0000ff;
-                            }
-                        }
-                        
-                        &#slow {
-                            &.active .mark {
-                                background-color: #00ff00cc;
-                            }
-    
-                            .mark {
-                                border: 2px solid #00ff00;
-                            }
-                        }
-    
                         .mark {
+                            border: 2px solid #ff0000;
                             display: flex;
                             border-radius: 100%;
                             margin-right: 5px;
@@ -279,6 +244,10 @@ body {
     
                     div {
                         margin-bottom: 5px;
+                    }
+
+                    .name {
+                        color: var(--text-intense-color);
                     }
                 }
             }

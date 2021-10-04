@@ -7,7 +7,7 @@ const fs = require('fs');
 // get prices to build database with price history
 async function buildHistory(network, blocks){
     try{
-        const data = await requestOracle(network, blocks || 60);
+        const data = await requestOracle(networkList[network].name, blocks || 60);
 
         if (data.minGwei){
             const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);

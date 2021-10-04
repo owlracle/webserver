@@ -138,6 +138,7 @@ const chart = {
     candles: 1000,
     lastCandle: (new Date().getTime() / 1000).toFixed(0),
     allRead: false,
+    network: location.pathname.split('/')[1],
 
     init: async function() {
         await this.package;
@@ -159,32 +160,39 @@ const chart = {
             this.obj.resize(Math.min(document.querySelector('#frame').offsetWidth - 20, 600), 300);
         });
     
-        this.series = {
-            instant: { color: '#ff0000' },
-            fast: { color: '#ff00ff' },
-            standard: { color: '#0000ff' },
-            slow: { color: '#00ff00' },
-        };
+        this.series = { gas: {}, token: {}, fee: {} };
+        Object.values(this.series).forEach(e => { return {
+            colorUp: '#4CA69A',
+            colorDown: '#E0544E',
+        }});
         
-        // set speed buttons behaviour
-        Object.entries(this.series).forEach(([key, value]) => {
-            document.querySelector(`#toggle-container #${key}`).addEventListener('click', async function() {
-                this.classList.toggle('active');
-                value.visible = this.classList.contains('active');
-    
-                if (value.series){
-                    value.series.applyOptions({
-                        visible: value.visible
-                    });
-                }
-            });
-        });
+        // set modality buttons behaviour
+        document.querySelectorAll(`#chart-container #toggle-container button`).forEach(e => e.addEventListener('click', async () => {
+            if (!e.classList.contains('active')){
+                document.querySelectorAll(`#chart-container #toggle-container button`).forEach(a => {
+                    const series = this.series[a.id];
+                    if (a == e){
+                        a.classList.add('active');
+                        series.visible = true;
+                    }
+                    else {
+                        a.classList.remove('active');
+                        series.visible = false;
+                    }
+
+                    if (series.series){
+                        series.series.applyOptions({ visible: series.visible });
+                    }
+                });
+            }
+        }));
     
         const container = document.querySelector('#chart');
         const toolTip = document.createElement('div');
         toolTip.id = 'tooltip-chart';
         container.appendChild(toolTip);
     
+        // hover mouse over candles
         this.obj.subscribeCrosshairMove(param => {
             const s = Object.keys(this.series).map(e => this.series[e].series);
             if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
@@ -193,12 +201,22 @@ const chart = {
             else {
                 toolTip.style.display = 'block';
     
-                toolTip.innerHTML = Object.keys(this.series).filter(e => this.series[e].visible).map(e => {
-                    const price = param.seriesPrices.get(this.series[e].series);
-                    const key = e.charAt(0).toUpperCase() + e.slice(1);
-                    return `<div class="${key.toLowerCase()}">${key}: ${price}</div>`;
+                
+                const visibleSerie = Object.keys(this.series).filter(e => this.series[e].visible)[0];
+                const price = param.seriesPrices.get(this.series[visibleSerie].series);
+                // console.log(price)
+                toolTip.innerHTML = Object.entries(price).map(([key, value]) => {
+                    const name = key.charAt(0).toUpperCase() + key.slice(1);
+                    
+                    // trunc to max 4 decimal places
+                    if (value.toString().split('.').length >= 2 && value.toString().split('.')[1].length > 4){
+                        value = value.toString().split('.');
+                        value = value[0] + '.' + value[1].slice(0,4);
+                    }
+
+                    return `<div class="${key}"><span class="name">${name}</span>: ${value}</div>`;
                 }).join('');
-    
+
                 const coordinateY = container.offsetTop + 10;
                 const coordinateX = container.offsetLeft + 10;
     
@@ -207,6 +225,7 @@ const chart = {
             }
         });
 
+        // switch time frames
         document.querySelectorAll('#timeframe-switcher button').forEach(b => b.addEventListener('click', async () => {
             document.querySelectorAll('#timeframe-switcher button').forEach(e => e.classList.remove('active'));
             const text = b.innerHTML;
@@ -255,19 +274,27 @@ const chart = {
     update: function(data) {
         // console.log(data);
         if (data.length){
+            const seriesName = { gas: 'gasPrice', token: 'tokenPrice', fee: 'txFee'};
+
             Object.entries(this.series).forEach(([key, value]) => {
                 const speedData = data.map(e => { return { 
-                    value: e[key].high,
+                    // value: e[key].high,
+                    open: e[seriesName[key]].open,
+                    close: e[seriesName[key]].close,
+                    low: e[seriesName[key]].low,
+                    high: e[seriesName[key]].high,
                     time: parseInt(new Date(e.timestamp).getTime() / 1000),
                 }}).reverse();
         
-                // [{ time: '2018-10-19', open: 180.34, high: 180.99, low: 178.57, close: 179.85 },]
                 if (!value.series){
-                    value.series = this.obj.addAreaSeries({
-                        lineColor: value.color,
-                        topColor: value.color,
-                        bottomColor: `${value.color}30`,
-                        lineWidth: 2,
+                    value.series = this.obj.addCandlestickSeries({
+                        upColor: value.colorUp,
+                        downColor: value.colorDown,
+                        borderDownColor: value.colorDown,
+                        borderUpColor: value.colorUp,
+                        wickDownColor: value.colorDOwn,
+                        wickUpColor: value.colorUp,
+                      
                         visible: false,
                     });
                 }
@@ -307,7 +334,8 @@ const chart = {
         this.timeframe = timeframe;
         const sessionid = await session.get();
         const token = await recaptcha.getToken();
-        this.history = await (await fetch(`/history?grc=${token}&sid=${sessionid}&timeframe=${timeframe}&page=${page}&candles=${candles}&to=${this.lastCandle}`)).json();
+        this.history = await (await fetch(`/${this.network}/history?grc=${token}&sid=${sessionid}&timeframe=${timeframe}&page=${page}&candles=${candles}&to=${this.lastCandle}&tokenprice=true&txfee=true`)).json();
+        // console.log(this.history)
         if (this.history.error){
             console.log(this.history);
 
@@ -749,7 +777,7 @@ gasTimer.onUpdate = function(data, requestTime){
         sample.classList.add('loaded');
 
         document.querySelector(`#timeframe-switcher #tf-60`).click();
-        document.querySelector(`#toggle-container #standard`).click();
+        document.querySelector(`#toggle-container #gas`).click();
     }
 }
 

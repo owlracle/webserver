@@ -377,11 +377,18 @@ const theme = {
             if (oldName != name && window.__CPEmbed){
                 codePens.forEach(e => e.update());
             }
+
+            if (typeof particlesJS !== 'undefined'){
+                particlesJS.load('frame', `config/particles-${name}.json`)
+            }
         }
     },
 
     load: function() {
         this.set(cookies.get('theme') || this.choice);
+
+        // particles background
+        new DynamicScript('https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js', () => particlesJS.load('frame', `config/particles-${this.choice}.json`));
     },
 
     toggle: function() {
@@ -404,10 +411,11 @@ document.querySelector('#theme').addEventListener('click' , () => theme.toggle()
 const price = {
     current: 0,
     element: document.querySelector('#price'),
+    token: 'BNB',
 
     get: async function() {
-        const url = `https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT`;
-        const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=BNBUSDT`;
+        const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
+        const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
 
         const price = (await (await fetch(url)).json()).price;
         const price24h = (await (await fetch(url24)).json()).priceChangePercent;
@@ -435,9 +443,6 @@ const price = {
         this.element.querySelector('#before').innerHTML = this.current.changePercent;
     }
 };
-
-price.update();
-setInterval(() => price.update(), 10000); // update every 10s
 
 
 // search api key button
@@ -715,7 +720,7 @@ const gasTimer = {
         const sessionid = await session.get();
         const token = await recaptcha.getToken();
         const startTime = new Date();
-        const data = await (await fetch(`/gas?grc=${token}&sid=${sessionid}&network=${network.symbol}`)).json();
+        const data = await (await fetch(`/${network.symbol}/gas?grc=${token}&sid=${sessionid}`)).json();
         const requestTime = new Date() - startTime;
 
         if (data.error){
@@ -751,10 +756,11 @@ gasTimer.init(30000, 100);
 gasTimer.onUpdate = function(data, requestTime){
     const speedList = ['slow', 'standard', 'fast', 'instant'];
     document.querySelectorAll('.gas .body').forEach((e,i) => {
-        if (data[speedList[i]]){
-            const gas = (gas => gas.toFixed(gas == parseInt(gas) ? 0 : 2))(data[speedList[i]]);
+        if (data.gasPrice){
+            const gas = (gas => gas.toFixed(gas == parseInt(gas) ? 0 : 2))(data.gasPrice[i]);
+            const fee = data.estimatedFee[i].toFixed(4);
             e.querySelector('.gwei').innerHTML = `${gas} GWei`;
-            // e.querySelector('.usd').innerHTML = `$${data[speedList[i]] * 0.000000001}`;
+            e.querySelector('.usd').innerHTML = `$ ${fee}`;
         }
     });
 
@@ -1649,12 +1655,12 @@ document.querySelectorAll('.template-var').forEach(e => e.remove());
 
 // build faq
 const faq = [
+    [`How do you make the gas price predictions?`,
+    `This tool attempts to predict the gas price to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas price. Every speed is measured by calculating the minimum gas price paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations.`],
     [`Your website looks so much like <a href="https://bscgas.info" target="_blank">bscgas</a>. Is it a coincidence?`,
-    `Not at all. We are the same as bscgas. But as soon as we noticed the demand to expand to other networks, we created owlracle to be a gas price oracle hub on every major chains. We also developed our own oracle software, so we thought we should rebrand ourselves.`],
+    `Not at all. We are the same team as bscgas. But as soon as we noticed the demand to expand to other networks, we created owlracle to be a gas price oracle hub on every major chain. We also developed our own oracle software, so we thought we should rebrand ourselves.`],
     [`How do you predict the gas price fee?`,
     `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
-    [`Why does gas prices are always showing 5 GWei? Is the service bugged?`,
-    `It is perfectly fine. Binance Smart Chain gas prices are almost always 5 GWei. If ever the network becomes congested we should see a price spike.`],
     [`My app have thousands of user requesting bscgas service. The API limit seems too low.`,
     `You should never call our API from the frond-end. Schedule your server to retrieve information at time intervals of your choice, then when your users request it, just send the cached data to them.`],
     [`Shouldn't I be worried if users peek into my app's source-code and discover my API key?`,
@@ -1674,11 +1680,11 @@ document.querySelector('#link-reset-key').addEventListener('click', () => api.sh
 
 (obj => {
     const networks = {
-        eth: { name: 'Ethereum' },
-        avax: { name: 'Avalanche'},
-        poly: { name: 'Polygon'},
-        ftm: { name: 'Fantom'},
-        bsc: { name: 'BSC', longName: 'Binance Smart Chain' },
+        eth: { name: 'Ethereum', token: 'ETH' },
+        avax: { name: 'Avalanche', token: 'AVAX' },
+        poly: { name: 'Polygon', token: 'MATIC' },
+        ftm: { name: 'Fantom', token: 'FTM' },
+        bsc: { name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB' },
     };
     const symbol = window.location.pathname.split('/')[1] || 'bsc';
     network = networks[symbol];
@@ -1712,4 +1718,23 @@ document.querySelector('#link-reset-key').addEventListener('click', () => api.sh
         fog.addEventListener('click', () => fog.remove());
     });
 
+    document.querySelector("#chain").innerHTML = network.name;
+
+    price.token = network.token;
+    price.update();
+    setInterval(() => price.update(), 10000); // update every 10s
+
+    document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
+    document.querySelectorAll('.chain-name').forEach(e => e.innerHTML = network.name);
+
 })(document.querySelector('#network'));
+
+
+// smooth scrolling when clicking link
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+    });
+});
+

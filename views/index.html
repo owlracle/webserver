@@ -29,9 +29,9 @@
     <header>
         <div class="col">
             <a id="logo" href="/"><img src="img/egg.png" alt="Owlracle logo"></a>
-            <div id="price"><div>BNB: $<span id="now">000.00</span></div><span id="color" class="green">(<span id="before">+0.00</span>%)</span></div>
+            <div id="price"><div><span class="token-name"></span>: $<span id="now"></span></div><span id="color" class="green">(<span id="before"></span>%)</span></div>
             <a id="buy-bnb" href="https://www.binance.com/en/register?ref=88450796" target="_blank" rel="noopener"><img
-                    src="img/binance.ico" alt="binance logo">Buy BNB</a>
+                    src="img/binance.ico" alt="binance logo">Buy <span class="token-name"></span></a>
         </div>
         <div class="col">
             <div id="theme"></div>
@@ -59,37 +59,35 @@
                 </div>
             </div>
     
-            <p>This tool attempts to predict the gas price to be paid on Binance Smart Chain by averaging recent past transactions. Take into consideration that the numbers shown here are just estimations.</p>
-    
-            <p>Right now, submitting transactions on the BSC network should cost:</p>
+            <p id="intro">Owlracle says you should pay no more than this for <b>Gas Price</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
     
             <div id="gas-container">
                 <div class="gas">
                     <div class="title">Slow <i class="far fa-question-circle"></i></div>
                     <div class="body">
                         <div class="gwei"><i class="fas fa-spin fa-cog"></i></div>
-                        <!-- <div class="usd">$0</div> -->
+                        <div class="usd"></div>
                     </div>
                 </div>
                 <div class="gas">
                     <div class="title">Standard <i class="far fa-question-circle"></i></div>
                     <div class="body">
                         <div class="gwei"><i class="fas fa-spin fa-cog"></i></div>
-                        <!-- <div class="usd">$0</div> -->
+                        <div class="usd"></div>
                     </div>
                 </div>
                 <div class="gas">
                     <div class="title">Fast <i class="far fa-question-circle"></i></div>
                     <div class="body">
                         <div class="gwei"><i class="fas fa-spin fa-cog"></i></div>
-                        <!-- <div class="usd">$0</div> -->
+                        <div class="usd"></div>
                     </div>
                 </div>
                 <div class="gas">
                     <div class="title">Instant <i class="far fa-question-circle"></i></div>
                     <div class="body">
                         <div class="gwei"><i class="fas fa-spin fa-cog"></i></div>
-                        <!-- <div class="usd">$0</div> -->
+                        <div class="usd"></div>
                     </div>
                 </div>
             </div>
@@ -303,7 +301,7 @@
             <div id="codepen2"></div>
     
             
-            <h2>Frequently Asked Questions</h2>
+            <h2 id="faq-title">Frequently Asked Questions</h2>
     
             <div id="faq"></div>
     
@@ -329,18 +327,18 @@
                 <div class="title">Resources</div>
 
                 <a class="item" href="https://bscscan.com/" target="_blank" rel="noopener"><img
-                        src="https://bscscan.com//images/favicon.ico" alt="bscscan logo"><span>BSC scan</span><span class="gray">(BSC block
+                        src="https://bscscan.com//images/favicon.ico" alt="bscscan logo" class="icon"><span>BSC scan</span><span class="gray">(BSC block
                         explorer)</span></a>
                 <a class="item" href="https://www.binance.com/" target="_blank" rel="noopener"><img
-                        src="img/binance.ico" alt="binance logo"><span>Binance</span><span
-                        class="gray">(Buy BNB with fiat)</span></a>
+                        src="img/binance.ico" alt="binance logo" class="icon"><span>Binance</span><span
+                        class="gray">(Buy <span class="token-name"></span> with fiat)</span></a>
                 <!-- <a class="item" href="https://pancakeswap.finance/" target="_blank" rel="noopener"><img
                         src="https://pancakeswap.finance/favicon.ico" alt="pancakeswap logo"><span>Pancakeswap</span><span class="gray">(Dex
                         exchange)</span></a>
                 <a class="item" href="https://www.beefy.finance/" target="_blank" rel="noopener"><img
                         src="https://beefy.finance/favicon.ico" alt="beefy finance logo"><span>Beefy.finance</span><span class="gray">(BSC yield
                         farming)</span></a> -->
-                <a class="item" href="https://t.me/owlracle" target="_blank" rel="noopener"><i class="fas fa-handshake"></i><span><b>Want your project here?</b></span><span class="gray">(Contact us)</span></a>
+                <a class="item" href="https://t.me/owlracle" target="_blank" rel="noopener"><i class="fas fa-handshake icon"></i><span><b>Want your project here?</b></span><span class="gray">(Contact us)</span></a>
             </div>
             <div class="col">
                 <div class="row title">Social</div>
@@ -353,7 +351,7 @@
         </div>
         <div id="donate-container" class="row">
             <div id="donate" class="disabled">
-                <span>Donate BNB (BSC):</span>
+                <span>Donate <span class="token-name"></span> (<span class="chain-name"></span>):</span>
                 <div>
                     <span id="wallet"></span>
                     <i class="fas fa-qrcode"></i>

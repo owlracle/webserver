@@ -363,6 +363,7 @@ const theme = {
         light: 'moon'
     },
     choice: 'dark',
+    particles: true,
 
     set: function(name){
         if (this.options.includes(name)){
@@ -373,13 +374,14 @@ const theme = {
             cookies.set('theme', name, { expires: { days: 365 } });
             document.querySelector('header #theme').innerHTML = `<i class="fas fa-${this.icons[name]}"></i>`;
             chart.setTheme(name);
-
+            
             if (oldName != name && window.__CPEmbed){
                 codePens.forEach(e => e.update());
             }
-
-            if (typeof particlesJS !== 'undefined'){
-                particlesJS.load('frame', `config/particles-${name}.json`)
+            
+            // already loaded, reload
+            if (typeof tsParticles !== 'undefined' && cookies.get('particles') == 'true'){
+                tsParticles.loadJSON('frame', `config/particles-${name}.json`)
             }
         }
     },
@@ -387,8 +389,14 @@ const theme = {
     load: function() {
         this.set(cookies.get('theme') || this.choice);
 
-        // particles background
-        new DynamicScript('https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js', () => particlesJS.load('frame', `config/particles-${this.choice}.json`));
+        cookies.set('particles', cookies.get('particles') || this.particles, { expires: { days: 365 } });
+        if (cookies.get('particles') == 'true'){
+            // particles background
+            new DynamicScript('https://cdn.jsdelivr.net/npm/tsparticles@1.9.2/dist/tsparticles.min.js', () => tsParticles.loadJSON('frame', `config/particles-${this.choice}.json`));
+        }
+        else if (document.querySelector('canvas.tsparticles-canvas-el')){
+            document.querySelector('canvas.tsparticles-canvas-el').remove();
+        }
     },
 
     toggle: function() {
@@ -405,6 +413,10 @@ const theme = {
 theme.load();
 document.querySelector('#theme').addEventListener('click' , () => theme.toggle());
 
+document.querySelector('#toggle-bg').addEventListener('click' , () => {
+    cookies.set('particles', cookies.get('particles') == 'false', { expires: { days: 365 } });
+    theme.load();
+});
 
 // fetch bnb price from binance and update the pages's ticker
 
@@ -617,15 +629,26 @@ async function fadeOut(elem, time=300){
 
 class Tooltip {
     constructor(parent, text, {
-        createEvent= 'click',
-        killEvent= 'mouseleave',
-        timeout= null
+        createEvent = 'click',
+        killEvent = 'mouseleave',
+        delay = 0,
+        timeout = null,
     }={}) {
         this.parent = parent;
+
+        if (!text){
+            text = parent.title;
+            parent.removeAttribute('title');
+        }
         this.text = text;
 
         this.parent.addEventListener(createEvent, e => {
-            this.create(e);
+            this.pendingCreate = true;
+            setTimeout(() => {
+                if (this.pendingCreate){
+                    this.create(e);
+                }
+            }, delay);
 
             if (timeout){
                 setTimeout(() => this.kill(), timeout);
@@ -633,7 +656,10 @@ class Tooltip {
         });
 
         if (killEvent == 'mouseleave') {
-            this.parent.addEventListener(killEvent, () => this.kill());
+            this.parent.addEventListener(killEvent, () => {
+                this.pendingCreate = false;
+                this.kill();
+            });
         }
 
 
@@ -652,6 +678,12 @@ class Tooltip {
         document.querySelectorAll('.tooltip').forEach(e => e.remove());
 
         this.parent.insertAdjacentElement('afterend', tooltip);
+
+        // move tooltip more to the left if it reached window corner
+        if (tooltip.offsetLeft + tooltip.offsetWidth > window.outerWidth){
+            tooltip.style.left = `${event.x - tooltip.offsetWidth}px`;
+        }
+
         fadeIn(tooltip, 200);
     }
 
@@ -759,8 +791,6 @@ gasTimer.onUpdate = function(data, requestTime){
         }
     });
 
-    setColorGradient(document.querySelector('#time-sign'), requestTime);
-
     const sample = document.querySelector('#sample');
     if (!sample.classList.contains('loaded')){        
         const formatted = `{
@@ -783,20 +813,9 @@ gasTimer.onUpdate = function(data, requestTime){
 }
 
 
-const tooltipColor = new Tooltip(document.querySelector('#time-sign'), '', { createEvent: 'mouseenter' });
-
-function setColorGradient(elem, time){
-    const maxTime = 10000;
-    const rate = Math.min(time, maxTime) / maxTime;
-
-    const color = {b: '00', toString: color => '00'.slice(color.toString(16).length) + color.toString(16)};
-    color.r = color.toString(Math.round(rate * 200));
-    color.g = color.toString(Math.round((1 - rate) * 200));
-
-    elem.style['background-color'] = `#${color.r}${color.g}${color.b}`;
-    tooltipColor.setText(`API took ${(time/1000).toFixed(2)}s to respond`);
-
-}
+// set tooltips
+new Tooltip(document.querySelector('#toggle-bg'), 'Toggle background animation', { delay: 1000, createEvent: 'mouseenter' });
+new Tooltip(document.querySelector('#theme'), 'Toggle light/dark mode', { delay: 1000, createEvent: 'mouseenter' });
 
 
 // codepen ID, fill divs with an embed codepen

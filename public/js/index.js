@@ -1,7 +1,4 @@
-let network;
-
 // request google recaptcha v3 token
-
 const recaptcha = {
     ready: false,
     loading: false,
@@ -130,6 +127,302 @@ const cookies = {
 };
 
 
+// fetch bnb price from binance and update the pages's ticker
+
+const price = {
+    current: 0,
+    element: document.querySelector('#price'),
+    token: 'BNB',
+
+    get: async function() {
+        const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
+        const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
+
+        const price = (await (await fetch(url)).json()).price;
+        const price24h = (await (await fetch(url24)).json()).priceChangePercent;
+
+        return {
+            now: parseFloat(price).toFixed(2),
+            changePercent: parseFloat(price24h).toFixed(2), 
+        }
+    },
+
+    update: async function() {
+        this.current = await this.get();
+
+        if (this.current.changePercent < 0){
+            this.element.querySelector('#color').classList.remove('green');
+            this.element.querySelector('#color').classList.add('red');
+        }
+        else {
+            this.element.querySelector('#color').classList.remove('red');
+            this.element.querySelector('#color').classList.add('green');
+            this.current.changePercent = `+${this.current.changePercent}`;
+        }
+
+        this.element.querySelector('#now').innerHTML = this.current.now;
+        this.element.querySelector('#before').innerHTML = this.current.changePercent;
+    }
+};
+
+
+// search api key button
+
+document.querySelector('#search #api-info').addEventListener('click', async () => {
+    const glyph = document.querySelector('#search #api-info i');
+    glyph.classList.remove('fa-search');
+    glyph.classList.add('fa-spin', 'fa-cog');
+
+    const input = document.querySelector('#search input');
+    input.setAttribute('disabled', true);
+
+    const key = input.value.trim().toLowerCase();
+    if (key.match(api.regex.apiKey)){
+        const data = await api.getKey(key);
+        api.showModal();
+        api.showWindowInfo(data);
+
+    }
+    glyph.classList.remove('fa-spin', 'fa-cog');    
+    glyph.classList.add('fa-search');
+    input.removeAttribute('disabled');
+    input.value = '';
+});
+
+document.querySelector('#search input').addEventListener('keyup', e => {
+    if (e.key == 'Enter'){
+        document.querySelector('#search #api-info').click();
+    }
+});
+
+document.querySelector('#search #drop').addEventListener('click', async function() {
+    const dropdown = document.createElement('div');
+    dropdown.id = 'dropdown';
+
+    dropdown.innerHTML = `
+        <div id="create-key" class="item">Create API key</div>
+        <div id="edit-key" class="item">Edit API key</div>
+        <div id="info-key" class="item">API key info</div>
+    `;
+
+    dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
+    dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
+
+    dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => api.showModal(e.id.split('-')[0])));
+    
+    const fog = document.createElement('div');
+    fog.id = 'fog';
+    fog.classList.add('invisible');
+
+
+    document.body.appendChild(fog);
+    fog.appendChild(dropdown);
+
+    fog.addEventListener('click', () => fog.remove());
+});
+
+
+// function bscScanSearch() {
+//     const input = document.querySelector('#search input');
+//     const url = `https://bscscan.com/search?q=`;
+
+//     if (input.value.length > 0){
+//         window.open(`${url}${input.value}`);
+//     }
+//     input.value = '';
+// }
+
+
+// create modal about donation
+
+const wallet = {
+    address: '0xA6E126a5bA7aE209A92b16fcf464E502f27fb658',
+
+    loadImg: async function(elem, network) {
+        return new Promise(resolve => {
+            this.img = new Image();
+            const url = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=`;
+
+            this.shortAddress = `${this.address.slice(0,6)}...${this.address.slice(-4)}`;
+            elem.querySelector('#wallet').innerHTML = `<span class="long">${this.address}</span><span class="short">${this.shortAddress}</span>`;
+
+            this.img.src = `${url}${this.address}`;
+    
+            this.img.onload = () => {
+                elem.classList.remove('disabled');
+                elem.addEventListener('click', () => this.showModal(network));
+                resolve(this.img)
+            };
+        });
+    },
+
+    bindModal: function(elem, network) {
+        elem.addEventListener('click', () => this.showModal(network));
+    },
+
+    showModal: function(network){
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+        fog.innerHTML = `<div id="donate-window" class="${network.symbol}">
+            <div id="title">
+                <span>${network.longName ? `${network.longName} (${network.name})` : network.name}</span>
+                <span class="big">${network.token} Wallet</span>
+            </div>
+            <div id="qr"><img src="${this.img.src}"></div>
+            <div id="colored">
+                <div id="wallet-container">
+                    <div id="wallet">${this.shortAddress}</div>
+                    <div id="copy"><i class="far fa-copy"></i></div>
+                </div>
+            </div>
+        </div>`;
+
+        fog.addEventListener('click', () => fog.remove());
+        fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+    
+        fog.querySelector('#wallet-container').addEventListener('click', () => this.copyAddress());
+
+        document.body.appendChild(fog);
+        fadeIn(fog, 500);
+    },
+
+    copyAddress: function(){
+        const elem = document.querySelector('#fog #wallet');
+        const oldText = elem.innerHTML;
+        elem.innerHTML = `COPIED`;
+
+        const container = document.querySelector('#fog #wallet-container');
+        container.classList.add('copy');
+
+        setTimeout(() => {
+            elem.innerHTML = oldText;
+            container.classList.remove('copy');
+        }, 500);
+
+        navigator.clipboard.writeText(this.address);
+    }
+};
+
+
+// fade in and out function (work on any element)
+
+async function fadeIn(elem, time=300){
+    return new Promise(resolve => {
+        const oldStyle = elem.getAttribute('style');
+        elem.style.transition = `${time/1000}s opacity`;
+        elem.style.opacity = '0';
+    
+        setTimeout(() => elem.style.opacity = '1', 1);
+        setTimeout(() => {
+            elem.removeAttribute('style');
+            elem.style = oldStyle;
+            resolve(true);
+        }, time + 100);
+    });
+}
+
+async function fadeOut(elem, time=300){
+    return new Promise(resolve => {
+        elem.style.transition = `${time/1000}s opacity`;
+        
+        setTimeout(() => elem.style.opacity = '0', 1);
+        setTimeout(() => {
+            elem.remove();
+            resolve(true);
+        }, time + 100);
+    });
+}
+
+
+// set the corresponding network in header
+// place elements specific to the network
+
+const network = (symbol => {
+    const networks = {
+        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
+            icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io/', name: 'Etherscan'
+        } },
+        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
+            icon: 'https://explorer.avax.network/favicon.ico', href: 'https://explorer.avax.network/', name: 'Avalanche Explorer'
+        } },
+        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
+            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com/', name: 'PolygonScan'
+        } },
+        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
+            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com/', name: 'FtmScan'
+        } },
+        bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
+            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com/', name: 'BscScan'
+        } },
+    };
+
+    // no network set, redirect to last network
+    if (symbol == ''){
+        location.href = '/' + cookies.get('network') || 'bsc';
+        return;
+    }
+    
+    cookies.set('network', symbol, { expires: { days: 365 } });
+    const network = networks[symbol];
+    network.symbol = symbol;
+
+    // place network button in header
+    const obj = document.querySelector('#network-btn');
+    obj.classList.add(symbol);
+    obj.querySelector('.name').innerHTML = network.name;
+    obj.querySelector('.icon').src = `img/${symbol}.png`;
+
+    document.querySelector('#title #network-name').innerHTML = `${network.longName || network.name}'s`;
+
+    // network button action
+    obj.addEventListener('click', function() {
+        const dropdown = document.createElement('div');
+        dropdown.id = 'dropdown';
+    
+        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></div>`).join('');
+    
+        dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
+        dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
+    
+        dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => window.location.href = `/${e.id}`));
+        
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+        fog.classList.add('invisible');
+    
+    
+        document.body.appendChild(fog);
+        fog.appendChild(dropdown);
+    
+        fog.addEventListener('click', () => fog.remove());
+    });
+
+    document.querySelector("#chain").innerHTML = network.name;
+
+    // set the right token to price fetch according to the network
+    price.token = network.token;
+    price.update();
+    setInterval(() => price.update(), 10000); // update every 10s
+
+    document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
+    document.querySelectorAll('.chain-symbol').forEach(e => e.innerHTML = network.symbol);
+    document.querySelectorAll('.chain-name').forEach(e => e.innerHTML = network.name);
+
+    // set network block explorer in footer
+    const explorer = document.querySelector('footer .resources #explorer');
+    explorer.href = network.explorer.href;
+    explorer.querySelector('img').src = network.explorer.icon;
+    explorer.querySelector('.name').innerHTML = network.explorer.name;
+
+    // set donation wallet modal
+    wallet.loadImg(document.querySelector('#donate'), network);
+    document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
+
+    return network;
+})(document.querySelector('#network').value);
+
+
+// create price chart
 const chart = {
     package: import('https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js'),
     ready: false,
@@ -138,7 +431,7 @@ const chart = {
     candles: 1000,
     lastCandle: (new Date().getTime() / 1000).toFixed(0),
     allRead: false,
-    network: location.pathname.split('/')[1],
+    network: network.symbol,
 
     init: async function() {
         await this.package;
@@ -355,7 +648,6 @@ chart.init();
 
 
 // change theme dark/light
-
 const theme = {
     options: ['dark', 'light'],
     icons: {
@@ -409,7 +701,6 @@ const theme = {
         return this.choice;
     }
 };
-
 theme.load();
 document.querySelector('#theme').addEventListener('click' , () => theme.toggle());
 
@@ -417,212 +708,6 @@ document.querySelector('#toggle-bg').addEventListener('click' , () => {
     cookies.set('particles', cookies.get('particles') == 'false', { expires: { days: 365 } });
     theme.load();
 });
-
-// fetch bnb price from binance and update the pages's ticker
-
-const price = {
-    current: 0,
-    element: document.querySelector('#price'),
-    token: 'BNB',
-
-    get: async function() {
-        const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
-        const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
-
-        const price = (await (await fetch(url)).json()).price;
-        const price24h = (await (await fetch(url24)).json()).priceChangePercent;
-
-        return {
-            now: parseFloat(price).toFixed(2),
-            changePercent: parseFloat(price24h).toFixed(2), 
-        }
-    },
-
-    update: async function() {
-        this.current = await this.get();
-
-        if (this.current.changePercent < 0){
-            this.element.querySelector('#color').classList.remove('green');
-            this.element.querySelector('#color').classList.add('red');
-        }
-        else {
-            this.element.querySelector('#color').classList.remove('red');
-            this.element.querySelector('#color').classList.add('green');
-            this.current.changePercent = `+${this.current.changePercent}`;
-        }
-
-        this.element.querySelector('#now').innerHTML = this.current.now;
-        this.element.querySelector('#before').innerHTML = this.current.changePercent;
-    }
-};
-
-
-// search api key button
-
-document.querySelector('#search #api-info').addEventListener('click', async () => {
-    const glyph = document.querySelector('#search #api-info i');
-    glyph.classList.remove('fa-search');
-    glyph.classList.add('fa-spin', 'fa-cog');
-
-    const input = document.querySelector('#search input');
-    input.setAttribute('disabled', true);
-
-    const key = input.value.trim().toLowerCase();
-    if (key.match(api.regex.apiKey)){
-        const data = await api.getKey(key);
-        api.showModal();
-        api.showWindowInfo(data);
-
-    }
-    glyph.classList.remove('fa-spin', 'fa-cog');    
-    glyph.classList.add('fa-search');
-    input.removeAttribute('disabled');
-    input.value = '';
-});
-
-document.querySelector('#search input').addEventListener('keyup', e => {
-    if (e.key == 'Enter'){
-        document.querySelector('#search #api-info').click();
-    }
-});
-
-document.querySelector('#search #drop').addEventListener('click', async function() {
-    const dropdown = document.createElement('div');
-    dropdown.id = 'dropdown';
-
-    dropdown.innerHTML = `
-        <div id="create-key" class="item">Create API key</div>
-        <div id="edit-key" class="item">Edit API key</div>
-        <div id="info-key" class="item">API key info</div>
-    `;
-
-    dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
-    dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
-
-    dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => api.showModal(e.id.split('-')[0])));
-    
-    const fog = document.createElement('div');
-    fog.id = 'fog';
-    fog.classList.add('invisible');
-
-
-    document.body.appendChild(fog);
-    fog.appendChild(dropdown);
-
-    fog.addEventListener('click', () => fog.remove());
-});
-
-
-// function bscScanSearch() {
-//     const input = document.querySelector('#search input');
-//     const url = `https://bscscan.com/search?q=`;
-
-//     if (input.value.length > 0){
-//         window.open(`${url}${input.value}`);
-//     }
-//     input.value = '';
-// }
-
-
-// create modal about donation
-
-const wallet = {
-    address: '0xA6E126a5bA7aE209A92b16fcf464E502f27fb658',
-
-    loadImg: async function(elem, network) {
-        return new Promise(resolve => {
-            this.img = new Image();
-            const url = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=`;
-
-            this.shortAddress = `${this.address.slice(0,6)}...${this.address.slice(-4)}`;
-            elem.querySelector('#wallet').innerHTML = `<span class="long">${this.address}</span><span class="short">${this.shortAddress}</span>`;
-
-            this.img.src = `${url}${this.address}`;
-    
-            this.img.onload = () => {
-                elem.classList.remove('disabled');
-                elem.addEventListener('click', () => this.showModal(network));
-                resolve(this.img)
-            };
-        });
-    },
-
-    bindModal: function(elem, network) {
-        elem.addEventListener('click', () => this.showModal(network));
-    },
-
-    showModal: function(network){
-        const fog = document.createElement('div');
-        fog.id = 'fog';
-        fog.innerHTML = `<div id="donate-window" class="${network.symbol}">
-            <div id="title">
-                <span>${network.longName ? `${network.longName} (${network.name})` : network.name}</span>
-                <span class="big">${network.token} Wallet</span>
-            </div>
-            <div id="qr"><img src="${this.img.src}"></div>
-            <div id="colored">
-                <div id="wallet-container">
-                    <div id="wallet">${this.shortAddress}</div>
-                    <div id="copy"><i class="far fa-copy"></i></div>
-                </div>
-            </div>
-        </div>`;
-
-        fog.addEventListener('click', () => fog.remove());
-        fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
-    
-        fog.querySelector('#wallet-container').addEventListener('click', () => this.copyAddress());
-
-        document.body.appendChild(fog);
-        fadeIn(fog, 500);
-    },
-
-    copyAddress: function(){
-        const elem = document.querySelector('#fog #wallet');
-        const oldText = elem.innerHTML;
-        elem.innerHTML = `COPIED`;
-
-        const container = document.querySelector('#fog #wallet-container');
-        container.classList.add('copy');
-
-        setTimeout(() => {
-            elem.innerHTML = oldText;
-            container.classList.remove('copy');
-        }, 500);
-
-        navigator.clipboard.writeText(this.address);
-    }
-};
-
-
-// fade in and out function (work on any element)
-
-async function fadeIn(elem, time=300){
-    return new Promise(resolve => {
-        const oldStyle = elem.getAttribute('style');
-        elem.style.transition = `${time/1000}s opacity`;
-        elem.style.opacity = '0';
-    
-        setTimeout(() => elem.style.opacity = '1', 1);
-        setTimeout(() => {
-            elem.removeAttribute('style');
-            elem.style = oldStyle;
-            resolve(true);
-        }, time + 100);
-    });
-}
-
-async function fadeOut(elem, time=300){
-    return new Promise(resolve => {
-        elem.style.transition = `${time/1000}s opacity`;
-        
-        setTimeout(() => elem.style.opacity = '0', 1);
-        setTimeout(() => {
-            elem.remove();
-            resolve(true);
-        }, time + 100);
-    });
-}
 
 
 // tooltip class
@@ -783,28 +868,18 @@ gasTimer.init(30000, 100);
 gasTimer.onUpdate = function(data, requestTime){
     const speedList = ['slow', 'standard', 'fast', 'instant'];
     document.querySelectorAll('.gas .body').forEach((e,i) => {
-        if (data.gasPrice){
-            const gas = (gas => gas.toFixed(gas == parseInt(gas) ? 0 : 2))(data.gasPrice[i]);
-            const fee = data.estimatedFee[i].toFixed(4);
+        if (data.speeds){
+            const gas = (gas => gas.toFixed(gas == parseInt(gas) ? 0 : 2))(data.speeds[i].gasPrice);
+            const fee = data.speeds[i].estimatedFee.toFixed(4);
             e.querySelector('.gwei').innerHTML = `${gas} GWei`;
             e.querySelector('.usd').innerHTML = `$ ${fee}`;
         }
     });
 
     const sample = document.querySelector('#sample');
-    if (!sample.classList.contains('loaded')){        
-        const formatted = `{
-    <span class="json key">"timestamp"</span>: <span class="json string">"${data.timestamp || ''}"</span>,
-    <span class="json key">"slow"</span>: <span class="json number">${data.slow || 0}</span>,
-    <span class="json key">"standard"</span>: <span class="json number">${data.standard || 0}</span>,
-    <span class="json key">"fast"</span>: <span class="json number">${data.fast || 0}</span>,
-    <span class="json key">"instant"</span>: <span class="json number">${data.instant || 0}</span>
-    <span class="json key">"avgTime"</span>: <span class="json number">${data.avgTime || 0}</span>
-    <span class="json key">"avgTx"</span>: <span class="json number">${data.avgTx || 0}</span>
-    <span class="json key">"lastBlock"</span>: <span class="json number">${data.lastBlock || 0}</span>
-}`;
+    if (!sample.classList.contains('loaded')){ 
+        sample.innerHTML = JSON.toHTML(data);
         
-        sample.innerHTML = formatted;
         sample.classList.add('loaded');
 
         document.querySelector(`#timeframe-switcher #tf-60`).click();
@@ -1588,12 +1663,14 @@ class UrlBox {
         method = 'GET',
         href = '#',
         variables = {},
+        network: isNetwork = false,
     }){
         this.content = href;
         this.href = href;
         this.mask = href;
+        this.network = isNetwork ? `/${network.symbol}` : '';
 
-        const domain = 'https://bscgas.info';
+        const domain = 'https://owlracle.info';
         const placeholder = 'YOUR_API_KEY';
 
         // replace apikey keyword with input
@@ -1609,7 +1686,7 @@ class UrlBox {
 
         this.content = `
             <span class="button-get"><i class="far fa-question-circle"></i>${method}</span>
-            <a href="${this.href}" target="_blank">${domain}${this.content}</a>
+            <a href="${this.href}" target="_blank">${domain}${this.network}${this.content}</a>
             <span class="button-copy"><i class="far fa-copy"></i></span>
         `;
 
@@ -1647,8 +1724,12 @@ class UrlBox {
 }
 
 // define sample requests url box
-new UrlBox(document.querySelector('#url-gas.url'), { href: `/gas?apikey={{apikey}}` });
+new UrlBox(document.querySelector('#url-gas.url'), {
+    network: true,
+    href: `/gas?apikey={{apikey}}&accept=35,60,90,100&blocks=200&version=2`,
+});
 new UrlBox(document.querySelector('#url-history.url'), {
+    network: true,
     href: `/history?apikey={{apikey}}&from=0&to={{now}}&page=1&candles=1000&timeframe=30`,
     variables: { now: (new Date().getTime() / 1000).toFixed(0) }
 });
@@ -1692,83 +1773,6 @@ document.querySelectorAll('#faq .question').forEach(e => e.addEventListener('cli
 document.querySelector('#link-reset-key').addEventListener('click', () => api.showModal('edit'));
 
 
-// set the corresponding network in header
-// place elements specific to the network
-
-(obj => {
-    const networks = {
-        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
-            icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io/', name: 'Etherscan'
-        } },
-        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
-            icon: 'https://explorer.avax.network/favicon.ico', href: 'https://explorer.avax.network/', name: 'Avalanche Explorer'
-        } },
-        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
-            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com/', name: 'PolygonScan'
-        } },
-        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
-            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com/', name: 'FtmScan'
-        } },
-        bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
-            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com/', name: 'BscScan'
-        } },
-    };
-    const symbol = window.location.pathname.split('/')[1] || 'bsc';
-    network = networks[symbol];
-    network.symbol = symbol;
-
-    // place network button in header
-    obj.classList.add(symbol);
-    obj.querySelector('.name').innerHTML = network.name;
-    obj.querySelector('.icon').src = `img/${symbol}.png`;
-
-    document.querySelector('#title #network-name').innerHTML = `${network.longName || network.name}'s`;
-
-    // network button action
-    obj.addEventListener('click', function() {
-        const dropdown = document.createElement('div');
-        dropdown.id = 'dropdown';
-    
-        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></div>`).join('');
-    
-        dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
-        dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
-    
-        dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => window.location.href = `/${e.id}`));
-        
-        const fog = document.createElement('div');
-        fog.id = 'fog';
-        fog.classList.add('invisible');
-    
-    
-        document.body.appendChild(fog);
-        fog.appendChild(dropdown);
-    
-        fog.addEventListener('click', () => fog.remove());
-    });
-
-    document.querySelector("#chain").innerHTML = network.name;
-
-    // set the right token to price fetch according to the network
-    price.token = network.token;
-    price.update();
-    setInterval(() => price.update(), 10000); // update every 10s
-
-    document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
-    document.querySelectorAll('.chain-name').forEach(e => e.innerHTML = network.name);
-
-    // set network block explorer in footer
-    const explorer = document.querySelector('footer .resources #explorer');
-    explorer.href = network.explorer.href;
-    explorer.querySelector('img').src = network.explorer.icon;
-    explorer.querySelector('.name').innerHTML = network.explorer.name;
-
-    // set donation wallet modal
-    wallet.loadImg(document.querySelector('#donate'), network);
-    document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
-})(document.querySelector('#network'));
-
-
 // smooth scrolling when clicking link
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -1780,3 +1784,42 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // set footer link to api key management window
 // document.querySelector('#footer-keys').addEventListener('click', () => api.showModal());
+
+
+// pretty print json inside html
+JSON.toHTML = (json, roll) => {
+    if (!roll){
+      return `{<div class="json indent">${JSON.toHTML(json, true)}</div>}`;
+    }
+    if (Array.isArray(json)){
+        return json.map((e,i) => {
+          const comma = i < json.length - 1 ? ',' : '';
+          let value = JSON.toHTML(e, true);
+          if (typeof e === 'object'){
+            value = `{${value}}`;
+          }
+          return `<div class="json indent">${value}${comma}</div>`;
+        }).join('');
+    }
+    if (typeof json === 'object'){
+        return Object.entries(json).map(([key, value]) => {
+            let valueStr = JSON.toHTML(value, true);
+            if (Array.isArray(value)){
+              valueStr = `[${valueStr}]`;
+            }
+            else if (typeof value === 'object'){
+              valueStr = `{${valueStr}}`;
+            }
+          
+            const comma = Object.keys(json).slice(-1)[0] != key ? ',' : '';
+            return `<div class="json indent"><span class="json key">"${key}"</span>: ${valueStr}${comma}</div>`;
+        }).join('');
+    }
+    else {
+        const type = typeof json === 'string' ? 'string' : 'number';
+        if (type == 'string'){
+            json = `"${json}"`;
+        }
+        return `<span class="json ${type}">${json}</span>`;
+    }
+};

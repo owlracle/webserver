@@ -60,7 +60,7 @@ process.argv.forEach((val, index, array) => {
 
 
 // app.get('/', indexRoute);
-app.get('/', (req, res) => res.redirect('/bsc'));
+app.get('/', indexRoute);
 app.get('/bsc', indexRoute);
 app.get('/poly', indexRoute);
 app.get('/avax', indexRoute);
@@ -72,6 +72,7 @@ function indexRoute(req, res) {
         usagelimit: api.USAGE_LIMIT,
         requestcost: api.REQUEST_COST,
         recaptchakey: configFile.recaptcha.key,
+        network: req.url.split('/')[1]
     });
 }
 

@@ -35,7 +35,7 @@
         </div>
         <div class="col">
             <div id="theme"></div>
-            <div id="network"><img class="icon"><span class="name"></span></div>
+            <div id="network-btn"><img class="icon"><span class="name"></span></div>
             <div id="search">
                 <input placeholder="Search API key">
                 <div id="button-container">
@@ -125,23 +125,36 @@
     
             <h3 id="endpoint-gas">Gas price estimation</h3>
     
-            <p>You could also retrieve the gas price estimations through our API endpoint:</p>
+            <p>You can retrieve the gas price estimations through our API endpoint:</p>
     
             <div id="url-gas" class="url"></div>
     
-            <p>The <code class="code inline">apikey</code> argument is required only if you are not behind a public IP address or have high usage requirements. If that's the case, check the <a href="#api-keys-sec">API keys</a> section.</p>
-    
+            <p>This endpoint will retrieve gas prices for <span class="chain-name"></span> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
+
+            <p>Owlracle scans recent past blocks (<code class="code inline">blocks</code> param) to build an estimative of required gas price to be paid. It looks for the minimum gas price accepted on a transaction for every scanned block. Then it shows you the minimum gas price you should pay to be accepted on a percentage of your choice (<code class="code inline">accept</code> param) of those blocks.</p>
+
+            <p>Dont worry if you don't want to set <code class="code inline">blocks</code> and <code class="code inline">accept</code> params. You can let Owlracle make predictions with the default values. The only required param you should set is your <code class="code inline">apikey</code>.</p>
+
+            <p>The <code class="code inline">apikey</code> query param is required. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one.</p>
+            
+            <p><code class="code inline">accept</code>: The percentage of blocks the transaction must be accepted. Higher acceptance means more speedy transactions. You can provide a single value or a comma separated list of values, representing multiple speeds. <i>Default 35,60,90,100</i>.</p>
+            <p><code class="code inline">blocks</code>: Number of past blocks you want Owlracle to scan to build the estimation. <i>Default 200</i>.</p>
+            <p><code class="code inline">version</code>: Version of the api you want to request. <i>Default 2</i>.</p>
+            
             <p>The endpoint will answer with a <a href="https://en.wikipedia.org/wiki/JSON" target="_blank" rel="noopener">JSON string</a> with the following fields:</p>
     
             <ul class="args">
                 <li><code class="code inline">timestamp</code>: An <a href="https://www.w3.org/TR/NOTE-datetime">ISO 8601</a> compliant date for when the API returned the result.</li>
-                <li><code class="code inline">slow</code>: Estimated minimum Gwei to be paid for a transaction that will be safely accepted. That means it can take a while (usually about half an hour).</li>
-                <li><code class="code inline">standard</code>: Estimated Gwei paid recently where the transaction was accepted on 60% of the blocks.  It usually takes about a minute.</li>
-                <li><code class="code inline">fast</code>: Estimated Gwei paid recently where the transaction was accepted on 90% of the blocks. It usually takes about 15 seconds.</li>
-                <li><code class="code inline">instant</code>: Estimated Gwei needed for the transaction to be accepted in the next block. Usually, this means you are overpaying.</li>
+                <li><code class="code inline">lastBlock</code>: Number of the last block the oracle scanned.</li>
                 <li><code class="code inline">avgTime</code>: Average time between each block confirmation.</li>
                 <li><code class="code inline">avgTx</code>: Average number of transactions in the blocks.</li>
-                <li><code class="code inline">lastBlock</code>: Number of the last block the oracle scanned.</li>
+                <li><code class="code inline">avgGas</code>: Average gas limit set for transactions in the scanned blocks.</li>
+                <li><code class="code inline">speeds</code>: Array containing information of every speed requested in the <code class="code inline">accept</code> param:
+                <ul class="args">
+                    <li><code class="code inline">acceptance</code>: Ratio of blocks accepting transactions with the suggested gas price.</li>
+                    <li><code class="code inline">gasPrice</code>: Suggested gas price (in GWei) to be accepted in at least the requested percentage of blocks.</li>
+                    <li><code class="code inline">estimatedFee</code>: Estimated fee (in USD) you should pay when using the suggested gas price. This fee is calculated using the current token price and <code class="code inline">avgGas</code> value.</li>
+                </ul>
             </ul> 
             
             <p class="quote">Note that if you plan to integrate this API with your application using the <a
@@ -359,6 +372,7 @@
     <input type="hidden" id="requestcost" class="template-var" value="{{requestcost}}">
     <input type="hidden" id="usagelimit" class="template-var" value="{{usagelimit}}">
     <input type="hidden" id="recaptchakey" class="template-var" value="{{recaptchakey}}">
+    <input type="hidden" id="network" class="template-var" value="{{network}}">
 </body>
 
 </html>

@@ -62,7 +62,7 @@ module.exports = app => {
                 // sort gwei array ascending so I can pick directly by index
                 const sortedGwei = data.minGwei.sort((a, b) => parseFloat(a) - parseFloat(b));
 
-                const speeds = accept.map(speed => {
+                let speeds = accept.map(speed => {
                     // get gwei corresponding to the slice of the array
                     const poolIndex = parseInt(speed / 100 * sortedGwei.length) - 1;
                     return sortedGwei[poolIndex];
@@ -71,8 +71,14 @@ module.exports = app => {
                 // avg gas and estimated gas fee price (in $)
                 const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
                 const tokenPrice = parseFloat(JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`)).filter(e => e.symbol == `${network.token}USDT`)[0].price);
-                // gwei to ether
-                const estFee = speeds.map(speed => (speed * 0.000000001) * avgGas * tokenPrice);
+
+                speeds = speeds.map(speed => {
+                    return {
+                        acceptance: sortedGwei.filter(e => e <= speed).length / sortedGwei.length,
+                        gasPrice: speed,
+                        estimatedFee: (speed * 0.000000001) * avgGas * tokenPrice,
+                    };
+                });
 
                 if (version === 1){
                     resp.slow = speeds[0];
@@ -83,13 +89,12 @@ module.exports = app => {
                     resp.last_block = data.lastBlock;
                 }
                 else if (version === 2){
+                    // resp.sw = sortedGwei;
                     resp.lastBlock = data.lastBlock;
                     resp.avgTime = avgTime;
                     resp.avgTx = avgTx;
-                    resp.gasPrice = speeds;
                     resp.avgGas = avgGas;
-                    resp.estimatedFee = estFee;
-                    resp.lastBlock = data.lastBlock;
+                    resp.speeds = speeds;
                 }
             }
     

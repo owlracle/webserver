@@ -517,7 +517,7 @@ document.querySelector('#search #drop').addEventListener('click', async function
 const wallet = {
     address: '0xA6E126a5bA7aE209A92b16fcf464E502f27fb658',
 
-    loadImg: async function(elem) {
+    loadImg: async function(elem, network) {
         return new Promise(resolve => {
             this.img = new Image();
             const url = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=`;
@@ -529,28 +529,28 @@ const wallet = {
     
             this.img.onload = () => {
                 elem.classList.remove('disabled');
-                elem.addEventListener('click', () => this.showModal());
+                elem.addEventListener('click', () => this.showModal(network));
                 resolve(this.img)
             };
         });
     },
 
-    bindModal: function(elem) {
-        elem.addEventListener('click', () => this.showModal());
+    bindModal: function(elem, network) {
+        elem.addEventListener('click', () => this.showModal(network));
     },
 
-    showModal: function(){
+    showModal: function(network){
         const fog = document.createElement('div');
         fog.id = 'fog';
-        fog.innerHTML = `<div id='donate-window'>
+        fog.innerHTML = `<div id="donate-window" class="${network.symbol}">
             <div id="title">
-                <span>Binance Smart Chain (BSC)</span>
-                <span class="big">BNB Wallet</span>
+                <span>${network.longName ? `${network.longName} (${network.name})` : network.name}</span>
+                <span class="big">${network.token} Wallet</span>
             </div>
-            <div id="qr"><img></div>
+            <div id="qr"><img src="${this.img.src}"></div>
             <div id="colored">
                 <div id="wallet-container">
-                    <div id="wallet"></div>
+                    <div id="wallet">${this.shortAddress}</div>
                     <div id="copy"><i class="far fa-copy"></i></div>
                 </div>
             </div>
@@ -558,9 +558,6 @@ const wallet = {
 
         fog.addEventListener('click', () => fog.remove());
         fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
-    
-        fog.querySelector('img').src = this.img.src;
-        fog.querySelector('#wallet').innerHTML = this.shortAddress;
     
         fog.querySelector('#wallet-container').addEventListener('click', () => this.copyAddress());
 
@@ -584,8 +581,6 @@ const wallet = {
         navigator.clipboard.writeText(this.address);
     }
 };
-wallet.loadImg(document.querySelector('#donate'));
-document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e));
 
 
 // fade in and out function (work on any element)
@@ -1677,25 +1672,38 @@ document.querySelector('#link-reset-key').addEventListener('click', () => api.sh
 
 
 // set the corresponding network in header
+// place elements specific to the network
 
 (obj => {
     const networks = {
-        eth: { name: 'Ethereum', token: 'ETH' },
-        avax: { name: 'Avalanche', token: 'AVAX' },
-        poly: { name: 'Polygon', token: 'MATIC' },
-        ftm: { name: 'Fantom', token: 'FTM' },
-        bsc: { name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB' },
+        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
+            icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io/', name: 'Etherscan'
+        } },
+        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
+            icon: 'https://explorer.avax.network/favicon.ico', href: 'https://explorer.avax.network/', name: 'Avalanche Explorer'
+        } },
+        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
+            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com/', name: 'PolygonScan'
+        } },
+        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
+            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com/', name: 'FtmScan'
+        } },
+        bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
+            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com/', name: 'BscScan'
+        } },
     };
     const symbol = window.location.pathname.split('/')[1] || 'bsc';
     network = networks[symbol];
     network.symbol = symbol;
 
+    // place network button in header
     obj.classList.add(symbol);
     obj.querySelector('.name').innerHTML = network.name;
     obj.querySelector('.icon').src = `img/${symbol}.png`;
 
     document.querySelector('#title #network-name').innerHTML = `${network.longName || network.name}'s`;
 
+    // network button action
     obj.addEventListener('click', function() {
         const dropdown = document.createElement('div');
         dropdown.id = 'dropdown';
@@ -1720,6 +1728,7 @@ document.querySelector('#link-reset-key').addEventListener('click', () => api.sh
 
     document.querySelector("#chain").innerHTML = network.name;
 
+    // set the right token to price fetch according to the network
     price.token = network.token;
     price.update();
     setInterval(() => price.update(), 10000); // update every 10s
@@ -1727,6 +1736,15 @@ document.querySelector('#link-reset-key').addEventListener('click', () => api.sh
     document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
     document.querySelectorAll('.chain-name').forEach(e => e.innerHTML = network.name);
 
+    // set network block explorer in footer
+    const explorer = document.querySelector('footer .resources #explorer');
+    explorer.href = network.explorer.href;
+    explorer.querySelector('img').src = network.explorer.icon;
+    explorer.querySelector('.name').innerHTML = network.explorer.name;
+
+    // set donation wallet modal
+    wallet.loadImg(document.querySelector('#donate'), network);
+    document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
 })(document.querySelector('#network'));
 
 

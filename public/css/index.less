@@ -17,7 +17,27 @@ body {
     
     --text-dark-color: #e3dcd0;
     --text-dark-intense-color: #ffffff;
-    
+
+    .bsc {
+        @chain-color: #daaa10;
+    }
+
+    .poly {
+        @chain-color: #7533E2;
+    }
+
+    .avax {
+        @chain-color: #E84142;
+    }
+
+    .ftm {
+        @chain-color: #1A7CE4;
+    }
+
+    .eth {
+        @chain-color: #5c5c5c;
+    }
+
     &.light {
         --bg-color: #E2E2E2;
         --bg-intense-color: #eeeeee;
@@ -230,7 +250,7 @@ body {
                         }
     
                         &.active .mark {
-                            background-color: #4CA69A;
+                            background-color: #4ca69aad;
                             border-color: #4CA69A;
                         }
                         
@@ -903,28 +923,33 @@ body {
                 }
 
                 &.bsc {
-                    background-color: darken(#F0B90B, 20%);
-                    border-color: #F0B90B;
+                    .bsc();
+                    background-color: darken(@chain-color, 20%);
+                    border-color: @chain-color;
 
                 }
                 &.poly {
-                    background-color: darken(#7533E2, 20%);
-                    border-color: #7533E2;
+                    .poly();
+                    background-color: darken(@chain-color, 20%);
+                    border-color: @chain-color;
 
                 }
                 &.avax {
-                    background-color: darken(#E84142, 20%);
-                    border-color: #E84142;
+                    .avax();
+                    background-color: darken(@chain-color, 20%);
+                    border-color: @chain-color;
 
                 }
                 &.ftm {
-                    background-color: darken(#1A7CE4, 20%);
-                    border-color: #1A7CE4;
+                    .ftm();
+                    background-color: darken(@chain-color, 20%);
+                    border-color: @chain-color;
 
                 }
                 &.eth {
-                    background-color: darken(#5c5c5c, 20%);
-                    border-color: #5c5c5c;
+                    .eth();
+                    background-color: darken(@chain-color, 20%);
+                    border-color: @chain-color;
 
                 }
             }
@@ -952,8 +977,62 @@ body {
             background-color: white;
             box-shadow: 2px 2px 5px black;
 
+            &.bsc {
+                #title, #colored {
+                    .bsc();
+                    background-color: @chain-color;
+
+                    #copy {
+                        background-color: fade(@chain-color, 30%);
+                    }
+                }
+            }
+
+            &.avax {
+                #title, #colored {
+                    .avax();
+                    background-color: @chain-color;
+
+                    #copy {
+                        background-color: fade(@chain-color, 30%);
+                    }
+                }
+            }
+
+            &.poly {
+                #title, #colored {
+                    .poly();
+                    background-color: @chain-color;
+
+                    #copy {
+                        background-color: fade(@chain-color, 30%);
+                    }
+                }
+            }
+
+            &.ftm {
+                #title, #colored {
+                    .ftm();
+                    background-color: @chain-color;
+
+                    #copy {
+                        background-color: fade(@chain-color, 30%);
+                    }
+                }
+            }
+
+            &.eth {
+                #title, #colored {
+                    .eth();
+                    background-color: @chain-color;
+
+                    #copy {
+                        background-color: fade(@chain-color, 30%);
+                    }
+                }
+            }
+
             #title {
-                background-color: #AD2825;
                 color: white;
                 display: flex;
                 flex-direction: column;
@@ -988,7 +1067,6 @@ body {
             }
 
             #colored {
-                background-color: #AD2825;
                 margin-top: -75px;
                 padding: 75px 20px 30px;
 
@@ -1017,7 +1095,6 @@ body {
 
                     #copy {
                         color: white;
-                        background-color: #AD282550;
                         display: flex;
                         justify-content: center;
                         align-items: center;

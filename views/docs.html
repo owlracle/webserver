@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Owlracle - Gas Oracle API</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="multichain gas price oracle.">
+    <meta name="keywords" content="binance smart chain, avalanche, polygon, ethereum, fantom, crypto, ETH, MATIC, FTM, AVAX, BNB, defi, gas, gas fee, gas price, oracle, bsc, gas api">
+    <meta name="”robots”" content="index, follow">
+    <meta property="og:image" content="https://owlracle.info/img/egg.png">
+    <meta property="og:title" content="Owlracle - Gas Oracle API" />
+    <meta property="og:url" content="https://owlracle.info/" />
+    <meta property="og:description" content="Multichain gas price oracle and API.">
+    <meta property="og:site_name" content="owlracle.info">
+    <meta name="twitter:image" content="https://owlracle.info/img/egg.png">
+    <meta name="twitter:description" content="Multichain gas price oracle and API.">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Owlracle - Gas Oracle API" />
+    <meta name="twitter:site" content="https://owlracle.info/" />
+
+    <link rel="shortcut icon" href="img/favicon.ico">
+    
+    <link rel="stylesheet" href="css/index.css">
+
+    <style>
+        h2 {
+            text-align: center;
+        }
+        #content {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #social {
+                display: flex;
+                width: 130px;
+                justify-content: space-between;
+                flex-direction: row;
+        }
+
+        #social i {
+            font-size: 2rem;
+            color: var(--text-dark-color);
+        }
+
+        #social i:hover {
+            opacity: 0.8;
+        }
+
+        body #frame #content #title img {
+            box-shadow: none;
+        }
+    </style>
+
+    <script defer>
+        class DynamicScript {
+            constructor(url, onload) {
+                const script = document.createElement('script');
+                script.onload = onload;
+                script.src = url;
+                script.async = true;
+                
+                document.head.appendChild(script);
+            }
+        }
+
+        new DynamicScript('https://kit.fontawesome.com/c1a16f97ec.js');
+        const particles = new DynamicScript('https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js', () => particlesJS.load('frame', `config/particles-${document.body.classList.contains('dark') ? 'dark' : 'light'}.json`));
+    </script>
+</head>
+
+<body class="dark">
+    <div id="frame">
+        <div id="content">
+            <div id="title">
+                <img src="img/egg.png" alt="Owlracle logo">
+                <div>
+                    <h1>OWLRACLE</h1>
+                    <h2>The multichain Gas Price Oracle</h2>
+                </div>
+            </div>
+            <h1>Get ready! We are coming to your favorite network. Soon.</h1>
+            <div id="social">
+                <div class="item"><a href="https://github.com/werlang/owlracle-oracle" target="_blank" aria-label="github" rel="noopener"><i class="fab fa-github"></i></a></div>
+                <div class="item"><a href="https://twitter.com/bscgas" target="_blank" aria-label="twitter" rel="noopener"><i class="fab fa-twitter"></i></a></div>
+                <div class="item"><a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener"><i class="fab fa-telegram-plane"></i></a></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -76,6 +76,12 @@ function indexRoute(req, res) {
 }
 
 
+// docs endpoint
+app.get('/docs', (req, res) => {
+    res.render(`docs`, {});
+});
+
+
 // generate session
 app.post('/session', async (req, res) => {
     if (!req.body.grc) {

@@ -828,7 +828,7 @@ class CodePen {
         });
     }
 }
-const codePens = ['PomVooa', 'yLbZLeB'].map((v,i) => new CodePen(document.querySelector(`#codepen${i+1}`), v));
+const codePens = ['KKvKJRN', 'BadaMVN'].map((v,i) => new CodePen(document.querySelector(`#codepen${i+1}`), v));
 
 
 // post method for testing purposes
@@ -1650,6 +1650,8 @@ document.querySelectorAll('.template-var').forEach(e => e.remove());
 
 // build faq
 const faq = [
+    [`What is Owlracle?`,
+    `Owlracle is an open-source gas price oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information.`],
     [`How do you make the gas price predictions?`,
     `This tool attempts to predict the gas price to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas price. Every speed is measured by calculating the minimum gas price paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations.`],
     [`Your website looks so much like <a href="https://bscgas.info" target="_blank">bscgas</a>. Is it a coincidence?`,
@@ -1756,3 +1758,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
+
+// set footer link to api key management window
+// document.querySelector('#footer-keys').addEventListener('click', () => api.showModal());

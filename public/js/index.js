@@ -1512,25 +1512,16 @@ const dynamicSamples = {
                     }
                     setTimeout(() => wait(), 10);
                 }
+                wait();
             });
         },
 
         update: function(data){
-            console.log( data)
             if (data.length){
                 const container = document.querySelector('#history-sample-container');
-                const content = Object.entries(data[0]).map(([key, value]) => {
-                    if (key == 'timestamp' || key == 'samples'){
-                        value = `<span class="json ${typeof value}">${typeof value == 'number' ? value : `"${value}"`}</span>`;
-                    }
-                    else {
-                        value = Object.entries(value).map(([key, value]) => `<span class="json key">"${key}"</span>: <span class="json ${typeof value}">${typeof value == 'number' ? value : `"${value}"`}</span>`).join(',\n            ');
-                        value = `{\n            ${value}\n        }`;
-                    }
-    
-                    return `<span class="json key">"${key}"</span>: ${value}`
-                }).join(',\n        ');
-                container.innerHTML = `<pre class="code"><code>[\n    {\n        ${content}\n    },\n\n    ...\n]</code></pre>`;
+                container.innerHTML = JSON.toHTML(data.slice(0,1));
+                container.querySelectorAll('.indent')[1].insertAdjacentHTML('beforeend', ',');
+                container.querySelectorAll('.indent')[0].insertAdjacentHTML('beforeend', '<div class="indent">...</div>');
             }
         }
     },
@@ -1565,21 +1556,7 @@ const dynamicSamples = {
 
         update: function(data) {
             const container = document.querySelector('#key-get-info-container');
-            
-            data.usage = `{\n        ${Object.entries(data.usage).map(([key, value]) => `<span class="json key">"${key}"</span>: <span class="json number">${value}</span>`).join(',\n        ')}\n    }`;
-            const content = Object.entries(data).map(([key, value]) => {
-                let valueDom = '';
-                if (key == 'usage'){
-                    valueDom = data.usage;
-                }
-                else {
-                    valueDom = `<span class="json ${typeof value}">${typeof value == 'number' ? value : `"${value}"`}</span>`;
-                }
-
-                return `<span class="json key">"${key}"</span>: ${valueDom}`;
-            }).join(',\n    ');
-            const tip = this.realData ? '' : container.querySelector('.quote').outerHTML;
-            container.innerHTML = `<p>Sample response:</p>${tip}<pre class="code"><code>{\n    ${content}\n}</code></pre>`;
+            container.innerHTML = JSON.toHTML(data);
         }
     },
 
@@ -1608,15 +1585,10 @@ const dynamicSamples = {
 
         update: function(data) {
             const container = document.querySelector('#key-credit-info-container');
-            const result = Object.entries(data.results[0]).map(([key, value]) => `<span class="json key">"${key}"</span>: <span class="json string">"${value}"</span>`).join(',\n            ');
-            const content = Object.entries(data).map(([key, value]) => {
-                if (key == 'message'){
-                    return `<span class="json key">"${key}"</span>: <span class="json string">"${value}"</span>`;
-                }
-                return `<span class="json key">"${key}"</span>: [\n        {\n            ${result}\n        },\n\n        ...\n    ]`;
-            }).join(',\n    ');
-            const tip = this.realData ? '' : container.querySelector('.quote').outerHTML;
-            container.innerHTML = `<p>Sample response:</p>${tip}<pre class="code"><code>{\n    ${content}\n}</code></pre>`;
+            data.results = data.results.slice(0,1);
+            container.innerHTML = JSON.toHTML(data);
+            container.querySelectorAll('.indent')[2].insertAdjacentHTML('beforeend', ',');
+            container.querySelectorAll('.indent')[0].insertAdjacentHTML('beforeend', '<div class="indent">...</div>');
         },
     },
 
@@ -1641,10 +1613,9 @@ const dynamicSamples = {
 
         update: function(data) {
             const container = document.querySelector('#key-logs-info-container');
-            const content = Object.entries(data[0]).map(([key, value]) => `<span class="json key">"${key}"</span>: <span class="json ${value ? 'string' : 'number'}">${value ? `"${value}"`: value}</span>`).join(',\n        ');
-
-            const tip = this.realData ? '' : container.querySelector('.quote').outerHTML;
-            container.innerHTML = `<p>Sample response:</p>${tip}<pre class="code"><code>[\n    {\n        ${content},\n    },\n\n    ...\n]</code></pre>`;
+            container.innerHTML = JSON.toHTML(data.slice(0,1));
+            container.querySelectorAll('.indent')[1].insertAdjacentHTML('beforeend', ',');
+            container.querySelectorAll('.indent')[0].insertAdjacentHTML('beforeend', '<div class="indent">...</div>');
         },
     },
 
@@ -1788,36 +1759,43 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // pretty print json inside html
 JSON.toHTML = (json, roll) => {
-    if (!roll){
-      return `{<div class="json indent">${JSON.toHTML(json, true)}</div>}`;
+    if (!roll) {
+        let res = `<div class="json indent">${JSON.toHTML(json, true)}</div>`;
+        return Array.isArray(json) ? `[${res}]` : `{${res}}`;
     }
-    if (Array.isArray(json)){
-        return json.map((e,i) => {
-          const comma = i < json.length - 1 ? ',' : '';
-          let value = JSON.toHTML(e, true);
-          if (typeof e === 'object'){
-            value = `{${value}}`;
-          }
-          return `<div class="json indent">${value}${comma}</div>`;
+    if (Array.isArray(json)) {
+        return json.map((e, i) => {
+            const comma = i < json.length - 1 ? ',' : '';
+            let value = JSON.toHTML(e, true);
+            if (typeof e === 'object') {
+                value = `{${value}}`;
+            }
+            return `<div class="json indent">${value}${comma}</div>`;
         }).join('');
     }
-    if (typeof json === 'object'){
+    else if (json == null) {
+        return `<span class="json">null</span>`;
+    }
+    else if (typeof json === 'object') {
         return Object.entries(json).map(([key, value]) => {
             let valueStr = JSON.toHTML(value, true);
-            if (Array.isArray(value)){
-              valueStr = `[${valueStr}]`;
+            if (Array.isArray(value)) {
+                valueStr = `[${valueStr}]`;
             }
-            else if (typeof value === 'object'){
-              valueStr = `{${valueStr}}`;
+            else if (value == null) {
+                valueStr = `null`;
             }
-          
+            else if (typeof value === 'object') {
+                valueStr = `{${valueStr}}`;
+            }
+
             const comma = Object.keys(json).slice(-1)[0] != key ? ',' : '';
             return `<div class="json indent"><span class="json key">"${key}"</span>: ${valueStr}${comma}</div>`;
         }).join('');
     }
     else {
         const type = typeof json === 'string' ? 'string' : 'number';
-        if (type == 'string'){
+        if (type == 'string') {
             json = `"${json}"`;
         }
         return `<span class="json ${type}">${json}</span>`;

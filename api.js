@@ -45,8 +45,8 @@ module.exports = app => {
             // accept and blocks only work when using v2
             const defaultSpeeds = [35, 60, 90, 100];
             const version = parseInt(req.query.version) || 2;
-            const blocks = req.query.blocks && version == 2 ? parseInt(req.query.blocks) : 200;
-            const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => parseInt(e)) : defaultSpeeds;
+            const blocks = req.query.blocks && version == 2 ? Math.min(Math.max(parseInt(req.query.blocks), 0), 1000) : 200;
+            const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => Math.min(Math.max(parseInt(e), 0), 100)) : defaultSpeeds;
     
             const data = await requestOracle(network.name, blocks);
             if (data.error){

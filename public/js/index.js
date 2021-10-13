@@ -1497,8 +1497,8 @@ const limits = {
     USAGE_LIMIT: document.querySelector('#usagelimit').value,
 };
 document.querySelectorAll('.request-limit').forEach(e => e.innerHTML = limits.USAGE_LIMIT);
-document.querySelectorAll('.request-cost').forEach(e => e.innerHTML = limits.REQUEST_COST * 0.00000001 + ' BNB');
-price.get().then(price => document.querySelector('#credit-bnb').innerHTML = `$${(price.now * limits.REQUEST_COST * 0.00000001).toFixed(7)}`);
+document.querySelectorAll('.request-cost').forEach(e => e.innerHTML = limits.REQUEST_COST);
+// price.get().then(price => document.querySelector('#credit-token').innerHTML = `$${(price.now * limits.REQUEST_COST * 0.000000001).toFixed(9)}`);
 
 
 const dynamicSamples = {
@@ -1536,9 +1536,9 @@ const dynamicSamples = {
             "note": "note to myself",
             "usage": {
                 "apiKeyHour": 0,
-                "ipHour": 0,
+                // "ipHour": 0,
                 "apiKeyTotal": 0,
-                "ipTotal": 0
+                // "ipTotal": 0
             }
         },
 
@@ -1564,6 +1564,7 @@ const dynamicSamples = {
         placeholder: {
             "message": "success",
             "results": [{
+                "network": "xxx",
                 "tx": "0x0000000000000000000000000000000000000000000000000000000000000000",
                 "timestamp": "2000-00-00T00:00:00.000Z",
                 "value": "0",
@@ -1597,6 +1598,8 @@ const dynamicSamples = {
             "ip": "255.255.255.255",
             "origin": "domain.com",
             "timestamp": "0000-00-00T00:00:00.000Z",
+            "endpoint": "xxx",
+            "network": "xxx"
         }],
 
         getData: async function(key){
@@ -1620,10 +1623,14 @@ const dynamicSamples = {
     },
 
     update: async function(key){
+        
         if (!key){
-            this.history.update(await this.history.getData());
+            this.history.getData().then(data => this.history.update(data));
         }
-        [this.keys, this.credit, this.logs].forEach(async item => item.update(await item.getData(key)));
+        [this.keys, this.credit, this.logs].map(item => { return {
+            obj: item,
+            promise: item.getData(key)
+        }}).forEach(item => item.promise.then(data => item.obj.update(data)));
     },
 };
 dynamicSamples.update();
@@ -1701,7 +1708,7 @@ new UrlBox(document.querySelector('#url-gas.url'), {
 });
 new UrlBox(document.querySelector('#url-history.url'), {
     network: true,
-    href: `/history?apikey={{apikey}}&from=0&to={{now}}&page=1&candles=1000&timeframe=30`,
+    href: `/history?apikey={{apikey}}&from=0&to={{now}}&page=1&candles=1000&timeframe=30&tokenprice=false&txfee=false`,
     variables: { now: (new Date().getTime() / 1000).toFixed(0) }
 });
 new UrlBox(document.querySelector('#url-keys.url'), { href: `/keys/{{apikey}}` });

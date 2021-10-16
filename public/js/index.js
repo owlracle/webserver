@@ -222,17 +222,6 @@ document.querySelector('#search #drop').addEventListener('click', async function
 });
 
 
-// function bscScanSearch() {
-//     const input = document.querySelector('#search input');
-//     const url = `https://bscscan.com/search?q=`;
-
-//     if (input.value.length > 0){
-//         window.open(`${url}${input.value}`);
-//     }
-//     input.value = '';
-// }
-
-
 // create modal about donation
 
 const wallet = {
@@ -1289,7 +1278,8 @@ const api = {
             
             modal.querySelector('#credit').addEventListener('click', async () => {
                 const data = await this.getCredit(key);
-                this.showWindowCredit(key, data);
+                // this.showWindowCredit(key, data);
+                alert('Not available')
             });    
 
             async function refreshCredit(key){

@@ -5,7 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 
 
-const { Session, verifyRecaptcha, requestOracle, bscscan, networkList } = require('./utils');
+const { Session, verifyRecaptcha, requestOracle, networkList } = require('./utils');
 const db = require('./database');
 
 
@@ -81,10 +81,10 @@ module.exports = app => {
                 });
 
                 if (version === 1){
-                    resp.slow = speeds[0];
-                    resp.standard = speeds[1];
-                    resp.fast = speeds[2];
-                    resp.instant = speeds[3];
+                    resp.slow = speeds[0].gasPrice;
+                    resp.standard = speeds[1].gasPrice;
+                    resp.fast = speeds[2].gasPrice;
+                    resp.instant = speeds[3].gasPrice;
                     resp.block_time = avgTime;
                     resp.last_block = data.lastBlock;
                 }
@@ -371,17 +371,17 @@ module.exports = app => {
             }
     
             // get block height now so I know where to start looking for transactions
-            data.blockChecked = parseInt(await bscscan.getBlockHeight());
+            // data.blockChecked = parseInt(await bscscan.getBlockHeight());
     
-            if (isNaN(data.blockChecked)){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error getting network block height',
-                    serverMessage: data.blockChecked,
-                });
-            }
+            // if (isNaN(data.blockChecked)){
+            //     res.status(500);
+            //     res.send({
+            //         status: 500,
+            //         error: 'Internal Server Error',
+            //         message: 'Error getting network block height',
+            //         serverMessage: data.blockChecked,
+            //     });
+            // }
     
             const [rows, error] = await db.insert('api_keys', data);
         
@@ -553,7 +553,7 @@ module.exports = app => {
                     const toTime = req.query.totime || db.raw('UNIX_TIMESTAMP(now())');
                     const fromTime = req.query.fromtime || (req.query.totime ? parseInt(req.query.totime) - 3600 : db.raw('UNIX_TIMESTAMP(now()) - 3600'));
     
-                    const sql = `SELECT ip, origin, timestamp FROM api_requests WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
+                    const sql = `SELECT ip, origin, timestamp, endpoint, network FROM api_requests WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
                     const sqlData = [
                         fromTime,
                         toTime,
@@ -677,106 +677,117 @@ module.exports = app => {
     
     // request credit info
     app.get('/credit/:key', cors(corsOptions), async (req, res) => {
-        const key = req.params.key;
+        // const key = req.params.key;
     
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
-        }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+        // if (!key.match(/^[a-f0-9]{32}$/)){
+        //     res.status(400);
+        //     res.send({
+        //         status: 400,
+        //         error: 'Bad Request',
+        //         message: 'The informed api key is invalid.'
+        //     });
+        // }
+        // else {
+        //     const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
     
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else {
-                const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
+        //     if (error){
+        //         res.status(500);
+        //         res.send({
+        //             status: 500,
+        //             error: 'Internal Server Error',
+        //             message: 'Error while trying to search the database for your api key.',
+        //             serverMessage: error,
+        //         });
+        //     }
+        //     else {
+        //         const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
         
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find your api key.'
-                    });
-                }
-                else {
-                    const [rows, error] = await db.query(`SELECT tx, timestamp, value, fromWallet FROM credit_recharges WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
+        //         if (row.length == 0){
+        //             res.status(401);
+        //             res.send({
+        //                 status: 401,
+        //                 error: 'Unauthorized',
+        //                 message: 'Could not find your api key.'
+        //             });
+        //         }
+        //         else {
+        //             const [rows, error] = await db.query(`SELECT network, tx, timestamp, value, fromWallet FROM credit_recharges WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
     
-                    if (error){
-                        res.status(500);
-                        res.send({
-                            status: 500,
-                            error: 'Internal Server Error',
-                            message: 'Error while retrieving your credit information.',
-                            serverMessage: error,
-                        });
-                    }
-                    else {
-                        res.send({
-                            message: 'success',
-                            results: rows
-                        });
-                    }
-                }
-            }
-        }
-    
+        //             if (error){
+        //                 res.status(500);
+        //                 res.send({
+        //                     status: 500,
+        //                     error: 'Internal Server Error',
+        //                     message: 'Error while retrieving your credit information.',
+        //                     serverMessage: error,
+        //                 });
+        //             }
+        //             else {
+        //                 res.send({
+        //                     message: 'success',
+        //                     results: rows
+        //                 });
+        //             }
+        //         }
+        //     }
+        // }
+        res.send({
+            status: 404,
+            error: 'Not found',
+            message: 'This endpoint is not available right now.'
+        })
+
     });
     
     
     // update credit
     app.put('/credit/:key', async (req, res) => {
-        const key = req.params.key;
+        // const key = req.params.key;
     
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
-        }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+        // if (!key.match(/^[a-f0-9]{32}$/)){
+        //     res.status(400);
+        //     res.send({
+        //         status: 400,
+        //         error: 'Bad Request',
+        //         message: 'The informed api key is invalid.'
+        //     });
+        // }
+        // else {
+        //     const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
     
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else {
-                const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
+        //     if (error){
+        //         res.status(500);
+        //         res.send({
+        //             status: 500,
+        //             error: 'Internal Server Error',
+        //             message: 'Error while trying to search the database for your api key.',
+        //             serverMessage: error,
+        //         });
+        //     }
+        //     else {
+        //         const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
         
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find your api key.'
-                    });
-                }
-                else {
-                    const blockHeight = await bscscan.getBlockHeight();
-                    const txs = await api.updateCredit(row[0], blockHeight);
-                    res.send(txs);
-                }
-            }
-        }
+        //         if (row.length == 0){
+        //             res.status(401);
+        //             res.send({
+        //                 status: 401,
+        //                 error: 'Unauthorized',
+        //                 message: 'Could not find your api key.'
+        //             });
+        //         }
+        //         else {
+        //             // const blockHeight = (await requestOracle(network.name, 1)).lastBlock;
+        //             // const txs = await api.updateCredit(row[0], blockHeight);
+        //             // res.send(txs);
+        //         }
+        //     }
+        // }
+
+        res.send({
+            status: 404,
+            error: 'Not found',
+            message: 'This endpoint is not available right now.'
+        })
     });
 
     return api;
@@ -785,7 +796,7 @@ module.exports = app => {
 
 const api = {
     USAGE_LIMIT: 100,
-    REQUEST_COST: 10,
+    REQUEST_COST: 10000,
 
     getUsage: async function(keyId, ip) {
         const usage = { ip: 0, apiKey: 0 };
@@ -1004,51 +1015,50 @@ const api = {
         return rows;
     },
 
-    updateCredit: async function({id, wallet, blockChecked, credit}, blockHeight){
-        const block = blockChecked + 1;
+    // updateCredit: async function({id, wallet, blockChecked, credit}, blockHeight, network){
+    //     const block = blockChecked + 1;
 
-        const data = {};
-        data.api_keys = { credit: credit };
-        data.api_keys.blockChecked = blockHeight;
+    //     const data = {};
+    //     data.api_keys = { credit: credit };
+    //     data.api_keys.blockChecked = blockHeight;
         
-        const txs = await bscscan.getTx(wallet, block, data.api_keys.blockChecked);
+    //     const txs = await bscscan.getTx(wallet, block, blockHeight);
 
-        data.credit_recharges = {};
-        data.credit_recharges.fields = [
-            'tx',
-            'value',
-            'timestamp',
-            'fromWallet',
-            'apiKey',
-        ];
-        data.credit_recharges.values = [];
+    //     data.credit_recharges = {};
+    //     data.credit_recharges.fields = [
+    //         'network',
+    //         'tx',
+    //         'value',
+    //         'timestamp',
+    //         'fromWallet',
+    //         'apiKey',
+    //     ];
+    //     data.credit_recharges.values = [];
     
-        if (txs.status == "1"){
-            txs.result.forEach(async tx => {
-                if (tx.isError == "0" && tx.to.toLowerCase() == wallet.toLowerCase()){
-                    // 33122453711370938 == 0.03312245371137 BNB
-                    // const value = 50000000000;
-                    const value = parseInt(tx.value.slice(0,-10));
-                    data.api_keys.credit = parseInt(data.api_keys.credit) + value;
+    //     if (txs.message == "success"){
+    //         txs.txs.forEach(async tx => {
+    //             data.api_keys.credit = parseFloat(data.api_keys.credit) + tx.value;
 
-                    data.credit_recharges.values.push([
-                        tx.hash,
-                        value,
-                        db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
-                        tx.from,
-                        id
-                    ]);
+    //             let network = Object.entries(networkList).filter(([key, value]) => value.name == tx.network);
+    //             network = network.length ? network[0][0] : null;
 
-                }
-            })
-        }
+    //             data.credit_recharges.values.push([
+    //                 network,
+    //                 tx.tx,
+    //                 tx.value,
+    //                 db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
+    //                 tx.from,
+    //                 id
+    //             ]);
+    //         });
+    //     }
         
-        db.update('api_keys', data.api_keys, `id = ?`, [id]);
-        if (data.credit_recharges.values.length){
-            db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
-        }
+    //     db.update('api_keys', data.api_keys, `id = ?`, [id]);
+    //     if (data.credit_recharges.values.length){
+    //         db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
+    //     }
 
-        return txs;
-    }
+    //     return txs;
+    // }
 }
 

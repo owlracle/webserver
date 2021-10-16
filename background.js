@@ -1,4 +1,4 @@
-const { requestOracle, bscscan, networkList } = require('./utils');
+const { requestOracle, networkList } = require('./utils');
 const db = require('./database');
 const fetch = require('node-fetch');
 const fs = require('fs');
@@ -52,10 +52,12 @@ async function buildHistory(network, blocks){
 async function updateAllCredit(){
     const [rows, error] = await db.query(`SELECT * FROM api_keys`);
     if (!error){
-        const blockHeight = await bscscan.getBlockHeight();
-        rows.forEach(async row => {
-            api.updateCredit(row, blockHeight);
-        });
+        Object.values(networkList).map(network => {
+            // const blockHeight = (await requestOracle(network.name, 1)).lastBlock;
+            rows.forEach(async row => {
+                // api.updateCredit(row, blockHeight, network.name);
+            });
+        })
     }
 
     setTimeout(() => updateAllCredit(), 1000 * 60 * 60); // 1 hour

@@ -135,7 +135,7 @@ if (configFile.production){
         Object.keys(networkList).forEach(n => buildHistory(n));
     }
     if (args.updateCredit){
-        updateAllCredit();
+        // updateAllCredit();
     }
 }
 

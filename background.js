@@ -52,12 +52,9 @@ async function buildHistory(network, blocks){
 async function updateAllCredit(){
     const [rows, error] = await db.query(`SELECT * FROM api_keys`);
     if (!error){
-        Object.values(networkList).map(network => {
-            // const blockHeight = (await requestOracle(network.name, 1)).lastBlock;
-            rows.forEach(async row => {
-                // api.updateCredit(row, blockHeight, network.name);
-            });
-        })
+        rows.forEach(async row => {
+            api.updateCredit(row);
+        });
     }
 
     setTimeout(() => updateAllCredit(), 1000 * 60 * 60); // 1 hour

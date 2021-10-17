@@ -1289,7 +1289,7 @@ const api = {
 
                     // if even after await you are still on the same window
                     if (modal && modal.querySelector('#input-credit')){
-                        modal.querySelector('#input-credit').value = `${(data.credit / 100000000).toFixed(8)} BNB`;
+                        modal.querySelector('#input-credit').value = `${(data.credit).toFixed(6)} ${network.token}`;
                         setTimeout(() => refreshCredit(key), 5000);
                     }
                 }
@@ -1321,6 +1321,7 @@ const api = {
                     <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
                     <div class="cell"><a href="${network.explorer.href}/address/${e.fromWallet}" target="_blank">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
                     <div class="cell">${(e.value * 0.000000001).toFixed(6)}</div>
+                    <div class="cell">${(e.price).toFixed(4)}</div>
                 </div>`;
             }).join('');
             txs = `<div class="row head">
@@ -1328,7 +1329,8 @@ const api = {
                 <div class="cell">Tx</div>
                 <div class="cell">Time</div>
                 <div class="cell">From wallet</div>
-                <div class="cell">Value (BNB)</div>
+                <div class="cell">Value</div>
+                <div class="cell">${network.token} Price</div>
             </div>
             <div class="body">${tds}</div>`;
         }
@@ -1489,7 +1491,6 @@ const limits = {
 };
 document.querySelectorAll('.request-limit').forEach(e => e.innerHTML = limits.USAGE_LIMIT);
 document.querySelectorAll('.request-cost').forEach(e => e.innerHTML = limits.REQUEST_COST);
-// price.get().then(price => document.querySelector('#credit-token').innerHTML = `$${(price.now * limits.REQUEST_COST * 0.000000001).toFixed(9)}`);
 
 
 const dynamicSamples = {
@@ -1527,9 +1528,7 @@ const dynamicSamples = {
             "note": "note to myself",
             "usage": {
                 "apiKeyHour": 0,
-                // "ipHour": 0,
                 "apiKeyTotal": 0,
-                // "ipTotal": 0
             }
         },
 
@@ -1559,6 +1558,7 @@ const dynamicSamples = {
                 "tx": "0x0000000000000000000000000000000000000000000000000000000000000000",
                 "timestamp": "2000-00-00T00:00:00.000Z",
                 "value": "0",
+                "price": "0",
                 "fromWallet": "0x0000000000000000000000000000000000000000"
             }]
         },

@@ -237,10 +237,9 @@
     
             <h3>API Credit</h3>
 
-            <!-- TODO: rework credit to discount in USD -->
-            <!-- <p>After reaching the free request limit (<code class="code inline request-limit"></code> requests in the last hour), each new request will subtract <code class="code inline request-cost"></code> GWei from your API account (around <code id="credit-token" class="code inline request-limit"></code> at current <span class="token-name"></span> price).</p> -->
+            <p>After reaching the free request limit (<code class="code inline request-limit"></code> requests in the last hour), each new request will subtract $<code class="code inline request-cost"></code> USD from your API account.</p>
             
-            <p>Any time you want to recharge your API credit, you can make a <span class="token-name"></span> transfer of any amount to your API wallet. After the transfer, our server will update your api credit automatically within one hour. If you want to be credited instantly, you can click the update button on the API key information window.</p>
+            <p>Any time you want to recharge your API credit, you can make a <span class="token-name"></span> transfer of any amount to your API wallet. The amount transfered will be converted to USD and credited in your account. After the transfer, our server will update your api credit automatically within one hour. If you want to be credited instantly, you can click the update button on the API key information window. Keep in mind that the amount credited may vary depending of the token exchange rate.</p>
             
     
             <h3>API key information</h3>
@@ -289,7 +288,8 @@
                 <li><code class="code inline">network</code>: Network the transaction was sent. <i>Possible values: "bsc", "poly", "ftm", "avax", "eth"</i>.</li>
                 <li><code class="code inline">tx</code>: The transaction hash of your deposit. You can check the network's block explorer for details about the transaction.</li>
                 <li><code class="code inline">timestamp</code>: An ISO 8601 compliant date for the time of the transaction.</li>
-                <li><code class="code inline">value</code>: Credit deposited. <code class="code inline">1 credit = 0.00000001 <span class="token-name"></span></code>.</li>
+                <li><code class="code inline">value</code>: Credit deposited in <span class="token-name"></span> in Gwei (1 Gwei = 0.000000001 <span class="token-name"></span>).</li>
+                <li><code class="code inline">price</code>: <span class="token-name"></span>/USDT price at the time of the transaction.</li>
                 <li><code class="code inline">fromWallet</code>: The wallet that sent the credit to your API wallet.</li>
             </ul> 
     

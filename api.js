@@ -698,7 +698,7 @@ module.exports = app => {
                     });
                 }
                 else {
-                    const [rows, error] = await db.query(`SELECT network, tx, timestamp, value, fromWallet FROM credit_recharges WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
+                    const [rows, error] = await db.query(`SELECT network, tx, timestamp, value, price, fromWallet FROM credit_recharges WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
     
                     if (error){
                         res.status(500);
@@ -762,12 +762,6 @@ module.exports = app => {
                 }
             }
         }
-
-        res.send({
-            status: 404,
-            error: 'Not found',
-            message: 'This endpoint is not available right now.'
-        })
     });
 
     return api;
@@ -776,7 +770,7 @@ module.exports = app => {
 
 const api = {
     USAGE_LIMIT: 100,
-    REQUEST_COST: 10000,
+    REQUEST_COST: 0.00005,
 
     getUsage: async function(keyId, ip) {
         const usage = { ip: 0, apiKey: 0 };
@@ -996,48 +990,68 @@ const api = {
     },
 
     updateCredit: async function({id, wallet, timeChecked, credit}){
-        return Promise.all(Object.keys(networkList).map(async network => {
-            const now = parseInt(new Date().getTime() / 1000);
-            const data = {};
-            data.api_keys = { credit: credit };
-            data.api_keys.timeChecked = now;
-            
-            const txs = await blockExplorer[network].getTx(wallet, timeChecked, now);
-    
-            data.credit_recharges = {};
-            data.credit_recharges.fields = [
-                'network',
-                'tx',
-                'value',
-                'timestamp',
-                'fromWallet',
-                'apiKey',
-            ];
-            data.credit_recharges.values = [];
+        const now = parseInt(new Date().getTime() / 1000);
+        const data = {};
+        data.api_keys = { credit: credit };
+        data.api_keys.timeChecked = now;
         
-            if (txs.message == "success"){
-                txs.txs.forEach(async tx => {
-                    // TODO: get tokenprice to update value
-                    data.api_keys.credit = parseFloat(data.api_keys.credit) + tx.value;
-    
-                    data.credit_recharges.values.push([
-                        network,
-                        tx.tx,
-                        tx.value,
-                        db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
-                        tx.from,
-                        id
-                    ]);
-                });
-            }
-            
-            db.update('api_keys', data.api_keys, `id = ?`, [id]);
-            if (data.credit_recharges.values.length){
-                db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
-            }
+        const txs = await getTx(wallet, timeChecked, now);
 
-            return txs;
-        }));
-    }
+        data.credit_recharges = {};
+        data.credit_recharges.fields = [
+            'network',
+            'tx',
+            'value',
+            'price',
+            'timestamp',
+            'fromWallet',
+            'apiKey',
+        ];
+        data.credit_recharges.values = [];
+    
+        if (txs.message == "success"){
+            txs.txs.forEach(async tx => {
+                // get closest block available on history. get token_price from it
+                const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network = ? ORDER BY "block_diff" LIMIT 1`;
+                const network = Object.entries(networkList).filter(([k,v]) => v.name == tx.network)[0][0];
+                const [rows, error] = await db.query(sql, [ tx.block, network ]);
+        
+                if (error){
+                    return { error: {
+                        status: 500,
+                        error: 'Internal Server Error',
+                        message: 'Error while retrieving price history information from database.',
+                        serverMessage: error,
+                    }};
+                }
+
+                const priceThen = rows[0].token_price;
+
+                // update price using tx value (it is in gwei, convert to ether) * price value at that time.
+                data.api_keys.credit = parseFloat(data.api_keys.credit) + (tx.value * priceThen * 0.000000001);
+
+                data.credit_recharges.values.push([
+                    tx.network,
+                    tx.tx,
+                    tx.value,
+                    priceThen,
+                    db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
+                    tx.fromwallet,
+                    id
+                ]);
+            });
+        }
+        
+        db.update('api_keys', data.api_keys, `id = ?`, [id]);
+        if (data.credit_recharges.values.length){
+            db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
+        }
+
+        return txs;
+    },
+}
+
+async function getTx(address, fromTime, toTime){
+    return await (await fetch(`http://owlracle.tk:8080/tx/${address}?fromtime=${fromTime}&totime=${toTime}`)).json();
 }
 

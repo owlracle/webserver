@@ -70,6 +70,8 @@ async function updateTokenPrice(){
     fs.writeFileSync(`${__dirname}/tokenPrice.json`, JSON.stringify(prices));
 
     setTimeout(() => updateTokenPrice(), 1000 * 60 * 5); // 5 minutes
+
+    return;
 }
 
 module.exports = { buildHistory, updateAllCredit, updateTokenPrice };

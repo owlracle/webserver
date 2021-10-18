@@ -347,7 +347,7 @@ const network = (symbol => {
 
     // no network set, redirect to last network
     if (symbol == ''){
-        location.href = '/' + cookies.get('network') || 'bsc';
+        window.location.href = '/' + (cookies.get('network') || 'bsc');
         return;
     }
     

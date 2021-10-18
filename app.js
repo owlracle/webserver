@@ -130,14 +130,14 @@ app.listen(port, () => {
 });
 
 
-if (configFile.production){
-    if (args.saveDB){
-        Object.keys(networkList).forEach(n => buildHistory(n));
+updateTokenPrice().then(() => {
+    if (configFile.production){
+        if (args.saveDB){
+            Object.keys(networkList).forEach(n => buildHistory(n));
+        }
+        if (args.updateCredit){
+            // updateAllCredit();
+        }
     }
-    if (args.updateCredit){
-        // updateAllCredit();
-    }
-}
-
-updateTokenPrice();
+});
 

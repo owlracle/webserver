@@ -1278,8 +1278,7 @@ const api = {
             
             modal.querySelector('#credit').addEventListener('click', async () => {
                 const data = await this.getCredit(key);
-                // this.showWindowCredit(key, data);
-                alert('Not available')
+                this.showWindowCredit(key, data);
             });    
 
             async function refreshCredit(key){
@@ -1311,19 +1310,21 @@ const api = {
     showWindowCredit: function(key, data) {
         const modal = document.querySelector('#fog #api-window');
 
-        let txs = '<div class="empty">No transactions found. Try sending some BNB to your API wallet.</div>';
+        let txs = `<div class="empty">No transactions found. Try sending some ${network.token} to your API wallet.</div>`;
         if (data.results.length > 0){
             modal.classList.add('large');
 
             const tds = data.results.map(e => {
                 return `<div class="row">
-                    <div class="cell"><a href="https://bscscan.com/tx/${e.tx}" target="_blank">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
+                    <div class="cell">${network.name}</div>
+                    <div class="cell"><a href="${network.explorer.href}/tx/${e.tx}" target="_blank">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
                     <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
-                    <div class="cell"><a href="https://bscscan.com/address/${e.fromWallet}" target="_blank">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
-                    <div class="cell">${(e.value / 100000000).toFixed(8)}</div>
+                    <div class="cell"><a href="${network.explorer.href}/address/${e.fromWallet}" target="_blank">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
+                    <div class="cell">${(e.value * 0.000000001).toFixed(6)}</div>
                 </div>`;
             }).join('');
             txs = `<div class="row head">
+                <div class="cell">Network</div>
                 <div class="cell">Tx</div>
                 <div class="cell">Time</div>
                 <div class="cell">From wallet</div>
@@ -1337,7 +1338,7 @@ const api = {
             <h2>API recharge history</h2>
             <p id="key-show">${key}</p>
             ${txs}
-            <p id="missing">Missing tx? <a href="https://t.me/bscgas_info" target="_blank">contact us</a>!</p>
+            <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank">contact us</a>!</p>
             <div id="button-container"><button id="close">Close</button></div>
         </div>`;
         

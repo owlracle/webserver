@@ -70,7 +70,7 @@ module.exports = app => {
                 
                 // avg gas and estimated gas fee price (in $)
                 const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
-                const tokenPrice = parseFloat(JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`)).filter(e => e.symbol == `${network.token}USDT`)[0].price);
+                const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[`${network.token}USDT`];
 
                 speeds = speeds.map(speed => {
                     return {

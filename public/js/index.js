@@ -329,19 +329,19 @@ async function fadeOut(elem, time=300){
 const network = (symbol => {
     const networks = {
         eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
-            icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io/', name: 'Etherscan'
+            icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
         } },
         avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
-            icon: 'https://explorer.avax.network/favicon.ico', href: 'https://explorer.avax.network/', name: 'Avalanche Explorer'
+            icon: 'https://explorer.avax.network/favicon.ico', href: 'https://explorer.avax.network', name: 'Avalanche Explorer', apiAvailable: false,
         } },
         poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
-            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com/', name: 'PolygonScan'
+            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
         } },
         ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
-            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com/', name: 'FtmScan'
+            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
         } },
         bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
-            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com/', name: 'BscScan'
+            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
         } },
     };
 
@@ -406,6 +406,10 @@ const network = (symbol => {
     // set donation wallet modal
     wallet.loadImg(document.querySelector('#donate'), network);
     document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
+
+    if (network.explorer.apiAvailable){
+        document.querySelector('#nav-network').remove();
+    }
 
     return network;
 })(document.querySelector('#network').value);
@@ -1289,7 +1293,7 @@ const api = {
 
                     // if even after await you are still on the same window
                     if (modal && modal.querySelector('#input-credit')){
-                        modal.querySelector('#input-credit').value = `${(data.credit).toFixed(6)} ${network.token}`;
+                        modal.querySelector('#input-credit').value = `$${parseFloat(data.credit).toFixed(6)}`;
                         setTimeout(() => refreshCredit(key), 5000);
                     }
                 }
@@ -1316,21 +1320,21 @@ const api = {
 
             const tds = data.results.map(e => {
                 return `<div class="row">
-                    <div class="cell">${network.name}</div>
                     <div class="cell"><a href="${network.explorer.href}/tx/${e.tx}" target="_blank">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
                     <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
+                    <div class="cell">${network.name}</div>
                     <div class="cell"><a href="${network.explorer.href}/address/${e.fromWallet}" target="_blank">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
-                    <div class="cell">${(e.value * 0.000000001).toFixed(6)}</div>
-                    <div class="cell">${(e.price).toFixed(4)}</div>
+                    <div class="cell">${parseFloat(e.price).toFixed(4)}</div>
+                    <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
                 </div>`;
             }).join('');
             txs = `<div class="row head">
-                <div class="cell">Network</div>
                 <div class="cell">Tx</div>
                 <div class="cell">Time</div>
+                <div class="cell">Network</div>
                 <div class="cell">From wallet</div>
-                <div class="cell">Value</div>
                 <div class="cell">${network.token} Price</div>
+                <div class="cell">Value</div>
             </div>
             <div class="body">${tds}</div>`;
         }

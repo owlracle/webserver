@@ -90,6 +90,10 @@ const db = {
         return [sql, data];
     },
 
+    format: function(sql, data){
+        return this.connection.format(sql, data);
+    },
+
     connect: function(){
         if (!this.working){
             this.connection = mysql.createPool(configFile.mysql);

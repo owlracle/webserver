@@ -4,8 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const fs = require('fs');
 
-
-const { Session, verifyRecaptcha, requestOracle, networkList } = require('./utils');
+const { Session, verifyRecaptcha, oracle, networkList, explorer } = require('./utils');
 const db = require('./database');
 
 
@@ -48,7 +47,7 @@ module.exports = app => {
             const blocks = req.query.blocks && version == 2 ? Math.min(Math.max(parseInt(req.query.blocks), 0), 1000) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => Math.min(Math.max(parseInt(e), 0), 100)) : defaultSpeeds;
     
-            const data = await requestOracle(network.name, blocks);
+            const data = await oracle.getNetInfo(network.name, blocks);
             if (data.error){
                 return { error: data.error };
             }
@@ -993,10 +992,15 @@ const api = {
         const now = parseInt(new Date().getTime() / 1000);
         const data = {};
         data.api_keys = { credit: credit };
-        data.api_keys.timeChecked = now;
+        data.api_keys.timeChecked = new Date();
         
-        const txs = await getTx(wallet, timeChecked, now);
-
+        // const txs = await oracle.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now);
+        const txsn = await Promise.all(Object.keys(networkList).map(async network => {
+            const tx = await explorer.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now, network);
+            tx.network = network;
+            return tx;
+        }));
+            
         data.credit_recharges = {};
         data.credit_recharges.fields = [
             'network',
@@ -1009,49 +1013,66 @@ const api = {
         ];
         data.credit_recharges.values = [];
     
-        if (txs.message == "success"){
-            txs.txs.forEach(async tx => {
-                // get closest block available on history. get token_price from it
-                const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network = ? ORDER BY "block_diff" LIMIT 1`;
-                const network = Object.entries(networkList).filter(([k,v]) => v.name == tx.network)[0][0];
-                const [rows, error] = await db.query(sql, [ tx.block, network ]);
-        
+        await Promise.all(txsn.map(async txs => {
+            if (txs.status == "1"){
+                // check for existing txs
+                const hashes = txs.result.map(tx => tx.hash);
+                const sql = `SELECT tx FROM credit_recharges WHERE tx IN(${hashes.map(e => '?').join(',')})`;
+                const [rows, error] = await db.query(sql, hashes);
+
                 if (error){
                     return { error: {
                         status: 500,
                         error: 'Internal Server Error',
-                        message: 'Error while retrieving price history information from database.',
+                        message: 'Error while retrieving transactions from database.',
                         serverMessage: error,
                     }};
                 }
 
-                const priceThen = rows[0].token_price;
+                // remove existing txs
+                txs.result = txs.result.filter(e => !rows.map(r => r.tx).includes(e.hash));
 
-                // update price using tx value (it is in gwei, convert to ether) * price value at that time.
-                data.api_keys.credit = parseFloat(data.api_keys.credit) + (tx.value * priceThen * 0.000000001);
-
-                data.credit_recharges.values.push([
-                    tx.network,
-                    tx.tx,
-                    tx.value,
-                    priceThen,
-                    db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
-                    tx.fromwallet,
-                    id
-                ]);
-            });
-        }
+                return Promise.all(txs.result.map(async tx => {
+                    // get closest block available on history. get token_price from it
+                    const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network = ? ORDER BY "block_diff" LIMIT 1`;
+                    const [rows, error] = await db.query(sql, [ tx.blockNumber, txs.network ]);
+            
+                    if (error){
+                        return { error: {
+                            status: 500,
+                            error: 'Internal Server Error',
+                            message: 'Error while retrieving price history information from database.',
+                            serverMessage: error,
+                        }};
+                    }
+    
+                    const priceThen = parseFloat(rows[0].token_price);
+    
+                    if (tx.isError == "0" && tx.to.toLowerCase() == wallet.toLowerCase()){
+                        // update price using tx value (it is in gwei, convert to ether) * price value at that time.
+                        const value = parseInt(tx.value.slice(0,-9));
+                        data.api_keys.credit = parseFloat(credit) + (value * 0.000000001 * priceThen);
+        
+                        data.credit_recharges.values.push([
+                            txs.network,
+                            tx.hash,
+                            value,
+                            priceThen,
+                            db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
+                            tx.from,
+                            id
+                        ]);
+                    }
+                }));
+            }
+            return false;
+        }));
         
         db.update('api_keys', data.api_keys, `id = ?`, [id]);
         if (data.credit_recharges.values.length){
             db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
         }
 
-        return txs;
+        return txsn;
     },
 }
-
-async function getTx(address, fromTime, toTime){
-    return await (await fetch(`http://owlracle.tk:8080/tx/${address}?fromtime=${fromTime}&totime=${toTime}`)).json();
-}
-

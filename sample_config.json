@@ -14,5 +14,11 @@
     "recaptcha": {
         "key": "RECAPTCHA_KEY",
         "secret": "RECAPTCHA_SECRET"
+    },
+    "explorer": {
+        "bsc": "BSCSCAN_API_KEY",
+        "ftm": "FTMSCAN_API_KEY",
+        "poly": "POLYGONSCAN_API_KEY",
+        "eth": "ETHERSCAN_API_KEY"
     }
 }

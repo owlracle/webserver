@@ -1283,7 +1283,11 @@ const api = {
                 refreshCredit(key);
             });
             
-            modal.querySelector('#credit').addEventListener('click', async () => {
+            const historyButton = modal.querySelector('#credit');
+            historyButton.addEventListener('click', async () => {
+                historyButton.innerHTML = '<i class="fas fa-cog fa-spin"></i>';
+                historyButton.setAttribute('disabled', true);
+            
                 const data = await this.getCredit(key);
                 this.showWindowCredit(key, data);
             });    

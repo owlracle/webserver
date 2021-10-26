@@ -720,12 +720,17 @@ class Tooltip {
         }
         this.text = text;
 
+        this.parent.addEventListener('touchstart', () => {
+            this.touching = true;
+        });
+
         this.parent.addEventListener(createEvent, e => {
             this.pendingCreate = true;
             setTimeout(() => {
-                if (this.pendingCreate){
+                if (this.pendingCreate && !this.touching){
                     this.create(e);
                 }
+                this.touching = false;
             }, delay);
 
             if (timeout){

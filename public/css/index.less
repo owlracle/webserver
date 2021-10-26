@@ -1569,20 +1569,24 @@ body {
             align-items: center;
             height: 30px;
             background-color: #3498db67;
-            color: var(--text-color);
             border-bottom: 1px solid #3498db61;
             box-sizing: border-box;
             transition: 0.3s all;
             cursor: pointer;
             text-shadow: 0 0 1px var(--text-color);
-
+            
             &:hover {
                 background-color: #3498db;
             }
+            
+            a {
+                text-decoration: none;
+                color: var(--text-color);
 
-            .icon {
-                height: 20px;
-                margin-right: 5px;
+                .icon {
+                    height: 20px;
+                    margin-right: 5px;
+                }
             }
         }
     }

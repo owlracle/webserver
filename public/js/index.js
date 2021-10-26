@@ -368,13 +368,11 @@ const network = (symbol => {
         const dropdown = document.createElement('div');
         dropdown.id = 'dropdown';
     
-        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></div>`).join('');
+        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></a></div>`).join('');
     
         dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
     
-        dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => window.location.href = `/${e.id}`));
-        
         const fog = document.createElement('div');
         fog.id = 'fog';
         fog.classList.add('invisible');

@@ -1,5 +1,7 @@
 cwp*
 .vscode
+dev
+.conf
 node_modules
 config.json
 testData.json

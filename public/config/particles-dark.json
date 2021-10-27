@@ -70,7 +70,7 @@
         }
     },
     "interactivity": {
-        "detectsOn": "window",
+        "detectsOn": "canvas",
         "events": {
             "onHover": {
                 "enable": true,
@@ -109,5 +109,6 @@
         }
     },
     "detectsRetina": true,
-    "fpsLimit": 30
+    "fpsLimit": 30,
+    "pauseOnBlur": true
 }

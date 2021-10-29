@@ -970,6 +970,10 @@ const network = networks[cookies.get('network') || 'bsc'];
 
 class Modal {
     constructor(text, options = {}) {
+        if (document.querySelector('#fog')){
+            document.querySelector('#fog').remove();
+        }
+
         const fog = document.createElement('div');
         fog.id = 'fog';
         fog.innerHTML = `<div class='modal'><div id="content">${text}</div></div>`;
@@ -982,10 +986,18 @@ class Modal {
             this.domObject.classList.add('large');
         }
 
-        this.fogClose = options.fogClose || true;
+        this.fogClose = options.fog && options.fog.close || true;
         if (!this.fogClose){
             fog.addEventListener('click', () => fog.remove());
             fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+        }
+
+        if (options.fog && options.fog.dark){
+            fog.classList.add('dark');
+        }
+
+        if (options.fog && options.fog.invisible){
+            fog.classList.add('invisible');
         }
 
         if (options.buttonClose){
@@ -1018,6 +1030,10 @@ class Modal {
         obj.addEventListener(event.event, event.callback);
 
         return this;
+    }
+
+    close() {
+        this.domObject.parentNode.remove();
     }
 }
 

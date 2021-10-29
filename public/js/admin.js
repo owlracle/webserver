@@ -53,80 +53,128 @@ wallet.loadImg(document.querySelector('#donate'), network);
 document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
 
 
-// check if admin is logged in
-const session = cookies.get('session');
-if (!session){
-    const buttonPress = modal => {
-        modal = modal.domObject;
-        const value = modal.querySelector('input').value.trim();
-        
-        const button = modal.querySelector('button');
-        button.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
-        button.setAttribute('disabled', true);
-        modal.querySelector('input').setAttribute('disabled', true);
-        
-        // request a new session from backend if passowrd is correct
-        api.request(`/login`, {
+const session = {
+    get: function() {
+        return cookies.get('session');
+    },
+
+    set: function(id) {
+        cookies.set('session', id, { expires: { hours: 1 } });
+    },
+
+    delete: function() {
+        cookies.delete('session');
+    },
+
+    validate: async function(password) {
+        let body = { password: password }
+        if (!password){
+            body = { currentSession: this.get() };
+
+            if (!this.get()){
+                return false;
+            }    
+        }
+
+        const data = await api.request(`/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: value }),
-        }).then(data => {
-            document.querySelector('#fog').remove();
-
-            // fail. reload window to ask again
-            if (data.error){
-                new Modal(`<h2>${data.error}</h2>
-                    <p>${data.message}</p>
-                    <div id="button-container"><button id="close">OK</button></div>`,
-                ).addEvent({ tag: 'button', event: 'click', callback: () => window.location.reload() });
-                return;
-            }
-            // success, set cookie session and reload window
-            else {
-                cookies.set('session', data.sessionId, { expires: { hours: 1 } });
-                window.location.reload();
-            }
+            body: JSON.stringify(body),
         });
-    }
 
-    // not logged, ask for password
-    const modal = new Modal(`<h2>Admin Login</h2>
-        <div class="input-container">
-            <input class="input-text" type="password">
-            <button class="input-button"><i class="fas fa-sign-in-alt"></i></button>
-        </div>
-    `, {
-        id: 'admin-login',
-        fogClose: false,
-    });
-    // call button press
-    modal.addEvent({ tag: 'button', event: 'click', callback: () => buttonPress(modal) })
-    modal.addEvent({ class: 'input-text', event: 'keyup', callback: e => {
-        if (e.key == 'Enter') {
-            buttonPress(modal)
-        }
-    }});
-}
-// has cookie session. check if its valid
-else{
-    // console.log(session)
-    api.request(`/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentSession: session }),
-    }).then(data => {
         // fail. remove cookie session and reload window
         if (data.error){
-            cookies.delete('session');
-            window.location.reload();
+            this.delete();
+            return data;
+        }
+
+        // success, refresh cookie session be happy
+        this.set(data.sessionId);
+        return data;
+    },
+
+    login: async function() {
+        const buttonPress = async modal => {
+            const value = modal.domObject.querySelector('input').value.trim();
+
+            if (value.length > 0){
+                const button = modal.domObject.querySelector('button');
+                button.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
+                button.setAttribute('disabled', true);
+                modal.domObject.querySelector('input').setAttribute('disabled', true);
+                
+                // request a new session from backend if passowrd is correct
+                const data = await this.validate(value);
+                
+                // fail. reload window to ask again
+                if (data.error){
+                    new Modal(`<h2>${data.error}</h2>
+                        <p>${data.message}</p>
+                        <div id="button-container"><button id="close">OK</button></div>`, { fog: { dark: true } }
+                    ).addEvent({ tag: 'button', event: 'click', callback: () => this.login() });
+                    return;
+                }
+                // success, set cookie session and reload window
+                else {
+                    this.set(data.sessionId);
+                    modal.close();
+                    this.loaded = true;
+                }
+            }
+        }
+    
+        // not logged, ask for password
+        const modal = new Modal(`<h2>Admin Login</h2>
+            <div class="input-container">
+                <input class="input-text" type="password">
+                <button class="input-button"><i class="fas fa-sign-in-alt"></i></button>
+            </div>
+        `, {
+            id: 'admin-login',
+            fog: {
+                close: false,
+                dark: true
+            },
+        });
+        // call button press
+        modal.addEvent({ tag: 'button', event: 'click', callback: () => buttonPress(modal) })
+        modal.addEvent({ class: 'input-text', event: 'keyup', callback: e => {
+            if (e.key == 'Enter') {
+                buttonPress(modal)
+            }
+        }});
+    },
+
+    check: async function() {
+        // check if admin is logged in
+        const data = await this.validate();
+
+        // fail. remove cookie session and reload window
+        if (!data || data.error){
+            this.delete();
+            this.login();
+
+            // wait for login to be resolved
+            return await new Promise(resolve => {
+                const monitor = () => {
+                    if (this.loaded){
+                        resolve(true);
+                    }
+                    else{
+                        setTimeout(() => monitor(), 100);
+                    }
+                }
+                monitor();
+            });
         }
         // success, refresh cookie session be happy
         else {
-            cookies.set('session', session, { expires: { hours: 1 } });
-
-            console.log('success')
+            this.set(data.sessionId);
+            return true;
         }
-    });
+    }
+};
 
-}
-
+session.check().then(data => {
+    console.log(data);
+});

@@ -77,9 +77,13 @@ function indexRoute(req, res) {
 }
 
 
-// docs endpoint
 app.get('/docs', (req, res) => {
     res.render(`docs`, {});
+});
+
+
+app.get('/admin', (req, res) => {
+    res.render(`admin`, {});
 });
 
 

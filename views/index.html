@@ -35,28 +35,7 @@
 </head>
 
 <body>
-    <header>
-        <div class="col">
-            <a id="logo" href="/"><img src="img/owl.png" alt="Owlracle logo"></a>
-            <div id="price"><div><span class="token-name"></span>: $<span id="now"></span></div><span id="color" class="green">(<span id="before"></span>%)</span></div>
-            <a id="buy-bnb" href="https://www.binance.com/en/register?ref=88450796" target="_blank" rel="noopener"><img
-                    src="img/binance.ico" alt="binance logo">Buy <span class="token-name"></span></a>
-        </div>
-        <div class="col">
-            <div id="theme"></div>
-            <div id="network-btn"><img class="icon"><span class="name"></span></div>
-            <div id="search">
-                <input placeholder="Search API key">
-                <div id="button-container">
-                    <button id="api-info" aria-label="Api Search"><i class="fas fa-search"></i></button>
-                    <button id="drop" aria-label="Api Actions">
-                        <i class="fas fa-angle-down"></i>
-                        <i class="fas fa-key"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+    {{> header}}
 
     <div id="frame">
         <div id="left-space" class="ad vertical hidden"></div>
@@ -363,39 +342,7 @@
         <div id="right-space" class="ad vertical hidden"></div>
         </div>
 
-    <footer>
-        <div class="row">
-            <div class="col resources">
-                <div class="title">Resources</div>
-
-                <a id="explorer" class="item" target="_blank" rel="noopener"><img alt="block explorer logo" class="icon"><span class="name"></span><span class="gray">(<span class="chain-name"></span> block explorer)</span></a>
-                <a class="item" href="https://www.binance.com/" target="_blank" rel="noopener"><img src="img/binance.ico" alt="binance logo" class="icon"><span>Binance</span><span class="gray">(Buy <span class="token-name"></span> with fiat)</span></a>
-                <a class="item" href="https://t.me/owlracle" target="_blank" rel="noopener"><i class="fas fa-handshake icon"></i><span><b>Want your project here?</b></span><span class="gray">(Contact us)</span></a>
-            </div>
-            <!-- <div class="col resources">
-                <div class="title">Explore</div>
-                <a id="footer-keys" class="item" aria-label="api keys"><i class="fas fa-key icon"></i><span>Manage API keys</span></a>
-                <a href="/docs" class="item" aria-label="documentation"><i class="fas fa-book icon"></i><span>Read the Documentation</span></a>
-            </div> -->
-            <div class="col">
-                <div class="row title">Community</div>
-                <div class="row social">
-                    <div class="item"><a href="https://github.com/werlang/owlracle" target="_blank" aria-label="github" rel="noopener"><i class="fab fa-github"></i></a></div>
-                    <div class="item"><a href="https://twitter.com/owlracleapi" target="_blank" aria-label="twitter" rel="noopener"><i class="fab fa-twitter"></i></a></div>
-                    <div class="item"><a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener"><i class="fab fa-telegram-plane"></i></a></div>
-                </div>
-            </div>
-        </div>
-        <div id="donate-container" class="row">
-            <div id="donate" class="disabled">
-                <span>Donate <span class="token-name"></span> (<span class="chain-name"></span>):</span>
-                <div>
-                    <span id="wallet"></span>
-                    <i class="fas fa-qrcode"></i>
-                </div>
-            </div>
-        </div>
-    </footer>
+    {{> footer}}
 
     <input type="hidden" id="requestcost" class="template-var" value="{{requestcost}}">
     <input type="hidden" id="usagelimit" class="template-var" value="{{usagelimit}}">

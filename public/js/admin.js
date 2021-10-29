@@ -1,4 +1,4 @@
-import { DynamicScript, theme, wallet, price, network } from './utils.js';
+import { DynamicScript, theme, wallet, price, network, cookies, Modal, api } from './utils.js';
 
 new DynamicScript('https://kit.fontawesome.com/c1a16f97ec.js');
 
@@ -51,3 +51,82 @@ explorer.querySelector('.name').innerHTML = network.explorer.name;
 // set donation wallet modal
 wallet.loadImg(document.querySelector('#donate'), network);
 document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
+
+
+// check if admin is logged in
+const session = cookies.get('session');
+if (!session){
+    const buttonPress = modal => {
+        modal = modal.domObject;
+        const value = modal.querySelector('input').value.trim();
+        
+        const button = modal.querySelector('button');
+        button.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
+        button.setAttribute('disabled', true);
+        modal.querySelector('input').setAttribute('disabled', true);
+        
+        // request a new session from backend if passowrd is correct
+        api.request(`/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: value }),
+        }).then(data => {
+            document.querySelector('#fog').remove();
+
+            // fail. reload window to ask again
+            if (data.error){
+                new Modal(`<h2>${data.error}</h2>
+                    <p>${data.message}</p>
+                    <div id="button-container"><button id="close">OK</button></div>`,
+                ).addEvent({ tag: 'button', event: 'click', callback: () => window.location.reload() });
+                return;
+            }
+            // success, set cookie session and reload window
+            else {
+                cookies.set('session', data.sessionId, { expires: { hours: 1 } });
+                window.location.reload();
+            }
+        });
+    }
+
+    // not logged, ask for password
+    const modal = new Modal(`<h2>Admin Login</h2>
+        <div class="input-container">
+            <input class="input-text" type="password">
+            <button class="input-button"><i class="fas fa-sign-in-alt"></i></button>
+        </div>
+    `, {
+        id: 'admin-login',
+        fogClose: false,
+    });
+    // call button press
+    modal.addEvent({ tag: 'button', event: 'click', callback: () => buttonPress(modal) })
+    modal.addEvent({ class: 'input-text', event: 'keyup', callback: e => {
+        if (e.key == 'Enter') {
+            buttonPress(modal)
+        }
+    }});
+}
+// has cookie session. check if its valid
+else{
+    // console.log(session)
+    api.request(`/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentSession: session }),
+    }).then(data => {
+        // fail. remove cookie session and reload window
+        if (data.error){
+            cookies.delete('session');
+            window.location.reload();
+        }
+        // success, refresh cookie session be happy
+        else {
+            cookies.set('session', session, { expires: { hours: 1 } });
+
+            console.log('success')
+        }
+    });
+
+}
+

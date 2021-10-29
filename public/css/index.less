@@ -529,6 +529,92 @@
     
 }
 
+#fog .modal {
+    #tab-container {
+        display: flex;
+        justify-content: space-around;
+        
+        .tab {
+            background-color: var(--bg-intense-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 0 10px 0;
+            width: 33.33%;
+            cursor: pointer;
+            transition: 0.3s all;
+            
+            &.active {
+                background-color: var(--bg-color);
+                cursor: default;
+                text-shadow: 2px 1px 3px #cc4b13;
+            }
+
+            i {
+                @media @size-400 {
+                    margin-right: 10px;
+                }
+            }
+
+            .text {
+                display: none;
+
+                @media @size-400 {
+                    display: block;
+                }
+            }
+        }
+
+        #close-tab {
+            background-color: #ff00002b;
+
+            @media @size-400 {
+                display: none;
+            }
+        }
+    }
+
+    #content {
+        #key-show {
+            margin: -10px 0 35px 10px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        #missing {
+            margin-left: 20px;
+            font-size: 0.9rem;
+            
+            a {
+                text-decoration: none;
+                color: #2689cc;
+                cursor: pointer;
+            }
+        }
+
+        .input-text.keys {
+            font-family: monospace;
+        }
+
+        .input-container {
+            #update.clicked i {
+                transition: 0.7s transform;
+                transform: rotate(360deg);
+            }
+        }
+
+        .tip {
+            font-size: 0.8rem;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            margin: -10px 0 5px 15px;
+            transition: 0.3s all;
+            color: red;
+        }
+
+    }
+}
 
 .tooltip {
     position: fixed;

@@ -707,7 +707,7 @@ header {
         }
     }
 
-    #api-window {
+    .modal {
         background-color: var(--bg-color);
         color: var(--text-color);
         border-radius: 3px;
@@ -722,101 +722,8 @@ header {
 
         &.large {
             max-width: 900px;
-
-            .table {
-                display: flex;
-                flex-direction: column;
-
-                .body {
-                    overflow-y: auto;
-                    max-height: 300px;
-
-                    @media @size-600 {
-                        max-height: calc(50vh - 60px);
-                    }
-                }
-
-                .row {
-                    display: flex;
-                    justify-content: space-between;
-                    border-bottom: 1px solid var(--border-color);
-                    transition: 0.3s all;
-                    cursor: default;
-                    flex-wrap: wrap;
-
-                    &:hover {
-                        background-color: var(--border-color);
-                    }
-
-                    &.head {
-                        font-weight: bold;
-
-                        background-color: transparent;
-                    }
-
-                    .cell {
-                        padding: 5px 15px;
-                        display: flex;
-                        align-items: center;
-                        width: 16.66%;
-                        min-width: 130px;
-                        box-sizing: border-box;
-
-                        a {
-                            text-decoration: none;
-                            color: #2689cc;
-                            cursor: pointer;
-                        }
-    
-                    }
-                }
-            }
         }
-        
-        #tab-container {
-            display: flex;
-            justify-content: space-around;
-            
-            .tab {
-                background-color: var(--bg-intense-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 15px 0 10px 0;
-                width: 33.33%;
-                cursor: pointer;
-                transition: 0.3s all;
-                
-                &.active {
-                    background-color: var(--bg-color);
-                    cursor: default;
-                    text-shadow: 2px 1px 3px #cc4b13;
-                }
 
-                i {
-                    @media @size-400 {
-                        margin-right: 10px;
-                    }
-                }
-
-                .text {
-                    display: none;
-
-                    @media @size-400 {
-                        display: block;
-                    }
-                }
-            }
-
-            #close-tab {
-                background-color: #ff00002b;
-
-                @media @size-400 {
-                    display: none;
-                }
-            }
-        }
-        
         #content {
             display: flex;
             flex-direction: column;
@@ -829,28 +736,11 @@ header {
             @media @size-400 {
                 padding: 20px 30px;
             }
-
+    
             h2 {
                 margin: 10px 0 20px 0;
             }
             
-            #key-show {
-                margin: -10px 0 35px 10px;
-                opacity: 0.8;
-                font-size: 0.9rem;
-            }
-
-            #missing {
-                margin-left: 20px;
-                font-size: 0.9rem;
-                
-                a {
-                    text-decoration: none;
-                    color: #2689cc;
-                    cursor: pointer;
-                }
-            }
-
             .table .empty {
                 font-weight: bold;
                 margin-bottom: 20px;
@@ -858,7 +748,7 @@ header {
                 padding: 10px 20px;
                 border-radius: 3px;
             }    
-
+    
             .input-text {
                 padding: 10px 15px;
                 margin-bottom: 15px;
@@ -870,34 +760,25 @@ header {
                 border: 1px solid transparent;
                 font-size: 1rem;
                 transition: 0.3s all;
-
+    
                 &:focus {
                     border-color: var(--border-color);
                 }
-
-                &.keys {
-                    font-family: monospace;
-                }
-
+    
                 &.red {
                     border-color: #cc0000;
                 }
             }
-
+    
             .input-container {
                 display: flex;
                 justify-content: space-between;
-
+    
                 input {
                     flex-grow: 1;
                     border-radius: 3px 0 0 3px;
                 }
-
-                #update.clicked i {
-                    transition: 0.7s transform;
-                    transform: rotate(360deg);
-                }
-
+    
                 .input-button {
                     width: 35px;
                     display: flex;
@@ -906,40 +787,32 @@ header {
                     background-color: var(--bg-intense-color);
                     color: var(--text-intense-color);
                     margin-bottom: 15px;
+                    border: none;
                     border-radius: 0 3px 3px 0;
                     filter: invert(0.2);
                     cursor: pointer;
                     transition: 0.3s all;
-
+                    font-size: 1rem;
+    
                     &:hover {
                         filter: invert(0.3);
                     }
                 }
             }
-
-            .tip {
-                font-size: 0.8rem;
-                height: 20px;
-                display: flex;
-                align-items: center;
-                margin: -10px 0 5px 15px;
-                transition: 0.3s all;
-                color: red;
-            }
-
+    
             .title {
                 font-size: 0.9rem;
                 margin: 10px 0 10px 5px;
                 opacity: 0.7;
                 text-transform: capitalize;
-
+    
                 i {
                     margin-left: 5px;
                     color: var(--text-intense-color);
                     cursor: pointer;
                 }
             }
-
+    
             #checkbox-container {
                 margin: 10px 0;
                 label {
@@ -948,7 +821,7 @@ header {
                     margin-bottom: 20px;
                     transition: 0.2s all;
                     cursor: pointer;
-
+    
                     &:hover {
                         text-shadow: 0px 0px 0px var(--text-intense-color);
                     }
@@ -960,7 +833,7 @@ header {
                     
                     span {
                         margin-left: 10px;
-
+    
                         .tip {
                             transition: 0.5s all;
                             height: 35px;
@@ -975,16 +848,16 @@ header {
                     }
                 }
             }
-
+    
             ul {
                 padding-left: 25px;
             }
-
+    
             #button-container {
                 display: flex;
                 justify-content: center;
                 margin-top: 15px;
-
+    
                 button {
                     border: none;
                     border-radius: 3px;
@@ -997,12 +870,12 @@ header {
                     transition: 0.3s all;
                     font-size: 1.1rem;
                     margin: 0 5px;
-
+    
                     &:hover {
                         color: var(--text-dark-intense-color);
                         filter: brightness(1.2);
                     }
-
+    
                     &:disabled {
                         background-color: #727272;
                         box-shadow: none;
@@ -1011,6 +884,55 @@ header {
                         filter: none;
                         color: var(--text-dark-color);
                     }
+                }
+            }
+        }
+
+        .table {
+            display: flex;
+            flex-direction: column;
+
+            .body {
+                overflow-y: auto;
+                max-height: 300px;
+
+                @media @size-600 {
+                    max-height: calc(50vh - 60px);
+                }
+            }
+
+            .row {
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid var(--border-color);
+                transition: 0.3s all;
+                cursor: default;
+                flex-wrap: wrap;
+
+                &:hover {
+                    background-color: var(--border-color);
+                }
+
+                &.head {
+                    font-weight: bold;
+
+                    background-color: transparent;
+                }
+
+                .cell {
+                    padding: 5px 15px;
+                    display: flex;
+                    align-items: center;
+                    width: 16.66%;
+                    min-width: 130px;
+                    box-sizing: border-box;
+
+                    a {
+                        text-decoration: none;
+                        color: #2689cc;
+                        cursor: pointer;
+                    }
+
                 }
             }
         }

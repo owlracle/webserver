@@ -8,13 +8,13 @@ const configFile = JSON.parse(fs.readFileSync(`${__dirname}/config.json`));
 // manage session tokens
 class Session {
     static instances = {};
-    static timeLimit = 1000 * 60 * 10; // 10 minutes
 
     static getInstance(sid) {
         return Session.instances[sid] || false;
     }
 
-    constructor() {
+    constructor(timeLimit) {
+        this.timeLimit = timeLimit || 1000 * 60 * 10; // 10 minutes
         this.sid = uuidv4().split('-').join('');
         Session.instances[this.sid] = this;
         this.refresh();
@@ -32,8 +32,8 @@ class Session {
         if (this.timeout){
             clearTimeout(this.timeout);
         }
-        this.timeout = setTimeout(() => delete Session.instances[this.sid], Session.timeLimit);
-        this.expireAt = new Date().getTime() + Session.timeLimit;
+        this.timeout = setTimeout(() => delete Session.instances[this.sid], this.timeLimit);
+        this.expireAt = new Date().getTime() + this.timeLimit;
     }
 
 }

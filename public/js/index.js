@@ -461,7 +461,7 @@ const gasTimer = {
                 this.stop = true;
                 const fog = document.createElement('div');
                 fog.id = 'fog';
-                fog.innerHTML = `<div id="api-window"><div id="content">
+                fog.innerHTML = `<div id="api-window" class="modal"><div id="content">
                     <h2>Session expired</h2>
                     <p>This page must be reloaded to keep showing updated gas prices</p>
                     <div id="button-container">

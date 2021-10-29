@@ -679,7 +679,7 @@ const api = {
     showModal: function(tabSelected){
         const fog = document.createElement('div');
         fog.id = 'fog';
-        fog.innerHTML = `<div id='api-window'>
+        fog.innerHTML = `<div id='api-window' class="modal">
             <div id='tab-container'>
                 <div class="tab" id="info"><i class="fas fa-eye"></i><span class="text">Key Info</span></div>
                 <div class="tab" id="edit"><i class="fas fa-edit"></i><span class="text">Edit Key</span></div>
@@ -968,4 +968,57 @@ const networks = {
 const network = networks[cookies.get('network') || 'bsc'];
 
 
-export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network };
+class Modal {
+    constructor(text, options = {}) {
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+        fog.innerHTML = `<div class='modal'><div id="content">${text}</div></div>`;
+
+        this.domObject = fog.querySelector('.modal');
+        if (options.id){
+            this.domObject.id = options.id;
+        }
+        if (options.large){
+            this.domObject.classList.add('large');
+        }
+
+        this.fogClose = options.fogClose || true;
+        if (!this.fogClose){
+            fog.addEventListener('click', () => fog.remove());
+            fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+        }
+
+        if (options.buttonClose){
+            fog.querySelector(`#${options.buttonClose}`).addEventListener('click', () => fog.remove());
+        }
+
+        document.body.appendChild(fog);
+        fadeIn(fog, 500);
+
+        if (options.events){
+            options.events.forEach(event => {
+                this.addEvent(event);
+            })
+        }
+    }
+
+    addEvent(event){
+        let selector = '';
+        let attr = event.tag;
+        if (event.id){
+            selector = '#';
+            attr = event.id;
+        }
+        else if (event.class){
+            selector = '.';
+            attr = event.class;
+        }
+
+        const obj = this.domObject.querySelector(`${selector}${attr}`);
+        obj.addEventListener(event.event, event.callback);
+
+        return this;
+    }
+}
+
+export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal };

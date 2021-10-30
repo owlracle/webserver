@@ -8,12 +8,12 @@
     <meta name="description" content="Multichain gas price oracle and API for BSC, POLYGON, FANTOM, AVALANCHE and ETHEREUM.">
     <meta name="keywords" content="gas price api, binance smart chain, avalanche, polygon, ethereum, fantom, crypto, ETH, MATIC, FTM, AVAX, BNB, defi, gas, gas fee, gas price, oracle, bsc, gas api">
     <meta name="”robots”" content="index, follow">
-    <meta property="og:image" content="https://owlracle.info/img/owl_icon_large.png">
+    <meta property="og:image" content="https://owlracle.info/img/owl.png">
     <meta property="og:title" content="Owlracle - Multichain Gas Oracle " />
     <meta property="og:url" content="https://owlracle.info/" />
     <meta property="og:description" content="Multichain gas price oracle and API.">
     <meta property="og:site_name" content="owlracle.info">
-    <meta name="twitter:image" content="https://owlracle.info/img/owl_icon_large.png">
+    <meta name="twitter:image" content="https://owlracle.info/img/owl.png">
     <meta name="twitter:description" content="Multichain gas price oracle and API.">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Owlracle - Multichain Gas Oracle " />
@@ -28,8 +28,26 @@
 <body>
     {{> header}}
 
-    <h3 id="title">API requests</h3>
-    <table id="table"></table>
+    <div id="frame">
+        <div id="side-menu">
+            <div class="item">API requests</div>
+        </div>
+
+        <div id="content">
+            <h1 id="title">API requests</h1>
+            <table id="table"></table>
+    
+            <div id="chart-container">
+                <div id="timeframe-switcher">
+                    <button id="tf-M">M</button>
+                    <button id="tf-d">D</button>
+                    <button id="tf-h">H</button>
+                    <button id="tf-m">M</button>
+                </div>
+                <div id="chart"></div>
+            </div>
+        </div>
+    </div>
 
     {{> footer}}
 </body>

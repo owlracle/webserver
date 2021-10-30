@@ -20,6 +20,7 @@ app.set('views', __dirname + '/views');
 
 
 const api = require('./api')(app);
+require('./admin')(app);
 
 
 const args = {
@@ -123,6 +124,13 @@ app.get('/admin', (req, res) => {
 
 // admin login
 app.post('/login', (req, res) => {
+    if (!configFile.production){
+        res.send({
+            message: 'Bypassing session for dev mode',
+        });
+        return;
+    }
+
     if (req.body.currentSession){
         const session = Session.getInstance(req.body.currentSession);
         

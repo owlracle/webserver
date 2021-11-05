@@ -4,7 +4,7 @@
 
 # Owlracle Web
 
-This is the webserver and frontend code for [Owlracle](https://owlracle.info) website.
+This is the webserver and frontend code for [Owlracle](https://owlracle.info) website. If you want to check the gas price oracle repo, check [here](https://github.com/werlang/owlracle).
 
 ## Motivation
 
@@ -27,6 +27,18 @@ Inspired by works like [ethgasstation](https://ethgasstation.info/), I have deci
 ##
 
 ### Want to know more? Check [owlracle.info](https://owlracle.info) for a full documentation.
+
+<a href="https://twitter.com/owlracleAPI">
+<img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white">
+</a>
+
+<a href="https://t.me/owlracle">
+<img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white">
+</a>
+
+<a href="https://github.com/werlang/owlracle">
+<img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white">
+</a>
 
 ---
 

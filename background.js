@@ -49,7 +49,7 @@ async function buildHistory(network, blocks){
 
 
 // update credit recharges and block height for all api keys
-async function updateAllCredit(){
+async function updateAllCredit(api){
     const [rows, error] = await db.query(`SELECT * FROM api_keys`);
     if (!error){
         rows.forEach(async row => {

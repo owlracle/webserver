@@ -188,7 +188,7 @@ updateTokenPrice().then(() => {
             Object.keys(networkList).forEach(n => buildHistory(n));
         }
         if (args.updateCredit){
-            updateAllCredit();
+            updateAllCredit(api);
         }
     }
 });

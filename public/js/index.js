@@ -77,9 +77,7 @@ const network = (symbol => {
     let query;
     [symbol, query] = symbol.split('?');
 
-    if (query){
-        query = Object.fromEntries(query.split('&').map(e => e.split('=')));
-    }
+    query = query ? Object.fromEntries(query.split('&').map(e => e.split('='))) : {};
 
     const networks = {
         eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
@@ -101,7 +99,8 @@ const network = (symbol => {
 
     // no network set, redirect to last network
     if (symbol == ''){
-        window.location.href = '/' + (cookies.get('network') || 'bsc');
+        const queryString = Object.keys(query).length ? '?'+ Object.entries(query).map(([k,v]) => `${k}=${v}`).join('&') : '';
+        window.location.href = '/' + (cookies.get('network') || 'bsc') + queryString;
         return;
     }
     
@@ -163,7 +162,7 @@ const network = (symbol => {
         document.querySelector('#nav-network').remove();
     }
 
-    if (query && query.ref && query.ref === 'bscgas'){
+    if (query.ref && query.ref === 'bscgas'){
         const info = document.createElement('div');
         info.innerHTML = `<div id="owlracle-info">
             <div id="message">

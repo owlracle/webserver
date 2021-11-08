@@ -74,6 +74,13 @@ new DynamicScript('https://kit.fontawesome.com/c1a16f97ec.js');
 
 // set the corresponding network in header
 const network = (symbol => {
+    let query;
+    [symbol, query] = symbol.split('?');
+
+    if (query){
+        query = Object.fromEntries(query.split('&').map(e => e.split('=')));
+    }
+
     const networks = {
         eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
             icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
@@ -154,6 +161,19 @@ const network = (symbol => {
 
     if (network.explorer.apiAvailable){
         document.querySelector('#nav-network').remove();
+    }
+
+    if (query && query.ref && query.ref === 'bscgas'){
+        const info = document.createElement('div');
+        info.innerHTML = `<div id="owlracle-info">
+            <div id="message">
+                <img src="https://owlracle.info/img/owl.png">
+                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank">Bscgas</a> and get <b>$5</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
+            </div>
+            <div id="close"><i class="fas fa-times-circle"></i></div>
+        </div>`;
+        info.querySelector('#close').addEventListener('click', () => info.remove());
+        document.body.appendChild(info);
     }
 
     return network;
@@ -797,8 +817,10 @@ const faq = [
     `Owlracle is an open-source gas price oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information.`],
     [`How do you make the gas price predictions?`,
     `This tool attempts to predict the gas price to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas price. Every speed is measured by calculating the minimum gas price paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations.`],
-    [`Your website looks so much like <a href="https://bscgas.info" target="_blank">bscgas</a>. Is it a coincidence?`,
+    [`Your website looks so much like <a href="https://bscgas.info" target="_blank">Bscgas</a>. Is it a coincidence?`,
     `Not at all. We are the same team as bscgas. But as soon as we noticed the demand to expand to other networks, we created owlracle to be a gas price oracle hub on every major chain. We also developed our own oracle software, so we thought we should rebrand ourselves.`],
+    [`I came from <a href="https://bscgas.info" target="_blank">Bscgas</a> and want to use the old style /gas endpoint. How can I?`,
+    `Easy! Just set query parameter version=1. The output format will be just like Good Ol' Bscgas.`],
     [`How do you predict the gas price fee?`,
     `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
     [`My app have thousands of user requesting bscgas service. The API limit seems too low.`,

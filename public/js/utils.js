@@ -250,6 +250,44 @@ const price = {
 };
 
 
+// set the corresponding network in header
+const network = {
+    list: {
+        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
+            icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
+        } },
+        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
+            icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
+        } },
+        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
+            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
+        } },
+        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
+            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
+        } },
+        bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
+            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
+        } },
+    },
+    
+    get: function(name) {
+        if (!name){
+            name = cookies.get('network') || 'bsc';
+        }
+
+        return this.list[name];
+    },
+
+    set: function(name){
+        cookies.set('network', name, { expires: { days: 365 } });
+    },
+
+    getList: function() {
+        return this.list;
+    }
+}
+
+
 const api = {
     regex: {
         url: new RegExp(/^(?:https?:\/\/)?(?:www\.)?([a-z0-9._-]{1,256}\.[a-z0-9]{1,10})\b.*$/),
@@ -637,18 +675,22 @@ const api = {
     },
 
     showWindowCredit: function(key, data) {
+        // console.log(data)
+        const ntw = network.get();
         const modal = document.querySelector('#fog #api-window');
 
-        let txs = `<div class="empty">No transactions found. Try sending some ${network.token} to your API wallet.</div>`;
+        let txs = `<div class="empty">No transactions found. Try sending some ${ntw.token} to your API wallet.</div>`;
         if (data.results.length > 0){
             modal.classList.add('large');
 
             const tds = data.results.map(e => {
+                const thisNetwork = network.getList()[e.network];
+
                 return `<div class="row">
-                    <div class="cell"><a href="${network.explorer.href}/tx/${e.tx}" target="_blank">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
+                    <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
                     <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
-                    <div class="cell">${network.name}</div>
-                    <div class="cell"><a href="${network.explorer.href}/address/${e.fromWallet}" target="_blank">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
+                    <div class="cell">${thisNetwork.name}</div>
+                    <div class="cell"><a href="${thisNetwork.explorer.href}/address/${e.fromWallet}" target="_blank">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
                     <div class="cell">${parseFloat(e.price).toFixed(4)}</div>
                     <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
                 </div>`;
@@ -658,7 +700,7 @@ const api = {
                 <div class="cell">Time</div>
                 <div class="cell">Network</div>
                 <div class="cell">From wallet</div>
-                <div class="cell">${network.token} Price</div>
+                <div class="cell">Token Price</div>
                 <div class="cell">Value</div>
             </div>
             <div class="body">${tds}</div>`;
@@ -945,27 +987,6 @@ class Tooltip {
         this.text = text;
     }
 }
-
-
-// set the corresponding network in header
-const networks = {
-    eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
-        icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
-    } },
-    avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
-        icon: 'https://explorer.avax.network/favicon.ico', href: 'https://explorer.avax.network', name: 'Avalanche Explorer', apiAvailable: false,
-    } },
-    poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
-        icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
-    } },
-    ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
-        icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
-    } },
-    bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
-        icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
-    } },
-};
-const network = networks[cookies.get('network') || 'bsc'];
 
 
 class Modal {

@@ -8,9 +8,9 @@ document.querySelector('#theme').addEventListener('click' , () => theme.toggle()
 
 // place network button in header
 const obj = document.querySelector('#network-btn');
-obj.classList.add(network.symbol);
-obj.querySelector('.name').innerHTML = network.name;
-obj.querySelector('.icon').src = `img/${network.symbol}.png`;
+obj.classList.add(network.get().symbol);
+obj.querySelector('.name').innerHTML = network.get().name;
+obj.querySelector('.icon').src = `img/${network.get().symbol}.png`;
 
 
 // network button action
@@ -18,7 +18,7 @@ obj.addEventListener('click', function() {
     const dropdown = document.createElement('div');
     dropdown.id = 'dropdown';
 
-    dropdown.innerHTML = Object.entries(networks).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></a></div>`).join('');
+    dropdown.innerHTML = Object.entries(network.getList()).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></a></div>`).join('');
 
     dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
     dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
@@ -33,24 +33,24 @@ obj.addEventListener('click', function() {
     fog.addEventListener('click', () => fog.remove());
 });
 
-document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
-document.querySelectorAll('.chain-symbol').forEach(e => e.innerHTML = network.symbol);
-document.querySelectorAll('.chain-name').forEach(e => e.innerHTML = network.name);
+document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.get().token);
+document.querySelectorAll('.chain-symbol').forEach(e => e.innerHTML = network.get().symbol);
+document.querySelectorAll('.chain-name').forEach(e => e.innerHTML = network.get().name);
 
 // set the right token to price fetch according to the network
-price.token = network.token;
+price.token = network.get().token;
 price.update();
 setInterval(() => price.update(), 10000); // update every 10s
 
 // set network block explorer in footer
 const explorer = document.querySelector('footer .resources #explorer');
-explorer.href = network.explorer.href;
-explorer.querySelector('img').src = network.explorer.icon;
-explorer.querySelector('.name').innerHTML = network.explorer.name;
+explorer.href = network.get().explorer.href;
+explorer.querySelector('img').src = network.get().explorer.icon;
+explorer.querySelector('.name').innerHTML = network.get().explorer.name;
 
 // set donation wallet modal
-wallet.loadImg(document.querySelector('#donate'), network);
-document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
+wallet.loadImg(document.querySelector('#donate'), network.get());
+document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network.get()));
 
 
 const session = {
@@ -201,7 +201,7 @@ const chart = {
     candles: 1000,
     lastCandle: (new Date().getTime() / 1000).toFixed(0),
     allRead: false,
-    network: network.symbol,
+    network: network.get().symbol,
 
     init: async function() {
         await this.package;

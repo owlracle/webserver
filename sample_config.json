@@ -19,6 +19,7 @@
         "bsc": "BSCSCAN_API_KEY",
         "ftm": "FTMSCAN_API_KEY",
         "poly": "POLYGONSCAN_API_KEY",
-        "eth": "ETHERSCAN_API_KEY"
+        "eth": "ETHERSCAN_API_KEY",
+        "avax": "SNOWTRACE_API_KEY"
     }
 }

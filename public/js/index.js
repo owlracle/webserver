@@ -1,4 +1,4 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip } from './utils.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network } from './utils.js';
 
 // request google recaptcha v3 token
 const recaptcha = {
@@ -79,24 +79,6 @@ const network = (symbol => {
 
     query = query ? Object.fromEntries(query.split('&').map(e => e.split('='))) : {};
 
-    const networks = {
-        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
-            icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
-        } },
-        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
-            icon: 'https://explorer.avax.network/favicon.ico', href: 'https://explorer.avax.network', name: 'Avalanche Explorer', apiAvailable: false,
-        } },
-        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
-            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
-        } },
-        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
-            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
-        } },
-        bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
-            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
-        } },
-    };
-
     // no network set, redirect to last network
     if (symbol == ''){
         const queryString = Object.keys(query).length ? '?'+ Object.entries(query).map(([k,v]) => `${k}=${v}`).join('&') : '';
@@ -104,9 +86,9 @@ const network = (symbol => {
         return;
     }
     
-    cookies.set('network', symbol, { expires: { days: 365 } });
-    const network = networks[symbol];
-    network.symbol = symbol;
+    Network.set(symbol);
+
+    const network = Network.get();
 
     // place network button in header
     const obj = document.querySelector('#network-btn');
@@ -121,7 +103,7 @@ const network = (symbol => {
         const dropdown = document.createElement('div');
         dropdown.id = 'dropdown';
     
-        dropdown.innerHTML = Object.entries(networks).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></a></div>`).join('');
+        dropdown.innerHTML = Object.entries(Network.getList()).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></a></div>`).join('');
     
         dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
@@ -829,13 +811,13 @@ const faq = [
     [`My API key have been exposed. What should I do?`,
     `You can reset your API key hash and generate a new one <a id="link-reset-key">clicking here</a>.`],
     [`I want to make a recharge. Where can I find my API wallet?`,
-    `Your API wallet can be found in the <a onclick="document.querySelector('#manage-apikey').click()">API management window</a>. To add credits to your account, just make a BNB transfer of any amount to your API wallet. Use the management window to update your balance and keep track of your recharge history.`],
+    `Your API wallet can be found in the <a onclick="document.querySelector('#manage-apikey').click()">API management window</a>. To add credits to your account, just make a <span class="token-name"></span> transfer of any amount to your API wallet. Use the management window to update your balance and keep track of your recharge history.`],
 ];
 document.querySelector('#faq').innerHTML = `<ul>${faq.map(e => `<li><ul><li class="question"><i class="fas fa-angle-right"></i>${e[0]}</li><li class="answer">${e[1]}</li></ul></li>`).join('')}</ul>`;
 document.querySelectorAll('#faq .question').forEach(e => e.addEventListener('click', () => e.parentNode.classList.toggle('open')));
 
 document.querySelector('#link-reset-key').addEventListener('click', () => api.showModal('edit'));
-
+document.querySelectorAll('#faq .token-name').forEach(e => e.innerHTML = network.token);
 
 // smooth scrolling when clicking link
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {

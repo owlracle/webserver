@@ -1,41 +1,6 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network } from './utils.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha } from './utils.js';
 
-// request google recaptcha v3 token
-const recaptcha = {
-    ready: false,
-    loading: false,
-
-    load: async function() {
-        if (this.ready){
-            return true;
-        }
-        else if (this.loading){
-            return new Promise(resolve => setTimeout(() => resolve(this.load()), 10));
-        }
-
-        this.loading = true;
-
-        this.key = document.querySelector('#recaptchakey').value;
-
-        const script = document.createElement('script');
-        script.src = `https://www.google.com/recaptcha/api.js?render=${this.key}`;
-        script.async = true;
-
-        document.head.appendChild(script);
-
-        return new Promise( resolve => script.onload = () => {
-            this.ready = true;
-            resolve(true);
-        });
-    },
-
-    getToken: async function() {
-        await this.load();
-        return new Promise(resolve => grecaptcha.ready(() => grecaptcha.execute(this.key, { action: 'submit' }).then(token => resolve(token))));
-    }
-}
 recaptcha.load();
-
 
 // set session id token
 const session = {

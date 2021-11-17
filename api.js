@@ -46,8 +46,9 @@ module.exports = app => {
             const version = parseInt(req.query.version) || 2;
             const blocks = req.query.blocks && version == 2 ? Math.min(Math.max(parseInt(req.query.blocks), 0), 1000) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => Math.min(Math.max(parseInt(e), 0), 100)) : defaultSpeeds;
+            const ntx = req.query.ntx && version == 2 ? parseFloat(req.query.ntx) : 1;
     
-            const data = await oracle.getNetInfo(network.name, blocks);
+            const data = await oracle.getNetInfo(network.name, blocks, ntx);
             if (data.error){
                 return { error: data.error };
             }

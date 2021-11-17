@@ -74,9 +74,9 @@ const oracle = {
         }
     },
 
-    getNetInfo: async function(network='bsc', blocks=200){
+    getNetInfo: async function(network='bsc', blocks=200, ntx=1){
         try{        
-            return await (await fetch(`${this.url}/${network}?blocks=${blocks}`)).json();
+            return await (await fetch(`${this.url}/${network}?blocks=${blocks}&nth=${ntx}`)).json();
         }
         catch (error){
             return { error: {

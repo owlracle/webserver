@@ -735,7 +735,7 @@ class UrlBox {
 // define sample requests url box
 new UrlBox(document.querySelector('#url-gas.url'), {
     network: true,
-    href: `/gas?apikey={{apikey}}&accept=35,60,90,100&blocks=200&version=2`,
+    href: `/gas?apikey={{apikey}}&nmin=1&accept=35,60,90,100&blocks=200&version=2`,
 });
 new UrlBox(document.querySelector('#url-history.url'), {
     network: true,

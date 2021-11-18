@@ -19,6 +19,7 @@ Inspired by works like [ethgasstation](https://ethgasstation.info/), I have deci
  * How many transactions in the past will be analysed for making the calculations? *Default 200* blocks in the past;
  * What is the desired transaction acceptance rate you are looking for? e.g. 60% blocks accepted a transaction using a given gas price.
  * How many acceptance rates you want to track? You can provice a list. In practice, this is the same as *speeds* from similar services. But in Owlracle, you can fully customize it.
+ * Number of lowest gas transactions to be considered when calculating minimum gas price accepted by the block.
 
 ## Gas price history
 

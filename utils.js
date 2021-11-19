@@ -138,15 +138,17 @@ const explorer = {
         return txs;
     },
 
+    // get balance from wallets
     getMultiBalance: async function(wallets){
         const balance = {};
 
         const call = async (sliced, network) => {
             return new Promise(resolve => setTimeout(async () => {
-                resolve(await (await fetch(`${this.url[network]}/api?module=account&action=balancemulti&address=${sliced.join(',')}&tag=latest&apikey=${this.apiKey}`)).json());
+                resolve(await (await fetch(`${this.url[network]}/api?module=account&action=balancemulti&address=${sliced.join(',')}&tag=latest&apikey=${this.apiKey[network]}`)).json());
             }, 1500));
         }
     
+        // wait to complete every call
         await Promise.all(Object.keys(this.url).map(async network => {
             // we can call 20 at time from explorer
             for (let i=0 ; i < parseInt(wallets.length / 20) + 1 ; i++){
@@ -158,7 +160,7 @@ const explorer = {
                         if (!balance[e.account]){
                             balance[e.account] = {};
                         }
-                        balance[e.account][networkList[network].token] = e.balance;
+                        balance[e.account][network] = e.balance;
                     });
                 }
             }

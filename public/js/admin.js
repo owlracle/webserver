@@ -332,7 +332,69 @@ document.querySelectorAll('#side-menu .item').forEach((e,i) => e.addEventListene
 }));
 document.querySelector('#side-menu #requests').click();
 
+
+// wallet check
 document.querySelector('#side-menu #wallets').addEventListener('click', async () => {
-    const data = await api.request(`/admin/keys?currentSession=${session.get()}`);
-    console.log(data);
+    // placeholder
+    document.querySelector('#content #wallet-table').innerHTML = [...Array(5)].map(w => `<div class="row placeholder"></div>`).join('');
+
+    const data = await api.request(`/admin/wallets?currentSession=${session.get()}`);
+
+    if (data.error){
+        console.log(data);
+        return;
+    }
+
+    let wallets = Object.keys(data.balances).map(wallet => {
+        // calc values using token balance and token price
+        const value = Object.fromEntries(Object.entries(data.balances[wallet]).filter(([k,v]) => k != 'private').map(([k,v]) => {
+            return isNaN(parseFloat(v)) ? [k,v] : [k, parseFloat(v) * 0.000000000000000001 * parseFloat(data.tokenPrices[k])];
+        }));
+
+        const pvt = data.balances[wallet].private;
+        delete data.balances[wallet].private;
+
+        const total = Object.values(value).reduce((p,c) => p+c, 0);
+
+        return {
+            wallet: wallet,
+            private: pvt,
+            balance: data.balances[wallet],
+            value: value,
+            total: total,
+        }
+    });
+
+    // sort descending
+    wallets = wallets.sort((a,b) => b.total - a.total);
+
+    // place info in the DOM table
+    const body = wallets.map(w => `<div class="row">
+        <div class="title">
+            <div class="cell">
+                <span class="info">${w.wallet.slice(0,5)}...${w.wallet.slice(-4)}</span>
+                <span class="text">Wallet</span>
+            </div>
+            <div class="cell">
+                <span class="info">$${w.total.toFixed(4)}</span>
+                <span class="text">Balance</span>
+            </div>
+        </div>
+        <div class="details">
+            ${Object.entries(w.balance).map(([k,v]) => `<div class="row"><div class="cell">${(parseFloat(v) * 0.000000000000000001).toFixed(6)} <span class="token">${network.getList()[k].token}</span></div><div class="cell">$${w.value[k].toFixed(4)}</div></div>`).join('')}
+            <div class="private-container"><span class="private">${w.private.slice(0,10)}...${w.private.slice(-10)}</span><span class="text">Private Key</span></div>
+        </div>
+    </div>`).join('');
+
+    document.querySelector('#content #wallet-table').innerHTML = body;
+
+    document.querySelectorAll('#content #wallet-table .row').forEach(r => r.addEventListener('click', () => {
+        r.querySelector('.details').classList.toggle('open');
+    }));
+
+    // click on copy
+    document.querySelectorAll('#content #wallet-table .private').forEach((e,i) => e.addEventListener('click', () => {
+        navigator.clipboard.writeText(wallets[i].private);
+    }));
+    
 });

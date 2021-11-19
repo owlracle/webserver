@@ -106,6 +106,7 @@ module.exports = app => {
 
 
     app.get('/admin/wallets', async (req, res) => {
+        // session check
         const session = Session.getInstance(req.query.currentSession || false);
 
         if (!session) {
@@ -120,9 +121,9 @@ module.exports = app => {
 
         session.refresh();
 
-        const sql = `SELECT wallet, private FROM api_keys;
-        `;
-        const [rows, error] = await db.query(sql, []);
+        // get wallets available
+        let sql = `SELECT wallet, private FROM api_keys;`;
+        let [rows, error] = await db.query(sql, []);
 
         if (error) {
             res.status(500);
@@ -134,12 +135,31 @@ module.exports = app => {
             return;
         }
 
+        // get balance from explorer
         const wallets = rows.map(row => row.wallet);
         const balances = await explorer.getMultiBalance(wallets);
+        rows.forEach(e => balances[e.wallet].private = e.private);
+
+        // get last token price for every network
+        sql = `SELECT token_price, network FROM price_history WHERE id IN (SELECT MAX(id) FROM price_history GROUP BY network);`;
+        [rows, error] = await db.query(sql, []);
+
+        if (error) {
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error retrieving token prices.'
+            });
+            return;
+        }
+
+        const tokenPrices = Object.fromEntries(rows.map(row => [row.network, row.token_price]));
     
         res.send({
             message: 'success',
-            results: balances,
+            balances: balances,
+            tokenPrices: tokenPrices,
         });
     });
 };

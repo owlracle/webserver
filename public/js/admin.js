@@ -76,11 +76,12 @@ const session = {
             }    
         }
 
-        const data = await api.request(`/login`, {
+        const data = await api.request(`/admin/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
+        // console.log(data)
 
         // fail. remove cookie session and reload window
         if (data.error){
@@ -176,20 +177,14 @@ const session = {
 };
 
 session.check().then(async () => {
-    const data = await api.request(`/requests?timeframe=h`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-    });
-
-    chart.init().then(() => {
+    await chart.init();
         document.querySelector(`#timeframe-switcher #tf-h`).click();
 
-        theme.onChange = () => {
-            chart.setTheme(cookies.get('theme') || 'dark');
-        };
-        
-        theme.set(cookies.get('theme') || 'dark');
-    });
+    theme.onChange = () => {
+        chart.setTheme(cookies.get('theme') || 'dark');
+    };
+    
+    theme.set(cookies.get('theme') || 'dark');
 });
 
 
@@ -307,7 +302,7 @@ const chart = {
 
     getHistory: async function(timeframe=60, page=1, candles=this.candles) {
         this.timeframe = timeframe;
-        this.history = await api.request(`/requests?timeframe=${timeframe}`);
+        this.history = await api.request(`/admin/requests?timeframe=${timeframe}&currentSession=${session.get()}`);
         // console.log(this.history)
         if (this.history.error){
             console.log(this.history);
@@ -324,3 +319,20 @@ const chart = {
         return this.ready || new Promise(resolve => setTimeout(() => resolve(this.isReady()), 10));
     }
 };
+
+
+// set menu click action
+document.querySelectorAll('#side-menu .item').forEach((e,i) => e.addEventListener('click', () => {
+    const content = document.querySelectorAll('#content .menu-content');
+    content.forEach(e => e.classList.remove('active'));
+    content[i].classList.add('active');
+
+    e.parentNode.querySelectorAll('.item').forEach(e => e.classList.remove('active'));
+    e.classList.add('active');
+}));
+document.querySelector('#side-menu #requests').click();
+
+document.querySelector('#side-menu #wallets').addEventListener('click', async () => {
+    const data = await api.request(`/admin/keys?currentSession=${session.get()}`);
+    console.log(data);
+});

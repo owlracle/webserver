@@ -30,23 +30,31 @@
 
     <div id="frame">
         <div id="side-menu">
-            <div class="item">API requests</div>
+            <div id="requests" class="item">API requests</div>
+            <div id="wallets" class="item">Wallets</div>
         </div>
-
+        
         <div id="content">
-            <h1 id="title">API requests</h1>
-            <table id="table"></table>
-    
-            <div id="chart-container">
-                <div id="timeframe-switcher">
-                    <button id="tf-M">M</button>
-                    <button id="tf-d">D</button>
-                    <button id="tf-h">H</button>
-                    <button id="tf-m">M</button>
+            <div id="requests" class="menu-content">
+                <h1 id="title">API requests</h1>
+                <table id="table"></table>
+        
+                <div id="chart-container">
+                    <div id="timeframe-switcher">
+                        <button id="tf-M">M</button>
+                        <button id="tf-d">D</button>
+                        <button id="tf-h">H</button>
+                        <button id="tf-m">M</button>
+                    </div>
+                    <div id="chart"></div>
                 </div>
-                <div id="chart"></div>
+            </div>
+    
+            <div id="wallets" class="menu-content">
+                <h1>Wallets</h1>
             </div>
         </div>
+
     </div>
 
     {{> footer}}

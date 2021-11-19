@@ -128,7 +128,7 @@
 
             <p>The <code class="code inline">apikey</code> query param is required. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one.</p>
             
-            <p><code class="code inline">nmin</code>: Owlracle look for the minimum GWei accepted on a transaction for each block by default. But you can also loose this restriction a little. You can use this argument to ask for the N minimum GWei values on each block. You can also use a value between 0.01 and 0.99 if you want to look for N% minimum GWei values of each block. This minimum block values will be used to calculate the speeds. <i>Default 1.</i></p>
+            <p><code class="code inline">nmin</code>: Owlracle look for the minimum GWei accepted on a transaction for each block by default. But you can also loose this restriction a little. You can use this argument to ask for the N minimum GWei values on each block. You can also use a value between 0.01 and 0.99 if you want to look for N% minimum GWei values of each block. This minimum block values will be used to calculate the speeds. <i>Default 0.3</i>.</p>
 
             <p><code class="code inline">accept</code>: To define transaction speed you must determine on how many blocks you want a transaction to be accepted. With this argument you set the percentage of blocks you want the transaction to be accepted. Higher acceptance means more speedy transactions. You can provide a single value or a comma separated list of values, representing multiple speeds. <i>Default 35,60,90,100</i>.</p>
                 

@@ -10,6 +10,9 @@ class Session {
     static instances = {};
 
     static getInstance(sid) {
+        if (!configFile.production){
+            return new Session(1000);
+        }
         return Session.instances[sid] || false;
     }
 
@@ -89,6 +92,17 @@ const oracle = {
     },
 };
 
+
+// network list
+const networkList = {
+    eth: { name: 'ethereum', token: 'ETH'},
+    bsc: { name: 'bsc', token: 'BNB'},
+    poly: { name: 'polygon', token: 'MATIC'},
+    ftm: { name: 'fantom', token: 'FTM'},
+    avax: { name: 'avax', token: 'AVAX'},
+};
+
+
 const explorer = {
     apiKey: configFile.explorer,
     url: {
@@ -96,6 +110,7 @@ const explorer = {
         bsc: `https://api.bscscan.com`,
         poly: `https://api.polygonscan.com`,
         ftm: `https://api.ftmscan.com`,
+        avax: `https://api.snowtrace.io`,
     },
 
     getBlockNumber: async function(timestamp, network) {
@@ -123,51 +138,34 @@ const explorer = {
         return txs;
     },
 
-    getBNBBalance: async function() {
-        const [rows, error] = await db.query(`SELECT wallet FROM api_keys`);
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error searching for wallets.',
-                serverMessage: error,
-            });
-            return;
-        }
+    getMultiBalance: async function(wallets){
+        const balance = {};
 
-        const wallets = rows.map(row => row.wallet);
-        const balance = [];
-
-        const call = async (sliced) => {
+        const call = async (sliced, network) => {
             return new Promise(resolve => setTimeout(async () => {
-                resolve(await (await fetch(`https://api.bscscan.com/api?module=account&action=balancemulti&address=${sliced.join(',')}&tag=latest&apikey=${this.apiKey}`)).json());
+                resolve(await (await fetch(`${this.url[network]}/api?module=account&action=balancemulti&address=${sliced.join(',')}&tag=latest&apikey=${this.apiKey}`)).json());
             }, 1500));
         }
-
-        // we can call 20 at time from bscscan
-        for (let i=0 ; i < parseInt(wallets.length / 20) + 1 ; i++){
-            const sliced = wallets.slice(i*20, (i+1)*20);
-            const result = await call(sliced);
-            console.log(result)
-
-            if (result.status == '1'){
-                result.result.forEach(e => balance.push([e.account, e.balance]));
+    
+        await Promise.all(Object.keys(this.url).map(async network => {
+            // we can call 20 at time from explorer
+            for (let i=0 ; i < parseInt(wallets.length / 20) + 1 ; i++){
+                const sliced = wallets.slice(i*20, (i+1)*20);
+                const result = await call(sliced, network);
+        
+                if (result.status == '1'){
+                    result.result.forEach(e => {
+                        if (!balance[e.account]){
+                            balance[e.account] = {};
+                        }
+                        balance[e.account][networkList[network].token] = e.balance;
+                    });
+                }
             }
-        }
+        }));
 
-        return Object.fromEntries(balance);
+        return balance;
     }
-};
-
-
-// network list
-const networkList = {
-    eth: { name: 'ethereum', token: 'ETH'},
-    bsc: { name: 'bsc', token: 'BNB'},
-    poly: { name: 'polygon', token: 'MATIC'},
-    ftm: { name: 'fantom', token: 'FTM'},
-    avax: { name: 'avax', token: 'AVAX'},
 };
 
 

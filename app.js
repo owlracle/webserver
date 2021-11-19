@@ -122,58 +122,6 @@ app.get('/admin', (req, res) => {
     res.render(`admin`, {});
 });
 
-// admin login
-app.post('/login', (req, res) => {
-    if (!configFile.production){
-        res.send({
-            message: 'Bypassing session for dev mode',
-        });
-        return;
-    }
-
-    if (req.body.currentSession){
-        const session = Session.getInstance(req.body.currentSession);
-        
-        if (session){
-            session.refresh();
-            res.send({
-                message: 'Session accepted',
-                sessionId: session.getId(),
-                expireAt: session.getExpireAt(),
-            });
-            return;
-        }
-
-        res.status(401);
-        res.send({
-            status: 401,
-            error: 'Unauthorized',
-            message: 'Your session token is invalid.',
-        });
-        return;
-    }
-
-    const password = req.body.password;
-    if (password == configFile.mysql.password){
-        const session = new Session(1000 * 3600); // 1 hour session
-        res.send({
-            message: 'Logged in',
-            sessionId: session.getId(),
-            expireAt: session.getExpireAt(),
-        });
-        return;
-    }
-
-    res.status(401);
-    res.send({
-        status: 401,
-        error: 'Unauthorized',
-        message: 'Invalid password.',
-    });
-    return;
-});
-
-
 
 app.use(express.static(__dirname + '/public/'));
 

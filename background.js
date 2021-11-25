@@ -57,7 +57,7 @@ async function updateAllCredit(api){
         });
     }
 
-    setTimeout(() => updateAllCredit(), 1000 * 60 * 60); // 1 hour
+    setTimeout(() => updateAllCredit(api), 1000 * 60 * 60); // 1 hour
 }
 
 

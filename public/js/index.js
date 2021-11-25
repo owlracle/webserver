@@ -1,6 +1,17 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha } from './utils.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha } from './utils.min.js';
 
-recaptcha.load();
+
+// remove hidden inputs sent from server
+const templateVar = {};
+document.querySelectorAll('.template-var').forEach(e => {
+    templateVar[e.id] = e.value;
+    e.remove();
+});
+
+
+// set recaptcha key
+recaptcha.setKey(templateVar.recaptchakey);
+
 
 // set session id token
 const session = {
@@ -126,7 +137,7 @@ const network = (symbol => {
     }
 
     return network;
-})(document.querySelector('#network').value);
+})(templateVar.network);
 
 
 theme.load();
@@ -529,8 +540,8 @@ document.querySelector('#manage-apikey').addEventListener('click', () => api.sho
 
 
 const limits = {
-    REQUEST_COST: document.querySelector('#requestcost').value,
-    USAGE_LIMIT: document.querySelector('#usagelimit').value,
+    REQUEST_COST: templateVar.requestcost,
+    USAGE_LIMIT: templateVar.usagelimit,
 };
 document.querySelectorAll('.request-limit').forEach(e => e.innerHTML = limits.USAGE_LIMIT);
 document.querySelectorAll('.request-cost').forEach(e => e.innerHTML = limits.REQUEST_COST);
@@ -754,10 +765,6 @@ new UrlBox(document.querySelector('#url-logs.url'), {
         now: (new Date().getTime() / 1000).toFixed(0)
     }
 });
-
-
-// remove hidden inputs sent from server
-document.querySelectorAll('.template-var').forEach(e => e.remove());
 
 
 // build faq

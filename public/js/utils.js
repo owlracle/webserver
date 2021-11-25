@@ -1064,21 +1064,23 @@ const recaptcha = {
     ready: false,
     loading: false,
 
+    setKey: function(key){
+        this.key = key;
+    },
+
     load: async function() {
         if (this.ready){
             return true;
         }
-        else if (this.loading){
+        else if (this.loading || !this.key){
             return new Promise(resolve => setTimeout(() => resolve(this.load()), 10));
         }
 
         this.loading = true;
 
-        this.key = document.querySelector('#recaptchakey').value;
-
         const script = document.createElement('script');
-        script.src = `https://www.google.com/recaptcha/api.js?render=${this.key}`;
         script.async = true;
+        script.src = `https://www.google.com/recaptcha/api.js?render=${this.key}`;
 
         document.head.appendChild(script);
 

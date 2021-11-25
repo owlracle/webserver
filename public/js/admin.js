@@ -1,4 +1,4 @@
-import { DynamicScript, theme, wallet, price, network, cookies, Modal, api } from './utils.js';
+import { DynamicScript, theme, wallet, price, network, cookies, Modal, api } from './utils.min.js';
 
 new DynamicScript('https://kit.fontawesome.com/c1a16f97ec.js');
 

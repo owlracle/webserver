@@ -147,7 +147,7 @@ const wallet = {
                 <span>${network.longName ? `${network.longName} (${network.name})` : network.name}</span>
                 <span class="big">${network.token} Wallet</span>
             </div>
-            <div id="qr"><img src="${this.img.src}"></div>
+            <div id="qr"><img src="${this.img.src}" alt="qr code"></div>
             <div id="colored">
                 <div id="wallet-container">
                     <div id="wallet">${this.shortAddress}</div>

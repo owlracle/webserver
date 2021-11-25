@@ -55,6 +55,9 @@ const network = (symbol => {
 
     const network = Network.get();
 
+    // change title to match network
+    document.querySelector('title').innerHTML = `Owlracle - ${network.name} Gas Price Oracle`
+
     // place network button in header
     const obj = document.querySelector('#network-btn');
     obj.classList.add(symbol);
@@ -68,7 +71,7 @@ const network = (symbol => {
         const dropdown = document.createElement('div');
         dropdown.id = 'dropdown';
     
-        dropdown.innerHTML = Object.entries(Network.getList()).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png"><span class="name">${v.name}</span></a></div>`).join('');
+        dropdown.innerHTML = Object.entries(Network.getList()).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png" alt="${v.name} icon"><span class="name">${v.name}</span></a></div>`).join('');
     
         dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
@@ -113,7 +116,7 @@ const network = (symbol => {
         const info = document.createElement('div');
         info.innerHTML = `<div id="owlracle-info">
             <div id="message">
-                <img src="https://owlracle.info/img/owl.png">
+                <img src="https://owlracle.info/img/owl.png" alt="owlracle logo">
                 <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank">Bscgas</a> and get <b>$5</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
             </div>
             <div id="close"><i class="fas fa-times-circle"></i></div>

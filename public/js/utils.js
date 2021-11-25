@@ -929,7 +929,7 @@ class Tooltip {
 
         this.parent.addEventListener('touchstart', () => {
             this.touching = true;
-        });
+        }, { passive: true });
 
         this.parent.addEventListener(createEvent, e => {
             this.pendingCreate = true;

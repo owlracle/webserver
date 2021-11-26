@@ -696,6 +696,7 @@ class UrlBox {
 
         // replace apikey keyword with input
         this.href = this.href.replace(`{{apikey}}`, placeholder);
+        this.href = this.network + this.href;
         this.content = this.content.replace(`{{apikey}}`, `</a><input class="fill-apikey" type="text" placeholder="${placeholder}"><a href="${this.href}" target="_blank">`);
 
         // fill variables

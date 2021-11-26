@@ -13,6 +13,7 @@ const corsOptions = {
     optionsSuccessStatus: 200,
 };
 
+const sampleRespone = JSON.parse(fs.readFileSync(`${__dirname}/sampleResponse.json`));
 
 module.exports = app => {
     
@@ -30,6 +31,11 @@ module.exports = app => {
     // discover gas prices right now
 
     app.get('/:network/gas', cors(corsOptions), async (req, res) => {
+        if (req.query.apikey == sampleRespone.apiPlaceholder){
+            res.send(sampleRespone.endpoints.gas);
+            return;
+        }
+
         const dataRun = async () => {
             const resp = {};
             if (!Object.keys(networkList).includes(req.params.network)){
@@ -40,6 +46,10 @@ module.exports = app => {
                 }};
             }
             const network = networkList[req.params.network];
+
+            if (req.query.apikey == sampleRespone.apiPlaceholder){
+                return sampleRespone.endpoints.gas;
+            }
 
             // accept and blocks only work when using v2
             const defaultSpeeds = [35, 60, 90, 100];
@@ -162,6 +172,11 @@ module.exports = app => {
         const from = req.query.from;
         const to = req.query.to;
     
+        if (req.query.apikey == sampleRespone.apiPlaceholder){
+            res.send(sampleRespone.endpoints.history);
+            return;
+        }
+
         const dataRun = async ({ timeframe, candles, page, from, to }) => {
             if (!Object.keys(networkList).includes(req.params.network)){
                 return { error: {
@@ -504,6 +519,11 @@ module.exports = app => {
     app.get('/logs/:key', cors(corsOptions), async (req, res) => {
         const key = req.params.key;
     
+        if (key == sampleRespone.apiPlaceholder){
+            res.send(sampleRespone.endpoints.logs);
+            return;
+        }
+
         if (!key.match(/^[a-f0-9]{32}$/)){
             res.status(400);
             res.send({
@@ -511,59 +531,59 @@ module.exports = app => {
                 error: 'Bad Request',
                 message: 'The informed api key is invalid.'
             });
+            return;
         }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else{
-                const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
-        
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find your api key.'
-                    });
-                }
-                else {
-                    const id = row[0].id;
-                    const toTime = req.query.totime || db.raw('UNIX_TIMESTAMP(now())');
-                    const fromTime = req.query.fromtime || (req.query.totime ? parseInt(req.query.totime) - 3600 : db.raw('UNIX_TIMESTAMP(now()) - 3600'));
-    
-                    const sql = `SELECT ip, origin, timestamp, endpoint, network FROM api_requests WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
-                    const sqlData = [
-                        fromTime,
-                        toTime,
-                        id,
-                    ];
-                    const [rows, error] = await db.query(sql, sqlData);
-    
-                    if (error){
-                        res.status(500);
-                        res.send({
-                            status: 500,
-                            error: 'Internal Server Error',
-                            message: 'Error while trying to fetch your logs.',
-                            serverMessage: error,
-                        });
-                    }
-                    else {
-                        res.send(rows);
-                    }
-                }
-            }
+
+        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
         }
-    
+
+        const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
+
+        if (row.length == 0){
+            res.status(401);
+            res.send({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Could not find your api key.'
+            });
+            return;
+        }
+
+        const id = row[0].id;
+        const toTime = req.query.totime || db.raw('UNIX_TIMESTAMP(now())');
+        const fromTime = req.query.fromtime || (req.query.totime ? parseInt(req.query.totime) - 3600 : db.raw('UNIX_TIMESTAMP(now()) - 3600'));
+
+        const sql = `SELECT ip, origin, timestamp, endpoint, network FROM api_requests WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
+        const sqlData = [
+            fromTime,
+            toTime,
+            id,
+        ];
+
+        [rows, error] = await db.query(sql, sqlData);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to fetch your logs.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        res.send(rows);
     });
     
     
@@ -571,6 +591,11 @@ module.exports = app => {
     app.get('/keys/:key', cors(corsOptions), async (req, res) => {
         const key = req.params.key;
     
+        if (key == sampleRespone.apiPlaceholder){
+            res.send(sampleRespone.endpoints.keys);
+            return;
+        }
+
         if (!key.match(/^[a-f0-9]{32}$/)){
             res.status(400);
             res.send({
@@ -578,87 +603,87 @@ module.exports = app => {
                 error: 'Bad Request',
                 message: 'The informed api key is invalid.'
             });
+            return;
         }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else {
-                const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
-        
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find your api key.'
-                    });
-                }
-                else {
-                    const id = row[0].id;
-        
-                    const data = {
-                        apiKey: key,
-                        creation: row[0].creation,
-                        wallet: row[0].wallet,
-                        credit: row[0].credit
-                    };
-        
-                    if (row[0].origin){
-                        data.origin = row[0].origin;
-                    }
-                    if (row[0].note){
-                        data.note = row[0].note;
-                    }
-        
-                    const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id} AND timestamp >= now() - INTERVAL 1 HOUR`;
-                    const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id}`;
-                    // let hourIp = 'SELECT 0';
-                    // let totalIp = 'SELECT 0';
-    
-                    const queryData = [];
-        
-                    // if (req.header('x-real-ip')){
-                    //     const ip = req.header('x-real-ip');
-                    //     hourIp = `SELECT count(*) FROM api_requests WHERE ip = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
-                    //     totalIp = `SELECT count(*) FROM api_requests WHERE ip = ?`;
-                    //     queryData.push(ip, ip);
-                    // }
-        
-        
-                    // const [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${hourIp}) AS hourip, (${totalApi}) AS totalapi, (${totalIp}) AS totalip`, queryData);
-                    const [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, queryData);
-    
-                    if (error){
-                        res.status(500);
-                        res.send({
-                            status: 500,
-                            error: 'Internal Server Error',
-                            message: 'Error while trying to search the database for your api key.',
-                            serverMessage: error,
-                        });
-                    }
-                    else {
-                        data.usage = {
-                            apiKeyHour: rows[0].hourapi,
-                            // ipHour: rows[0].hourip,
-                            apiKeyTotal: rows[0].totalapi,
-                            // ipTotal: rows[0].totalip,
-                        };
-    
-                        res.send(data);
-                    }
-                }
-            }
+
+        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
         }
+
+        const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
+
+        if (row.length == 0){
+            res.status(401);
+            res.send({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Could not find your api key.'
+            });
+            return;
+        }
+
+        const id = row[0].id;
+
+        const data = {
+            apiKey: key,
+            creation: row[0].creation,
+            wallet: row[0].wallet,
+            credit: row[0].credit
+        };
+
+        if (row[0].origin){
+            data.origin = row[0].origin;
+        }
+        if (row[0].note){
+            data.note = row[0].note;
+        }
+
+        const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id} AND timestamp >= now() - INTERVAL 1 HOUR`;
+        const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id}`;
+        // let hourIp = 'SELECT 0';
+        // let totalIp = 'SELECT 0';
+
+        const queryData = [];
+
+        // if (req.header('x-real-ip')){
+        //     const ip = req.header('x-real-ip');
+        //     hourIp = `SELECT count(*) FROM api_requests WHERE ip = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
+        //     totalIp = `SELECT count(*) FROM api_requests WHERE ip = ?`;
+        //     queryData.push(ip, ip);
+        // }
+
+
+        // const [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${hourIp}) AS hourip, (${totalApi}) AS totalapi, (${totalIp}) AS totalip`, queryData);
+        [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, queryData);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        data.usage = {
+            apiKeyHour: rows[0].hourapi,
+            // ipHour: rows[0].hourip,
+            apiKeyTotal: rows[0].totalapi,
+            // ipTotal: rows[0].totalip,
+        };
+
+        res.send(data);
     });
     
     
@@ -666,6 +691,11 @@ module.exports = app => {
     app.get('/credit/:key', cors(corsOptions), async (req, res) => {
         const key = req.params.key;
     
+        if (key == sampleRespone.apiPlaceholder){
+            res.send(sampleRespone.endpoints.credit);
+            return;
+        }
+
         if (!key.match(/^[a-f0-9]{32}$/)){
             res.status(400);
             res.send({
@@ -673,51 +703,51 @@ module.exports = app => {
                 error: 'Bad Request',
                 message: 'The informed api key is invalid.'
             });
+            return;
         }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else {
-                const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
-        
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find your api key.'
-                    });
-                }
-                else {
-                    const [rows, error] = await db.query(`SELECT network, tx, timestamp, value, price, fromWallet FROM credit_recharges WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
-    
-                    if (error){
-                        res.status(500);
-                        res.send({
-                            status: 500,
-                            error: 'Internal Server Error',
-                            message: 'Error while retrieving your credit information.',
-                            serverMessage: error,
-                        });
-                    }
-                    else {
-                        res.send({
-                            message: 'success',
-                            results: rows
-                        });
-                    }
-                }
-            }
+
+        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
         }
+
+        const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
+
+        if (row.length == 0){
+            res.status(401);
+            res.send({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Could not find your api key.'
+            });
+            return;
+        }
+
+        [rows, error] = await db.query(`SELECT network, tx, timestamp, value, price, fromWallet FROM credit_recharges WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving your credit information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        res.send({
+            message: 'success',
+            results: rows
+        });
     });
     
     

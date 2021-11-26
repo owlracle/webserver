@@ -1,0 +1,89 @@
+{
+    "apiPlaceholder": "YOUR_API_KEY",
+    "endpoints": {
+        "gas": {
+            "timestamp": "0000-00-00T00:00:00.000Z",
+            "lastBlock": 0,
+            "avgTime": 0.0,
+            "avgTx": 0.0,
+            "avgGas": 0.0,
+            "speeds": [
+                {
+                    "acceptance": 0.0,
+                    "gasPrice": 0.0,
+                    "estimatedFee": 0.0
+                },
+                {
+                    "acceptance": 0.0,
+                    "gasPrice": 0.0,
+                    "estimatedFee": 0.0
+                },
+                {
+                    "acceptance": 0.0,
+                    "gasPrice": 0.0,
+                    "estimatedFee": 0.0
+                },
+                {
+                    "acceptance": 0.0,
+                    "gasPrice": 0.0,
+                    "estimatedFee": 0.0
+                }
+            ]
+        },
+        "history": [
+            {
+                "gasPrice": {
+                    "open": 0.0,
+                    "close": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                },
+                "tokenPrice": {
+                    "open": 0.0,
+                    "close": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                },
+                "txFee": {
+                    "open": 0.0,
+                    "close": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                },
+                "avgGas": 0.0,
+                "timestamp": "0000-00-00T00:00:00.000Z",
+                "samples": 0
+            }
+        ],
+        "keys": {
+            "apiKey": "00000000000000000000000000000000",
+            "creation": "0000-00-00T00:00:00.000Z",
+            "wallet": "0x0000000000000000000000000000000000000000",
+            "credit": 0,
+            "origin": "domain.com",
+            "note": "note to myself",
+            "usage": {
+                "apiKeyHour": 0,
+                "apiKeyTotal": 0
+            }
+        },
+        "credit": {
+            "message": "success",
+            "results": [{
+                "network": "xxx",
+                "tx": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "timestamp": "2000-00-00T00:00:00.000Z",
+                "value": "0",
+                "price": "0",
+                "fromWallet": "0x0000000000000000000000000000000000000000"
+            }]
+        },
+        "logs": [{
+            "ip": "255.255.255.255",
+            "origin": "domain.com",
+            "timestamp": "0000-00-00T00:00:00.000Z",
+            "endpoint": "xxx",
+            "network": "xxx"
+        }]
+    }
+}

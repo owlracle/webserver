@@ -482,7 +482,7 @@ gasTimer.onUpdate = function(data){
     }
 
     // after a while, change title to gas prices
-    setTimeout(() => document.querySelector('title').innerHTML = `${network.token} ${gas.join(',')} GWei`, 5000);
+    setTimeout(() => document.querySelector('title').innerHTML = `${network.token} ${gas.map(e => parseInt(e)).join(', ')} GWei`, 5000);
 }
 
 

@@ -76,7 +76,7 @@ function indexRoute(req, res) {
         requestcost: api.REQUEST_COST,
         recaptchakey: configFile.recaptcha.key,
         network: network,
-        networkName: network && (s => s[0].toUpperCase() + s.slice(1))(networkList[network].name),
+        networkName: network && (s => s[0].toUpperCase() + s.slice(1))((networkList[network] || networkList.bsc).name),
     });
 }
 

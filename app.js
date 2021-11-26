@@ -69,11 +69,14 @@ app.get('/ftm', indexRoute);
 app.get('/eth', indexRoute);
 
 function indexRoute(req, res) {
+    const network = req.url.split('/')[1];
+
     res.render(`index`, {
         usagelimit: api.USAGE_LIMIT,
         requestcost: api.REQUEST_COST,
         recaptchakey: configFile.recaptcha.key,
-        network: req.url.split('/')[1]
+        network: network,
+        networkName: network && (s => s[0].toUpperCase() + s.slice(1))(networkList[network].name),
     });
 }
 

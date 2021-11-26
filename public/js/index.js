@@ -66,9 +66,6 @@ const network = (symbol => {
 
     const network = Network.get();
 
-    // change title to match network
-    document.querySelector('title').innerHTML = `Owlracle - ${network.name} Gas Price Oracle`
-
     // place network button in header
     const obj = document.querySelector('#network-btn');
     obj.classList.add(symbol);
@@ -431,9 +428,7 @@ const gasTimer = {
     update: async function() {
         const sessionid = await session.get();
         const token = await recaptcha.getToken();
-        const startTime = new Date();
         const data = await (await fetch(`/${network.symbol}/gas?grc=${token}&sid=${sessionid}`)).json();
-        const requestTime = new Date() - startTime;
 
         if (data.error){
             console.log(data);
@@ -458,21 +453,21 @@ const gasTimer = {
         }
         else{
             // console.log(data)
-            this.onUpdate(data, requestTime);
+            this.onUpdate(data);
         }
         return data;    
     }
 };
 gasTimer.init(30000, 100);
 
-gasTimer.onUpdate = function(data, requestTime){
-    const speedList = ['slow', 'standard', 'fast', 'instant'];
+gasTimer.onUpdate = function(data){
+    const gas = data.speeds.map(s => s.gasPrice.toFixed(s.gasPrice == parseInt(s.gasPrice) ? 0 : 2));
+    const fee = data.speeds.map(s => s.estimatedFee.toFixed(4));
+
     document.querySelectorAll('.gas .body').forEach((e,i) => {
         if (data.speeds){
-            const gas = (gas => gas.toFixed(gas == parseInt(gas) ? 0 : 2))(data.speeds[i].gasPrice);
-            const fee = data.speeds[i].estimatedFee.toFixed(4);
-            e.querySelector('.gwei').innerHTML = `${gas} GWei`;
-            e.querySelector('.usd').innerHTML = `$ ${fee}`;
+            e.querySelector('.gwei').innerHTML = `${gas[i]} GWei`;
+            e.querySelector('.usd').innerHTML = `$ ${fee[i]}`;
         }
     });
 
@@ -485,6 +480,9 @@ gasTimer.onUpdate = function(data, requestTime){
         document.querySelector(`#timeframe-switcher #tf-60`).click();
         document.querySelector(`#toggle-container #gas`).click();
     }
+
+    // after a while, change title to gas prices
+    setTimeout(() => document.querySelector('title').innerHTML = `${network.token} ${gas.join(',')} GWei`, 5000);
 }
 
 

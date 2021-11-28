@@ -1,0 +1,85 @@
+@import "common.less";
+
+body {
+    --bg-color: #2c2c2c;
+    --bg-intense-color: #232323;
+    --text-color: #e3dcd0;
+    --text-intense-color: #ffffff;
+    --main-color: #241610;
+    --border-color: #3c3c3c;
+
+    #frame {
+        #title {
+            margin: 10px 0 30px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            
+            @media @size-600 {
+                margin: 50px 0 100px 0;
+            }
+    
+            img {
+                height: 200px;
+                width: 200px;
+                margin-right: 10px;
+    
+                @media @size-600 {
+                    margin-right: 40px;
+                }
+            }        
+            
+            #site-name {
+                font-size: 4rem;
+                font-weight: bold;
+                font-family: 'Grandstander',sans-serif;
+                margin: 10px 0;
+                text-shadow: 4px 4px 4px var(--border-color);
+                color: var(--text-intense-color);
+            }
+    
+            .subtitle {
+                margin: 0;
+                font-size: 1.5rem;
+                font-weight: bold;
+            }
+        }
+
+        #button-container {
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .item {
+                margin-bottom: 15px;
+                width: 100%;
+                max-width: 300px;
+                height: 50px;
+                color: var(--text-color);
+                box-shadow: 0px 0px 15px #74747424;
+                border-radius: 3px;
+                border: 1px solid var(--border-color);
+                background-color: var(--bg-intense-color);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-decoration: none;
+                font-size: 1.3rem;
+                transition: 0.3s all;
+
+                &:hover {
+                    box-shadow: 0px 0px 20px 2px #74747424;
+                    filter: brightness(1.15);
+                    color: var(--text-intense-color);
+                }
+
+                i {
+                    margin-right: 10px;
+                    font-size: 1.1rem;
+                }
+            }
+        }
+    }
+}

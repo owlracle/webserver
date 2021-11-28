@@ -126,6 +126,11 @@ app.get('/admin', (req, res) => {
 });
 
 
+app.get('/links', (req, res) => {
+    res.render(`links`, {});
+});
+
+
 app.use(express.static(__dirname + '/public/'));
 
 app.listen(port, () => {

@@ -1,0 +1,4 @@
+Sitemap: https://owlracle.info/sitemap.xml
+
+User-agent: *
+Disallow: /admin

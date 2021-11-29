@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Owlracle - {{networkName}} Gas Price Oracle and API</title>
+    <title>{{networkName}} gas price fee tracker API 🦉 Owlracle</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta name="description" content="Multichain gas price oracle and API for BSC, POLYGON, FANTOM, AVALANCHE and ETHEREUM.">
+    <meta name="description" content="Multichain gas price fee tracker API for BSC, POLYGON, FANTOM, AVALANCHE and ETHEREUM.">
     <meta name="keywords" content="gas price api, binance smart chain, avalanche, polygon, ethereum, fantom, crypto, ETH, MATIC, FTM, AVAX, BNB, defi, gas, gas fee, gas price, oracle, bsc, gas api">
     <meta name="robots" content="index, follow">
     <meta property="og:image" content="https://owlracle.info/img/owl.webp">
-    <meta property="og:title" content="Owlracle - Multichain Gas Oracle " />
-    <meta property="og:url" content="https://owlracle.info" />
-    <meta property="og:description" content="Multichain gas price oracle and API for BSC, POLYGON, FANTOM, AVALANCHE and ETHEREUM.">
+    <meta property="og:title" content="Owlracle - Multichain Gas Oracle">
+    <meta property="og:url" content="https://owlracle.info">
+    <meta property="og:description" content="Multichain gas price fee tracker API for BSC, POLYGON, FANTOM, AVALANCHE and ETHEREUM.">
     <meta property="og:site_name" content="owlracle.info">
     <meta name="twitter:image" content="https://owlracle.info/img/owl.webp">
-    <meta name="twitter:description" content="Multichain gas price oracle and API for BSC, POLYGON, FANTOM, AVALANCHE and ETHEREUM.">
+    <meta name="twitter:description" content="Multichain gas price fee tracker API for BSC, POLYGON, FANTOM, AVALANCHE and ETHEREUM.">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Owlracle - Multichain Gas Oracle " />
-    <meta name="twitter:site" content="https://owlracle.info" />
+    <meta name="twitter:title" content="Owlracle - Multichain Gas Oracle">
+    <meta name="twitter:site" content="https://owlracle.info">
 
     <link rel="shortcut icon" href="img/favicon.ico">
-    <link rel="canonical" href="https://owlracle.info">
+    <!-- <link rel="canonical" href="https://owlracle.info"> -->
     
     <script type="module" src="js/index.min.js" defer></script>
     <link rel="stylesheet" href="css/index.css">
@@ -42,15 +42,14 @@
         <div id="left-space" class="ad vertical hidden"></div>
         <div id="content">
             <div id="toggle-bg"><i class="fas fa-fan"></i></div>
-            <h1 id="title">
-                <img src="img/owl.webp" alt="Owlracle Polygon Fantom BSC Ethereum Avalanche Gas Price Estimation">
-                <div>
-                    <!-- <div class="subtitle" id="network-name">Polygon, BSC, Fantom, Ethereum, Avalanche</div> -->
-                    <div class="subtitle" id="network-name">{{networkName}}'s</div>
-                    <div id="site-name">OWLRACLE</div>
-                    <div class="subtitle">The multichain Gas Price Oracle</div>
-                </div>
-            </h1>
+            <div id="title">
+                <img src="img/owl.webp" alt="Polygon Fantom BSC Ethereum Avalanche Gas price fee tracker API">
+                <h1 id="text">
+                    <span class="subtitle" id="network-name">{{networkName}}'s</span>
+                    <span id="site-name">OWLRACLE</span>
+                    <span class="subtitle">The multichain Gas Price tracker API</span>
+                </h1>
+            </div>
     
             <p id="intro">Owlracle says you should pay no more than this for <b>Gas Price</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
     
@@ -259,9 +258,7 @@
                 <li><code class="code inline">usage</code>: The API key Usage:
                     <ul class="args">
                         <li><code class="code inline">apiKeyHour</code>: Requests made using your API key in the last hour.</li>
-                        <!-- <li><code class="code inline">ipHour</code>: Requests made using your current ip address in the last hour.</li> -->
                         <li><code class="code inline">apiKeyTotal</code>: Total requests made using your API key.</li>
-                        <!-- <li><code class="code inline">ipTotal</code>: Total requests made using your current ip address.</li> -->
                     </ul>
                 </li>
             </ul> 

@@ -77,7 +77,7 @@ const theme = {
 
             if (oldName != name){
                 // already loaded, reload
-                if (typeof tsParticles !== 'undefined' && cookies.get('particles') == 'true'){
+                if (typeof tsParticles !== 'undefined' && this.particles){
                     tsParticles.loadJSON('frame', `config/particles-${name}.json`)
                 }
             }
@@ -91,7 +91,12 @@ const theme = {
     load: function() {
         this.set(cookies.get('theme') || this.choice);
 
-        cookies.set('particles', cookies.get('particles') || this.particles, { expires: { days: 365 } });
+        this.particles = cookies.get('particles') == 'false' ? false : true;
+        if (this.particles && window.outerWidth < 600){
+            this.particles = false;
+        }
+
+        cookies.set('particles', this.particles, { expires: { days: 365 } });
         if (cookies.get('particles') == 'true'){
             // particles background
             new DynamicScript('https://cdn.jsdelivr.net/npm/tsparticles@1.9.2/dist/tsparticles.min.js', () => tsParticles.loadJSON('frame', `config/particles-${this.choice}.json`));

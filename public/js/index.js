@@ -140,10 +140,16 @@ const network = (symbol => {
 theme.load();
 document.querySelector('#theme').addEventListener('click' , () => theme.toggle());
 
-document.querySelector('#toggle-bg').addEventListener('click' , () => {
-    cookies.set('particles', cookies.get('particles') == 'false', { expires: { days: 365 } });
-    theme.load();
-});
+if (window.outerWidth < 600){
+    document.querySelector('#toggle-bg').remove();
+}
+else {
+    document.querySelector('#toggle-bg').addEventListener('click' , () => {
+        cookies.set('particles', cookies.get('particles') == 'false', { expires: { days: 365 } });
+        theme.load();
+    });
+    new Tooltip(document.querySelector('#toggle-bg'), 'Toggle background animation', { delay: 1000, createEvent: 'mouseenter' });
+}
 
 
 // create price chart
@@ -487,7 +493,6 @@ gasTimer.onUpdate = function(data){
 
 
 // set tooltips
-new Tooltip(document.querySelector('#toggle-bg'), 'Toggle background animation', { delay: 1000, createEvent: 'mouseenter' });
 new Tooltip(document.querySelector('#theme'), 'Toggle light/dark mode', { delay: 1000, createEvent: 'mouseenter' });
 
 

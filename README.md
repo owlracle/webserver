@@ -33,19 +33,25 @@ Inspired by works like [ethgasstation](https://ethgasstation.info/), I have deci
 <img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white">
 </a>
 
+<a href="https://facebook.com/owlracle">
+<img src="https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white">
+</a>
+
 <a href="https://t.me/owlracle">
 <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white">
 </a>
 
-<a href="https://github.com/werlang/owlracle">
+<a href="https://github.com/owlracle">
 <img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white">
 </a>
 
 ---
 
-Support our project! We accept any token donation on BSC, Polygon, Fantom, Ethereum, and Avalanche networks.
+Support our project! We accept any token donation on <img src="https://owlracle.info/img/bsc.png" height="20"> **BSC**, <img src="https://owlracle.info/img/poly.png" height="20"> **Polygon**, <img src="https://owlracle.info/img/ftm.png" height="20"> **Fantom**, <img src="https://owlracle.info/img/eth.png" height="20"> **Ethereum**, and <img src="https://owlracle.info/img/avax.png" height="20"> **Avalanche** networks.
 
-<h3 align=center>Wallet: 0xA6E126a5bA7aE209A92b16fcf464E502f27fb658</h3>
+<a href="https://user-images.githubusercontent.com/19828711/139945432-f6b07860-c986-4221-a291-10370f24ea5a.png">
+<h3 align=center><img src="https://img.shields.io/badge/Wallet-0xA6E126a5bA7aE209A92b16fcf464E502f27fb658-blue"></h3>
 <p align=center>
 	<img width="200" src="https://user-images.githubusercontent.com/19828711/139945432-f6b07860-c986-4221-a291-10370f24ea5a.png">
 </p>
+</a>

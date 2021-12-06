@@ -800,6 +800,7 @@ module.exports = app => {
 
 const api = {
     USAGE_LIMIT: 100,
+    GUEST_LIMIT: 10,
     REQUEST_COST: 0.00005,
 
     getUsage: async function(keyId, ip) {
@@ -908,14 +909,21 @@ const api = {
     },
 
     authorizeKey: function(key, ip, usage, credit){
-        if (!key){
+        if (!ip && !key){
             return { error: {
                 status: 401,
                 error: 'Unauthorized',
                 message: 'You must provide an api key for this action.'
             }};
         }
-        else if (credit < 0 && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
+        else if (!key && (usage.ip >= this.GUEST_LIMIT)) {
+            return { error: {
+                status: 403,
+                error: 'Forbidden',
+                message: 'You have reached the guest limit. Use an api key to increase your request limit.'
+            }};
+        }
+        else if (key && credit < 0 && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
             return { error: {
                 status: 403,
                 error: 'Forbidden',
@@ -980,9 +988,11 @@ const api = {
             return { error: actionResp.error };
         }
 
-        resp = await this.reduceCredit(sqlData.apiKey, usage, credit);
-        if (resp.error){
-            return { error: resp.error };
+        if (key) {
+            resp = await this.reduceCredit(sqlData.apiKey, usage, credit);
+            if (resp.error){
+                return { error: resp.error };
+            }
         }
 
         sqlData.endpoint = endpoint;

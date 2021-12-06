@@ -60,21 +60,6 @@ process.argv.forEach((val, index, array) => {
 });
 
 
-// redirects
-app.all('*', function (req, res, next) {
-    if (configFile.production){
-        if (req.hostname.match(/^www\..*/i)) {
-            res.redirect(301, `https://${host.split('www.')[1]}`);
-        }
-        else if (!req.secure) {
-            res.redirect(301, `https://${req.hostname}${req.url}`);
-        }
-    }
-
-    next();
-});
-
-
 app.get('/', indexRoute);
 app.get('/bsc', indexRoute);
 app.get('/poly', indexRoute);

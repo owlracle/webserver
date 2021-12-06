@@ -618,7 +618,7 @@ const api = {
                     input = `<div class="input-container">${input}<div id="update" class="input-button" title="Update"><i class="fas fa-sync-alt"></i></div></div>`;
                 }
                 else if (e[0] == 'origin'){
-                    input = `<div class="input-container">${input}<a id="open-link" class="input-button" title="Open Link" href="https://${value}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i></a></div>`;
+                    input = `<div class="input-container">${input}<a id="open-link" class="input-button" title="Open Link" href="https://${value}" target="_blank" rel="noopener nofollow"><i class="fas fa-external-link-alt"></i></a></div>`;
                 }
                 return `<p class="title">${label}</p>${input}`;
             }).join('');
@@ -692,10 +692,10 @@ const api = {
                 const thisNetwork = network.getList()[e.network];
 
                 return `<div class="row">
-                    <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
+                    <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank" rel="noopener nofollow">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
                     <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
                     <div class="cell">${thisNetwork.name}</div>
-                    <div class="cell"><a href="${thisNetwork.explorer.href}/address/${e.fromWallet}" target="_blank">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
+                    <div class="cell"><a href="${thisNetwork.explorer.href}/address/${e.fromWallet}" target="_blank" rel="noopener nofollow">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
                     <div class="cell">${parseFloat(e.price).toFixed(4)}</div>
                     <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
                 </div>`;
@@ -716,7 +716,7 @@ const api = {
             <h2>API recharge history</h2>
             <p id="key-show">${key}</p>
             ${txs}
-            <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank">contact us</a>!</p>
+            <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a>!</p>
             <div id="button-container"><button id="close">Close</button></div>
         </div>`;
         

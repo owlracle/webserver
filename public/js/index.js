@@ -125,7 +125,7 @@ const network = (symbol => {
         info.innerHTML = `<div id="owlracle-info">
             <div id="message">
                 <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
-                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noreferrer">Bscgas</a> and get <b>$5</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
+                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$5</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
             </div>
             <div id="close"><i class="fas fa-times-circle"></i></div>
         </div>`;
@@ -519,7 +519,7 @@ class CodePen {
 
     update(){
         this.init().then(() => {
-            const codepenEmbed = `<p class="codepen" data-height="265" data-theme-id="{{THEME}}" data-default-tab="js,result" data-user="pswerlang" data-slug-hash="${this.id}" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;" data-pen-title="BSC gas price sample code"><span>See the Pen <a href="https://codepen.io/pswerlang/pen/${this.id}">BSC gas price sample code</a> by Pablo (<a href="https://codepen.io/pswerlang">@pswerlang</a>) on <a href="https://codepen.io">CodePen</a>.</span></p>`;
+            const codepenEmbed = `<p class="codepen" data-height="265" data-theme-id="{{THEME}}" data-default-tab="js,result" data-user="pswerlang" data-slug-hash="${this.id}" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;" data-pen-title="BSC gas price sample code"><span>See the Pen <a href="https://codepen.io/pswerlang/pen/${this.id}" rel="noopener nofollow">Owlracle gas price sample code</a> by Pablo (<a href="https://codepen.io/pswerlang" rel="noopener nofollow">@pswerlang</a>) on <a href="https://codepen.io" rel="noopener nofollow">CodePen</a>.</span></p>`;
             this.element.innerHTML = codepenEmbed.split('{{THEME}}').join(theme.get());
             window.__CPEmbed();
         });
@@ -774,12 +774,12 @@ new UrlBox(document.querySelector('#url-logs.url'), {
 // build faq
 const faq = [
     [`What is Owlracle?`,
-    `Owlracle is an open-source gas price oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information.`],
+    `Owlracle is an open-source gas price oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
     [`How do you make the gas price predictions?`,
     `This tool attempts to predict the gas price to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas price. Every speed is measured by calculating the minimum gas price paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations.`],
-    [`Your website looks so much like <a href="https://bscgas.info" target="_blank" rel="noreferrer">Bscgas</a>. Is it a coincidence?`,
+    [`Your website looks so much like <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a>. Is it a coincidence?`,
     `Not at all. We are the same team as bscgas. But as soon as we noticed the demand to expand to other networks, we created owlracle to be a gas price oracle hub on every major chain. We also developed our own oracle software, so we thought we should rebrand ourselves.`],
-    [`I came from <a href="https://bscgas.info" target="_blank" rel="noreferrer">Bscgas</a> and want to use the old style /gas endpoint. How can I?`,
+    [`I came from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and want to use the old style /gas endpoint. How can I?`,
     `Easy! Just set query parameter version=1. The output format will be just like Good Ol' Bscgas.`],
     [`How do you predict the gas price fee?`,
     `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],

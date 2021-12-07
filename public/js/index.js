@@ -528,17 +528,6 @@ class CodePen {
 const codePens = ['KKvKJRN', 'BadaMVN'].map((v,i) => new CodePen(document.querySelector(`#codepen${i+1}`), v));
 
 
-// post method for testing purposes
-// window.post = async function(url, args) {
-//     const response = await fetch(url, {
-//         method: args.method || 'POST',
-//         body: JSON.stringify(args),
-//         headers: { 'Content-Type': 'application/json' }
-//     });
-//     return response.json();
-// }
-
-
 document.querySelector('#manage-apikey').addEventListener('click', () => api.showModal());
 
 

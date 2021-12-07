@@ -56,9 +56,9 @@ module.exports = app => {
             const version = parseInt(req.query.version) || 2;
             const blocks = req.query.blocks && version == 2 ? Math.min(Math.max(parseInt(req.query.blocks), 0), 1000) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => Math.min(Math.max(parseInt(e), 0), 100)) : defaultSpeeds;
-            const nmin = version == 1 ? 1 : (req.query.nmin ? parseFloat(req.query.nmin) : 0.3);
+            const perc = version == 1 ? 1 : (req.query.percentile ? parseFloat(req.query.percentile) : 0.3);
     
-            const data = await oracle.getNetInfo(network.name, blocks, nmin);
+            const data = await oracle.getNetInfo(network.name, blocks, perc);
             if (data.error){
                 return { error: data.error };
             }

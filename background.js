@@ -52,9 +52,10 @@ async function buildHistory(network, blocks){
 async function updateAllCredit(api){
     const [rows, error] = await db.query(`SELECT * FROM api_keys`);
     if (!error){
-        rows.forEach(async (row, i) => {
-            await api.updateCredit(row);
-        });
+        // wait before every api update so we dont overload the explorers
+        for (let i=0 ; i < rows.length ; i++){
+            await api.updateCredit(rows[i]);
+        }
     }
 
     setTimeout(() => updateAllCredit(api), 1000 * 60 * 60); // 1 hour

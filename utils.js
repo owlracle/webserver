@@ -177,7 +177,7 @@ const explorer = {
                 }
             })(await request.text());
 
-            if (txs.status == '0'){
+            if (txs.status == '0' && txs.result == 'Explorer returned non JSON response'){
                 await new Promise(resolve => setTimeout(() => resolve(true), 500));
                 return await this.getTx(wallet, fromTime, toTime, network);
             }

@@ -1031,13 +1031,14 @@ const api = {
 
     updateCredit: async function({id, wallet, timeChecked, credit}){
         const now = parseInt(new Date().getTime() / 1000);
+        const then = parseInt(new Date(timeChecked).getTime() / 1000);
         const data = {};
         data.api_keys = { credit: credit };
         data.api_keys.timeChecked = new Date();
-        
+
         // const txs = await oracle.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now);
         const txsn = await Promise.all(Object.keys(networkList).map(async network => {
-            const tx = await explorer.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now, network);
+            const tx = await explorer.getTx(wallet, then, now, network);
             tx.network = network;
             return tx;
         }));

@@ -117,8 +117,43 @@ const explorer = {
         if (!timestamp){
             timestamp = (new Date().getTime() / 1000).toFixed(0);
         }
-        const block = await (await fetch(`${this.url[network]}/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${this.apiKey[network]}`)).json();
-        return block.result;
+
+        // cache the block number to prevent excessive requests to explorer api
+        if (!this.blockNumber){
+            this.blockNumber = {};
+        }
+        if (!this.blockNumber[network]){
+            this.blockNumber[network] = {};
+        }
+        if (this.blockNumber[network][timestamp]){
+            return this.blockNumber[network][timestamp];
+        }
+
+        try {
+            const request = await fetch(`${this.url[network]}/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${this.apiKey[network]}`);
+            // snowtrace sometimes return an html, so we must make sure response is json
+            const block = (data => {
+                try {
+                    return JSON.parse(data);
+                }
+                catch (error) {
+                    return { status: '0', message: 'NOTOK', result: 'Explorer returned non JSON response' };
+                }
+            })(await request.text());
+    
+            if (block.status == '1'){
+                this.blockNumber[network][timestamp] = block.result;
+                return block.result;
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+        finally {
+            await new Promise(resolve => setTimeout(() => resolve(true), 500));
+            return await this.getBlockNumber(timestamp, network);
+        }
+        
         // sample response
         // {"status":"1","message":"OK-Missing/Invalid API Key, rate limit of 1/5sec applied","result":"946206"}
     },
@@ -131,11 +166,31 @@ const explorer = {
         const fromBlock = await this.getBlockNumber(parseInt(fromTime), network);
         const toBlock = await this.getBlockNumber(parseInt(toTime), network);
 
-        const txs = await (await fetch(`${this.url[network]}/api?module=account&action=txlist&address=${wallet}&startblock=${fromBlock}&endblock=${toBlock}&apikey=${this.apiKey[network]}`)).json();
+        try {
+            const request = await fetch(`${this.url[network]}/api?module=account&action=txlist&address=${wallet}&startblock=${fromBlock}&endblock=${toBlock}&apikey=${this.apiKey[network]}`);
+            const txs = (data => {
+                try {
+                    return JSON.parse(data);
+                }
+                catch (error) {
+                    return { status: '0', message: 'NOTOK', result: 'Explorer returned non JSON response' };
+                }
+            })(await request.text());
+
+            if (txs.status == '0'){
+                await new Promise(resolve => setTimeout(() => resolve(true), 500));
+                return await this.getTx(wallet, fromTime, toTime, network);
+            }
+
+            return txs;
+        }
+        catch (error) {
+            console.log(error);
+            return error;
+        }
+
         // sample response
         // return {"status":"1","message":"OK","result":[{"blockNumber":"10510811","timeStamp":"1630423588","hash":"0xc5b336f2bbeb0c684229f1d029c2773710707da8cd66b28d41ff893503c4a218","nonce":"508","blockHash":"0x48073bdbd34f7319576f11f7468a7ab718513f94031fbf27993733c91a25689f","transactionIndex":"242","from":"0x7f5d7e00d82dfeb7e83a0d4285cb21b31feab2b4","to":"0x0288d3e353fe2299f11ea2c2e1696b4a648ecc07","value":"0","gas":"66754","gasPrice":"5000000000","isError":"0","txreceipt_status":"1","input":"0x095ea7b3000000000000000000000000c946a04c1945a1516ed3cf07974ce8dbd4d19005ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","contractAddress":"","cumulativeGasUsed":"45436691","gasUsed":"44503","confirmations":"56642"}]}
-        
-        return txs;
     },
 
     // get balance from wallets

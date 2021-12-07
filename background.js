@@ -52,8 +52,8 @@ async function buildHistory(network, blocks){
 async function updateAllCredit(api){
     const [rows, error] = await db.query(`SELECT * FROM api_keys`);
     if (!error){
-        rows.forEach(async row => {
-            api.updateCredit(row);
+        rows.forEach(async (row, i) => {
+            await api.updateCredit(row);
         });
     }
 

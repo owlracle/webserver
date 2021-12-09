@@ -846,3 +846,192 @@ JSON.toHTML = (json, roll) => {
         return `<span class="json ${type}">${json}</span>`;
     }
 };
+
+
+class EndpointTable {
+    constructor(obj, { endpoint, args, response, placeholder }) {
+        this.obj = obj;
+        this.endpoint = endpoint;
+        this.url = endpoint;
+
+        obj.classList.add('endpoint-table');
+
+        const tabs = `<div class="tabs"><div class="tab active"><i class="fas fa-comment-alt"></i><span>Arguments</span></div><div class="tab"><i class="fas fa-robot"></i><span>Response</span></div><div class="tab"><i class="fas fa-play"></i><span>Sandbox</span></div></div>`;
+        const content = `<div class="content">
+            <div class="arguments item active"></div>
+            <div class="response item">
+                <div class="description"></div>
+                <div class="sample"></div>
+            </div>
+            <div class="sample item">
+                <div class="arguments"></div>
+                <div class="response"><div class="code"></div></div>
+                <div class="run-container">
+                    <span class="url">${this.endpoint}</span>
+                    <div class="button-container">
+                        <div class="run"><i class="fas fa-play"></i></div>
+                        <div class="open"><i class="fas fa-external-link-alt"></i></div>
+                        <div class="copy"><i class="fas fa-copy"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        obj.innerHTML = `${tabs}${content}`;
+
+        // create tooltips for buttons
+        new Tooltip(obj.querySelector('.sample .button-container .copy'), 'Copy', { delay: 1000, createEvent: 'mouseenter' });
+        new Tooltip(obj.querySelector('.sample .button-container .open'), 'Open', { delay: 1000, createEvent: 'mouseenter' });
+        new Tooltip(obj.querySelector('.sample .button-container .run'), 'Call Endpoint', { delay: 1000, createEvent: 'mouseenter' });
+
+        // action for switching tabs
+        const tabsDOM = obj.querySelectorAll('.tabs .tab');
+        tabsDOM.forEach((tab, i) => tab.addEventListener('click', () => {
+            if (!tab.classList.contains('active')) {
+                tabsDOM.forEach(e => e.classList.remove('active'));
+                obj.querySelectorAll('.content .item').forEach(e => e.classList.remove('active'));
+
+                tab.classList.add('active');
+                obj.querySelectorAll('.content .item')[i].classList.add('active');
+            }
+        }));
+
+        this.addArguments(args);
+        this.addResponse(response, placeholder);
+        this.addSample(args);
+    }
+
+    addSample(data){
+        const url = {};
+        const sample = this.obj.querySelectorAll('.content .item')[2];
+        let domSample = '';
+
+        data.forEach(e => {
+            // sample body
+            domSample += `<label><input type="checkbox" class="checkbox"><span>${e.name}</span></label><input type="text" class="input" ${e.default ? `placeholder="${e.default}" value="${e.default}"` : ''} disabled>`;
+        });
+
+        sample.querySelector('.arguments').innerHTML = domSample;
+
+        const changeURL = url => {
+            const query = new URLSearchParams(url).toString();
+            this.url = `${this.endpoint}${query.length ? `?${query}` : ''}`;
+            sample.querySelector('.url').innerHTML = this.url;
+        };
+
+        // sample checkbox change
+        sample.querySelectorAll('.checkbox').forEach(e => e.addEventListener('change', function() {
+            const index = [...sample.querySelectorAll('.checkbox')].indexOf(this);
+            const input = sample.querySelectorAll('.input')[index];
+            const arg = sample.querySelectorAll('span')[index].textContent;
+
+            if (this.checked){
+                input.removeAttribute('disabled');
+                if (input.value.length){
+                    url[arg] = input.value;
+                }
+            }
+            else {
+                input.setAttribute('disabled', true);
+                delete url[arg];
+            }
+
+            changeURL(url);
+        }));
+
+        // sample input change
+        sample.querySelectorAll('.input').forEach(e => e.addEventListener('input', function() {
+            const item = this.closest('.item');
+            const index = [...item.querySelectorAll('.input')].indexOf(this);
+            const arg = item.querySelectorAll('span')[index].textContent;
+            if (this.value.length){
+                url[arg] = this.value;
+            }
+            else {
+                delete url[arg];
+            }
+            
+            changeURL(url);
+        }));
+
+        // open link button
+        sample.querySelector('.run-container .open').addEventListener('click', () => window.open(`${location.href}${this.url}`));
+
+        // copy link button
+        sample.querySelector('.run-container .copy').addEventListener('click', () => {
+            navigator.clipboard.writeText(`${location.href}${this.url}`);
+            const box = sample.querySelector('.run-container');
+            box.classList.add('copy');
+            setTimeout(() => box.classList.remove('copy'), 200);
+        });
+
+        // run button
+        sample.querySelector('.run-container .run').addEventListener('click', async () => {
+            const response = await (await fetch(this.url)).json();
+            sample.querySelector('.response').innerHTML = `<div class="code">${JSON.toHTML(response)}</div>`;
+        })
+
+        return this;
+    }
+
+    addArguments(data) {
+        // head for args
+        let domArgs = '<div class="cell head">Field</div><div class="cell head">Description</div><div class="cell head">Default</div>';
+
+        data.forEach(e => {
+            // args body
+            domArgs += `<div class="cell">${e.name}</div><div class="cell"><span>${e.description}</span></div><div class="cell">${e.default || '<i>none</i>'}</div>`
+        });
+        
+        this.obj.querySelectorAll('.content .item')[0].innerHTML = domArgs;
+        
+        return this;
+    }
+
+    addResponse(description, url) {
+        let dom = '<div class="cell head">Field</div><div class="cell head">Description</div>';
+        description.forEach(e => dom += `<div class="cell">${e.name}</div><div class="cell"><span>${e.description}</span></div>`);
+        
+        const respDOM = this.obj.querySelectorAll('.content .item')[1];
+        respDOM.querySelector('.description').innerHTML = dom;
+
+        respDOM.querySelector('.sample').innerHTML = `<div class="code">${JSON.toHTML(url)}</div>`;
+        
+        return this;
+    }
+}
+
+(() => {
+    new EndpointTable(document.querySelector('#table-gas'), {
+        endpoint: '/gas',
+        args: [
+            { name: 'apikey', description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one.' },
+            { name: 'blocks', default: '200', description: 'Number of past blocks you want Owlracle to scan to build the estimation. <i>Maximum 1000</i>.' },
+            { name: 'percentile', default: '0.3', description: 'Block gas percentile. For every analyzed block, Owlracle calculates the minimum gas price needed to be accepted on that block. The percentile argument tells Owlracle the percentage of transactions that should be included when measuring the minimum accepted gas for the block. The value must be between 0.01 and 0.99 indicating a percentage, or an integer >= 1 indicating the number of transactions to include.' },
+            { name: 'accept', default: '35,60,90,100', description: 'Acceptance threshold of transactions. The percentage of blocks you want the transaction to be accepted, based on the past mined blocks. Higher acceptance means more speedy transactions. You can provide a single value or a comma separated list of values, representing multiple speeds.' },
+            { name: 'version', default: '2', description: 'Version of the api you want to request.' },
+        ],
+        response: [
+            { name: 'timestamp', description: 'An <a href="https://www.w3.org/TR/NOTE-datetime" target="_blank" rel="noopener nofollow">ISO 8601</a> compliant date for when the API returned the result.' },
+            { name: 'lastBlock', description: 'Number of the last block Owlracle scanned.' },
+            { name: 'avgTime', description: 'Average time between each block confirmation.' },
+            { name: 'avgTx', description: 'Average number of transactions in the blocks.' },
+            { name: 'avgGas', description: 'Average gas limit set for transactions in the scanned blocks.' },
+            { name: 'speeds', description: 'Array containing information of every speed requested in the <code class="code inline">accept</code> param.' },
+            { name: 'acceptance', description: 'Ratio of blocks accepting transactions with the suggested gas price.' },
+            { name: 'gasPrice', description: 'Suggested gas price (in GWei) to be accepted in at least the requested percentage of blocks.' },
+            { name: 'estimatedFee', description: 'Estimated fee (in USD) you should pay when using the suggested gas price. This fee is calculated using the current token price and <code class="code inline">avgGas</code> value.' },
+        ],
+        placeholder: {
+            "timestamp": "0000-00-00T00:00:00.000Z",
+            "lastBlock": 0,
+            "avgTime": 0,
+            "avgTx": 0,
+            "avgGas": 0,
+            "speeds": [{
+                "acceptance": 0,
+                "gasPrice": 0,
+                "estimatedFee": 0
+            }]
+        },
+    });
+})();

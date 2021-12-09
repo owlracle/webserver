@@ -336,7 +336,7 @@ document.querySelector('#side-menu #requests').click();
 // wallet check
 document.querySelector('#side-menu #wallets').addEventListener('click', async () => {
     // placeholder
-    document.querySelector('#content #wallet-table').innerHTML = [...Array(5)].map(w => `<div class="row placeholder"></div>`).join('');
+    document.querySelector('#content #wallet-table').innerHTML = [...Array(10)].map(w => `<div class="row placeholder"></div>`).join('');
 
     const data = await api.request(`/admin/wallets?currentSession=${session.get()}`);
 

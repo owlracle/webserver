@@ -78,6 +78,8 @@ module.exports = app => {
         }
 
         const data = [];
+        data.push(timeframe);
+        data.push(timeframe);
 
         if (network) {
             data.push(network);
@@ -85,7 +87,8 @@ module.exports = app => {
 
         data.push(timeframe);
 
-        const sql = `SELECT timestamp, count(*) AS 'requests' FROM api_requests ${network ? `WHERE network = ?` : ''} GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC`;
+        const cutLast = `UNIX_TIMESTAMP(timestamp) DIV ? != UNIX_TIMESTAMP(now()) DIV ?`;
+        const sql = `SELECT timestamp, count(*) AS 'requests' FROM api_requests WHERE ${cutLast} ${network ? `AND network = ?` : ''} GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC`;
         const [rows, error] = await db.query(sql, data);
 
         if (error) {

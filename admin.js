@@ -87,6 +87,7 @@ module.exports = app => {
 
         data.push(timeframe);
 
+        // remove last unfinished timeframe from chart
         const cutLast = `UNIX_TIMESTAMP(timestamp) DIV ? != UNIX_TIMESTAMP(now()) DIV ?`;
         const sql = `SELECT timestamp, count(*) AS 'requests' FROM api_requests WHERE ${cutLast} ${network ? `AND network = ?` : ''} GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC`;
         const [rows, error] = await db.query(sql, data);

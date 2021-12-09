@@ -178,7 +178,7 @@ const session = {
 
 session.check().then(async () => {
     await chart.init();
-        document.querySelector(`#timeframe-switcher #tf-h`).click();
+    document.querySelector(`#timeframe-switcher #tf-h`).click();
 
     theme.onChange = () => {
         chart.setTheme(cookies.get('theme') || 'dark');
@@ -226,7 +226,22 @@ const chart = {
             document.querySelectorAll('#timeframe-switcher button').forEach(e => e.classList.remove('active'));
             const text = b.innerHTML;
             b.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
-            const history = await this.getHistory(b.id.split('tf-')[1]);
+            const tf = b.id.split('tf-')[1];
+            const ntw = Array.from(document.querySelectorAll('#network-switcher button')).filter(e => e.classList.contains('active'))[0].id.split('ntw-')[1];
+            const history = await this.getHistory({ timeframe: tf, network: ntw });
+            b.classList.add('active');
+            b.innerHTML = text;
+            this.update(history);
+        }));
+
+        // switch networks
+        document.querySelectorAll('#network-switcher button').forEach(b => b.addEventListener('click', async () => {
+            document.querySelectorAll('#network-switcher button').forEach(e => e.classList.remove('active'));
+            const text = b.innerHTML;
+            b.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
+            const tf = Array.from(document.querySelectorAll('#timeframe-switcher button')).filter(e => e.classList.contains('active'))[0].id.split('tf-')[1];
+            const ntw = b.id.split('ntw-')[1];
+            const history = await this.getHistory({ timeframe: tf, network: ntw });
             b.classList.add('active');
             b.innerHTML = text;
             this.update(history);
@@ -239,7 +254,7 @@ const chart = {
             if (logicalRange !== null && logicalRange.from < 0 && this.history.length >= this.candles && !this.scrolling && !this.allRead) {
                 this.scrolling = true;
                 const oldHistory = this.history;
-                const newHistory = await this.getHistory(this.timeframe, this.page + 1);
+                const newHistory = await this.getHistory({ timeframe: this.timeframe, page: this.page + 1, network: ntw});
                 this.history = [...oldHistory, ...newHistory];
 
                 this.update(this.history);
@@ -300,15 +315,16 @@ const chart = {
         });
     },
 
-    getHistory: async function(timeframe=60, page=1, candles=this.candles) {
+    getHistory: async function ({ timeframe = 60, page = 1, candles = this.candles, network }) {
+        network = network && network != 'all' ? `&network=${network}` : '';
         this.timeframe = timeframe;
-        this.history = await api.request(`/admin/requests?timeframe=${timeframe}&currentSession=${session.get()}`);
+        this.history = await api.request(`/admin/requests?timeframe=${timeframe}&currentSession=${session.get()}${network}`);
         // console.log(this.history)
         if (this.history.error){
             console.log(this.history);
 
             if (this.history.error.status == 401){
-                return this.getHistory(timeframe, page, candles);
+                return this.getHistory({ timeframe: timeframe, page: page, candles: candles, network: network });
             }
             return [];
         }

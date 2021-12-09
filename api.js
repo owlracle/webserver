@@ -56,6 +56,12 @@ module.exports = app => {
             const version = parseInt(req.query.version) || 2;
             const blocks = req.query.blocks && version == 2 ? Math.min(Math.max(parseInt(req.query.blocks), 0), 1000) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => Math.min(Math.max(parseInt(e), 0), 100)) : defaultSpeeds;
+            
+            if (req.query.nmin){
+                req.query.percentile = req.query.nmin;
+                const message = 'nmin argument is deprecated and will be removed in future updates. Use percentile instead.';
+                resp.message = resp.message ? `${resp.message}. ${message}` : message;
+            }
             const perc = version == 1 ? 1 : (req.query.percentile ? parseFloat(req.query.percentile) : 0.3);
     
             const data = await oracle.getNetInfo(network.name, blocks, perc);

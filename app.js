@@ -72,6 +72,7 @@ function indexRoute(req, res) {
 
     res.render(`index`, {
         usagelimit: api.USAGE_LIMIT,
+        guestlimit: api.GUEST_LIMIT,
         requestcost: api.REQUEST_COST,
         recaptchakey: configFile.recaptcha.key,
         network: network,

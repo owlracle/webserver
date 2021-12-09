@@ -183,11 +183,21 @@ const chart = {
             this.obj.resize(Math.min(document.querySelector('#frame').offsetWidth - 20, 600), 300);
         });
     
-        this.series = { gas: {}, token: {}, fee: {} };
-        Object.values(this.series).forEach(e => { return {
-            colorUp: '#4CA69A',
-            colorDown: '#E0544E',
-        }});
+        this.series = {
+            gas: {
+                style: 'area',
+                color: '#2962ff',
+            },
+            token: {
+                style: 'candlestick',
+                colorUp: '#4CA69A',
+                colorDown: '#E0544E',
+            },
+            fee: {
+                style: 'area',
+                color: '#2962ff',
+            }
+        };
         
         // set modality buttons behaviour
         document.querySelectorAll(`#chart-container #toggle-container button`).forEach(e => e.addEventListener('click', async () => {
@@ -300,26 +310,44 @@ const chart = {
             const seriesName = { gas: 'gasPrice', token: 'tokenPrice', fee: 'txFee'};
 
             Object.entries(this.series).forEach(([key, value]) => {
-                const speedData = data.map(e => { return { 
-                    // value: e[key].high,
-                    open: e[seriesName[key]].open,
-                    close: e[seriesName[key]].close,
-                    low: e[seriesName[key]].low,
-                    high: e[seriesName[key]].high,
-                    time: parseInt(new Date(e.timestamp).getTime() / 1000),
-                }}).reverse();
+                const speedData = data.map(e => { 
+                    if (value.style == 'candlestick'){
+                        return { 
+                            // value: e[key].high,
+                            open: e[seriesName[key]].open,
+                            close: e[seriesName[key]].close,
+                            low: e[seriesName[key]].low,
+                            high: e[seriesName[key]].high,
+                            time: parseInt(new Date(e.timestamp).getTime() / 1000),
+                        }
+                    }
+                    return { 
+                        value: (e[seriesName[key]].close + e[seriesName[key]].open) / 2,
+                        time: parseInt(new Date(e.timestamp).getTime() / 1000),
+                    }
+                }).reverse();
         
                 if (!value.series){
-                    value.series = this.obj.addCandlestickSeries({
-                        upColor: value.colorUp,
-                        downColor: value.colorDown,
-                        borderDownColor: value.colorDown,
-                        borderUpColor: value.colorUp,
-                        wickDownColor: value.colorDOwn,
-                        wickUpColor: value.colorUp,
-                      
-                        visible: false,
-                    });
+                    if (value.style == 'candlestick'){
+                        value.series = this.obj.addCandlestickSeries({
+                            upColor: value.colorUp,
+                            downColor: value.colorDown,
+                            borderDownColor: value.colorDown,
+                            borderUpColor: value.colorUp,
+                            wickDownColor: value.colorDOwn,
+                            wickUpColor: value.colorUp,
+                            visible: false,
+                        });    
+                    }
+                    else {
+                        value.series = this.obj.addAreaSeries({
+                            lineColor: value.color,
+                            topColor: `${value.color}80`,
+                            bottomColor: `${value.color}10`,
+                            lineWidth: 2,
+                            visible: false,
+                        });
+                    }
                 }
                 value.series.setData(speedData);
             });

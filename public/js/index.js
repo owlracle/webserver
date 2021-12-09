@@ -378,9 +378,9 @@ chart.init().then(() => {
     theme.onChange = () => {
         chart.setTheme(cookies.get('theme') || 'dark');
 
-        if (window.__CPEmbed){
-            codePens.forEach(e => e.update());
-        }
+        // if (window.__CPEmbed){
+        //     codePens.forEach(e => e.update());
+        // }
     };
     
     theme.set(cookies.get('theme') || 'dark');
@@ -477,14 +477,10 @@ gasTimer.onUpdate = function(data){
         }
     });
 
-    const sample = document.querySelector('#sample');
-    if (!sample.classList.contains('loaded')){ 
-        sample.innerHTML = JSON.toHTML(data);
-        
-        sample.classList.add('loaded');
-
+    if (!this.started){ 
         document.querySelector(`#timeframe-switcher #tf-60`).click();
         document.querySelector(`#toggle-container #gas`).click();
+        this.started = true;
     }
 
     // after a while, change title to gas prices
@@ -497,35 +493,35 @@ new Tooltip(document.querySelector('#theme'), 'Toggle light/dark mode', { delay:
 
 
 // codepen ID, fill divs with an embed codepen
-class CodePen {
-    static started = false;
+// class CodePen {
+//     static started = false;
 
-    constructor(element, id) {
-        this.id = id;
-        this.element = element;
+//     constructor(element, id) {
+//         this.id = id;
+//         this.element = element;
 
-        this.update();
-    }
+//         this.update();
+//     }
 
-    async init() {
-        if (super.started){
-            return true;
-        }
+//     async init() {
+//         if (super.started){
+//             return true;
+//         }
 
-        const ready = await import('https://cpwebassets.codepen.io/assets/embed/ei.js');
-        super.started = true;
-        return ready;
-    }
+//         const ready = await import('https://cpwebassets.codepen.io/assets/embed/ei.js');
+//         super.started = true;
+//         return ready;
+//     }
 
-    update(){
-        this.init().then(() => {
-            const codepenEmbed = `<p class="codepen" data-height="265" data-theme-id="{{THEME}}" data-default-tab="js,result" data-user="pswerlang" data-slug-hash="${this.id}" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;" data-pen-title="BSC gas price sample code"><span>See the Pen <a href="https://codepen.io/pswerlang/pen/${this.id}" rel="noopener nofollow">Owlracle gas price sample code</a> by Pablo (<a href="https://codepen.io/pswerlang" rel="noopener nofollow">@pswerlang</a>) on <a href="https://codepen.io" rel="noopener nofollow">CodePen</a>.</span></p>`;
-            this.element.innerHTML = codepenEmbed.split('{{THEME}}').join(theme.get());
-            window.__CPEmbed();
-        });
-    }
-}
-const codePens = ['KKvKJRN', 'BadaMVN'].map((v,i) => new CodePen(document.querySelector(`#codepen${i+1}`), v));
+//     update(){
+//         this.init().then(() => {
+//             const codepenEmbed = `<p class="codepen" data-height="265" data-theme-id="{{THEME}}" data-default-tab="js,result" data-user="pswerlang" data-slug-hash="${this.id}" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;" data-pen-title="BSC gas price sample code"><span>See the Pen <a href="https://codepen.io/pswerlang/pen/${this.id}" rel="noopener nofollow">Owlracle gas price sample code</a> by Pablo (<a href="https://codepen.io/pswerlang" rel="noopener nofollow">@pswerlang</a>) on <a href="https://codepen.io" rel="noopener nofollow">CodePen</a>.</span></p>`;
+//             this.element.innerHTML = codepenEmbed.split('{{THEME}}').join(theme.get());
+//             window.__CPEmbed();
+//         });
+//     }
+// }
+// const codePens = ['KKvKJRN', 'BadaMVN'].map((v,i) => new CodePen(document.querySelector(`#codepen${i+1}`), v));
 
 
 document.querySelector('#manage-apikey').addEventListener('click', () => api.showModal());
@@ -534,143 +530,11 @@ document.querySelector('#manage-apikey').addEventListener('click', () => api.sho
 const limits = {
     REQUEST_COST: templateVar.requestcost,
     USAGE_LIMIT: templateVar.usagelimit,
+    GUEST_LIMIT: templateVar.guestlimit,
 };
 document.querySelectorAll('.request-limit').forEach(e => e.innerHTML = limits.USAGE_LIMIT);
+document.querySelectorAll('.guest-limit').forEach(e => e.innerHTML = limits.GUEST_LIMIT);
 document.querySelectorAll('.request-cost').forEach(e => e.innerHTML = limits.REQUEST_COST);
-
-
-const dynamicSamples = {
-    history: {
-        getData: async function(){
-            return await new Promise(resolve => {
-                const wait = () => {
-                    if (chart.history){
-                        resolve(chart.history);
-                        return;
-                    }
-                    setTimeout(() => wait(), 10);
-                }
-                wait();
-            });
-        },
-
-        update: function(data){
-            if (data.length){
-                const container = document.querySelector('#history-sample-container');
-                container.innerHTML = JSON.toHTML(data.slice(0,1));
-                container.querySelectorAll('.indent')[1].insertAdjacentHTML('beforeend', ',');
-                container.querySelectorAll('.indent')[0].insertAdjacentHTML('beforeend', '<div class="indent">...</div>');
-            }
-        }
-    },
-
-    keys: {
-        placeholder: {
-            "apiKey": "00000000000000000000000000000000",
-            "creation": "0000-00-00T00:00:00.000Z",
-            "wallet": "0x0000000000000000000000000000000000000000",
-            "credit": 0,
-            "origin": "domain.com",
-            "note": "note to myself",
-            "usage": {
-                "apiKeyHour": 0,
-                "apiKeyTotal": 0,
-            }
-        },
-
-        getData: async function(key){
-            if (!key){
-                return this.placeholder;
-            }
-            const data = await api.getKey(key);
-            if (data.apiKey){
-                this.realData = true;
-                return data;
-            }
-            return this.placeholder;
-        },
-
-        update: function(data) {
-            const container = document.querySelector('#key-get-info-container');
-            container.innerHTML = JSON.toHTML(data);
-        }
-    },
-
-    credit: {
-        placeholder: {
-            "message": "success",
-            "results": [{
-                "network": "xxx",
-                "tx": "0x0000000000000000000000000000000000000000000000000000000000000000",
-                "timestamp": "2000-00-00T00:00:00.000Z",
-                "value": "0",
-                "price": "0",
-                "fromWallet": "0x0000000000000000000000000000000000000000"
-            }]
-        },
-
-        getData: async function(key){
-            if (!key){
-                return this.placeholder;
-            }
-            const data = await api.getCredit(key);
-            if (data.message == 'success' && data.results.length > 0){
-                this.realData = true;
-                return data;
-            }
-            return this.placeholder;
-        },
-
-        update: function(data) {
-            const container = document.querySelector('#key-credit-info-container');
-            data.results = data.results.slice(0,1);
-            container.innerHTML = JSON.toHTML(data);
-            container.querySelectorAll('.indent')[2].insertAdjacentHTML('beforeend', ',');
-            container.querySelectorAll('.indent')[0].insertAdjacentHTML('beforeend', '<div class="indent">...</div>');
-        },
-    },
-
-    logs: {
-        placeholder: [{
-            "ip": "255.255.255.255",
-            "origin": "domain.com",
-            "timestamp": "0000-00-00T00:00:00.000Z",
-            "endpoint": "xxx",
-            "network": "xxx"
-        }],
-
-        getData: async function(key){
-            if (!key){
-                return this.placeholder;
-            }
-            const data = await api.getLogs(key);
-            if (!data.error && data.length > 0){
-                this.realData = true;
-                return data;
-            }
-            return this.placeholder;
-        },
-
-        update: function(data) {
-            const container = document.querySelector('#key-logs-info-container');
-            container.innerHTML = JSON.toHTML(data.slice(0,1));
-            container.querySelectorAll('.indent')[1].insertAdjacentHTML('beforeend', ',');
-            container.querySelectorAll('.indent')[0].insertAdjacentHTML('beforeend', '<div class="indent">...</div>');
-        },
-    },
-
-    update: async function(key){
-        
-        if (!key){
-            this.history.getData().then(data => this.history.update(data));
-        }
-        [this.keys, this.credit, this.logs].map(item => { return {
-            obj: item,
-            promise: item.getData(key)
-        }}).forEach(item => item.promise.then(data => item.obj.update(data)));
-    },
-};
-dynamicSamples.update();
 
 
 class UrlBox {
@@ -708,7 +572,7 @@ class UrlBox {
 
         element.innerHTML = this.content;
 
-        new Tooltip(element.querySelector('.button-get'), 'GET request URL using all available arguments with their default values');
+        new Tooltip(element.querySelector('.button-get'), 'GET request');
 
         // click on copy
         element.querySelector('.button-copy').addEventListener('click', () => {
@@ -728,36 +592,17 @@ class UrlBox {
                     x.style.width = `${input.value.length * 8.75}px`;
                 });
             });
-
-            input.addEventListener('input', () => {
-                if (input.value.match(api.regex.apiKey)){
-                    dynamicSamples.update(input.value);
-                }
-            });
         });
 
     }
 }
 
 // define sample requests url box
-new UrlBox(document.querySelector('#url-gas.url'), {
-    network: true,
-    href: `/gas?apikey={{apikey}}&nmin=0.3&accept=35,60,90,100&blocks=200&version=2`,
-});
-new UrlBox(document.querySelector('#url-history.url'), {
-    network: true,
-    href: `/history?apikey={{apikey}}&from=0&to={{now}}&page=1&candles=1000&timeframe=30&tokenprice=false&txfee=false`,
-    variables: { now: (new Date().getTime() / 1000).toFixed(0) }
-});
-new UrlBox(document.querySelector('#url-keys.url'), { href: `/keys/{{apikey}}` });
-new UrlBox(document.querySelector('#url-credit.url'), { href: `/credit/{{apikey}}` });
-new UrlBox(document.querySelector('#url-logs.url'), {
-    href: `/logs/{{apikey}}?fromtime={{past1h}}&totime={{now}}`,
-    variables: {
-        past1h: (new Date().getTime() / 1000 - 3600).toFixed(0),
-        now: (new Date().getTime() / 1000).toFixed(0)
-    }
-});
+new UrlBox(document.querySelector('#url-gas.url'), { network: true, href: `/gas`, });
+new UrlBox(document.querySelector('#url-history.url'), { network: true, href: `/history`, });
+new UrlBox(document.querySelector('#url-keys.url'), { href: `/keys/YOUR_API_KEY` });
+new UrlBox(document.querySelector('#url-credit.url'), { href: `/credit/YOUR_API_KEY` });
+new UrlBox(document.querySelector('#url-logs.url'), { href: `/logs/YOUR_API_KEY`, });
 
 
 // build faq
@@ -849,10 +694,12 @@ JSON.toHTML = (json, roll) => {
 
 
 class EndpointTable {
-    constructor(obj, { endpoint, args, response, placeholder }) {
+    constructor(obj, { endpoint, args, response, placeholder, network }) {
         this.obj = obj;
+        this.network = network;
         this.endpoint = endpoint;
         this.url = endpoint;
+        this.params = {};
 
         obj.classList.add('endpoint-table');
 
@@ -864,8 +711,6 @@ class EndpointTable {
                 <div class="sample"></div>
             </div>
             <div class="sample item">
-                <div class="arguments"></div>
-                <div class="response"><div class="code"></div></div>
                 <div class="run-container">
                     <span class="url">${this.endpoint}</span>
                     <div class="button-container">
@@ -874,6 +719,8 @@ class EndpointTable {
                         <div class="copy"><i class="fas fa-copy"></i></div>
                     </div>
                 </div>
+                <div class="response"><div class="code"></div></div>
+                <div class="arguments"></div>
             </div>
         </div>`;
         obj.innerHTML = `${tabs}${content}`;
@@ -898,31 +745,49 @@ class EndpointTable {
         this.addArguments(args);
         this.addResponse(response, placeholder);
         this.addSample(args);
+        this.changeURL({});
+    }
+
+    changeURL(url) {
+        const query = new URLSearchParams(url).toString();
+        const params = Object.keys(this.params).length ? '/'+ Object.values(this.params).join('/') : '';
+        this.url = `${this.endpoint}${params}${query.length ? `?${query}` : ''}`;
+        this.obj.querySelector('.sample .url').innerHTML = this.url;
+        const net = this.network ? '/'+ network.symbol : '';
+        this.link = `${location.origin}${net}${this.url}`;
     }
 
     addSample(data){
         const url = {};
         const sample = this.obj.querySelectorAll('.content .item')[2];
         let domSample = '';
+        const that = this;
 
         data.forEach(e => {
             // sample body
-            domSample += `<label><input type="checkbox" class="checkbox"><span>${e.name}</span></label><input type="text" class="input" ${e.default ? `placeholder="${e.default}" value="${e.default}"` : ''} disabled>`;
+            const def = (value => {
+                if (value === undefined){
+                    return ['', ''];
+                }
+                if (typeof value === 'object'){
+                    return [value.text, value.value];
+                }
+                return [value, value];
+            })(e.default);
+            domSample += `<label><input type="checkbox" class="checkbox" ${e.required ? 'checked disabled' : ''}><span class="key-name">${e.name}</span></label><input type="text" class="input" placeholder="${def[0]}" value="${def[1]}" ${e.required ? '' : 'disabled'}>`;
+
+            if (e.param){
+                this.params[e.name] = '';
+            }
         });
 
         sample.querySelector('.arguments').innerHTML = domSample;
-
-        const changeURL = url => {
-            const query = new URLSearchParams(url).toString();
-            this.url = `${this.endpoint}${query.length ? `?${query}` : ''}`;
-            sample.querySelector('.url').innerHTML = this.url;
-        };
 
         // sample checkbox change
         sample.querySelectorAll('.checkbox').forEach(e => e.addEventListener('change', function() {
             const index = [...sample.querySelectorAll('.checkbox')].indexOf(this);
             const input = sample.querySelectorAll('.input')[index];
-            const arg = sample.querySelectorAll('span')[index].textContent;
+            const arg = sample.querySelectorAll('.key-name')[index].textContent;
 
             if (this.checked){
                 input.removeAttribute('disabled');
@@ -935,30 +800,33 @@ class EndpointTable {
                 delete url[arg];
             }
 
-            changeURL(url);
+            that.changeURL(url);
         }));
 
         // sample input change
         sample.querySelectorAll('.input').forEach(e => e.addEventListener('input', function() {
             const item = this.closest('.item');
             const index = [...item.querySelectorAll('.input')].indexOf(this);
-            const arg = item.querySelectorAll('span')[index].textContent;
-            if (this.value.length){
+            const arg = item.querySelectorAll('.key-name')[index].textContent;
+            if (Object.keys(that.params).includes(arg)){
+                that.params[arg] = this.value;
+            }
+            else if (this.value.length){
                 url[arg] = this.value;
             }
             else {
                 delete url[arg];
             }
             
-            changeURL(url);
+            that.changeURL(url);
         }));
 
         // open link button
-        sample.querySelector('.run-container .open').addEventListener('click', () => window.open(`${location.href}${this.url}`));
+        sample.querySelector('.run-container .open').addEventListener('click', () => window.open(this.link));
 
         // copy link button
         sample.querySelector('.run-container .copy').addEventListener('click', () => {
-            navigator.clipboard.writeText(`${location.href}${this.url}`);
+            navigator.clipboard.writeText(this.link);
             const box = sample.querySelector('.run-container');
             box.classList.add('copy');
             setTimeout(() => box.classList.remove('copy'), 200);
@@ -966,8 +834,11 @@ class EndpointTable {
 
         // run button
         sample.querySelector('.run-container .run').addEventListener('click', async () => {
-            const response = await (await fetch(this.url)).json();
-            sample.querySelector('.response').innerHTML = `<div class="code">${JSON.toHTML(response)}</div>`;
+            const dom = sample.querySelector('.response');
+            dom.innerHTML = `<div class="code"><i class="fas fa-spin fa-cog"></i></code>`;
+
+            const response = await (await fetch(this.link)).json();
+            dom.innerHTML = `<div class="code">${JSON.toHTML(response)}</div>`;
         })
 
         return this;
@@ -979,7 +850,8 @@ class EndpointTable {
 
         data.forEach(e => {
             // args body
-            domArgs += `<div class="cell">${e.name}</div><div class="cell"><span>${e.description}</span></div><div class="cell">${e.default || '<i>none</i>'}</div>`
+            const def = e.default === undefined ? '<i>none</i>' : typeof e.default === 'object' ? `<i>${e.default.text}</i>` : e.default;
+            domArgs += `<div class="cell">${e.name}</div><div class="cell"><span>${e.description}</span></div><div class="cell">${def}</div>`
         });
         
         this.obj.querySelectorAll('.content .item')[0].innerHTML = domArgs;
@@ -1001,14 +873,17 @@ class EndpointTable {
 }
 
 (() => {
+    const now = parseInt(new Date().getTime() / 1000);
+
     new EndpointTable(document.querySelector('#table-gas'), {
         endpoint: '/gas',
+        network: true,
         args: [
             { name: 'apikey', description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one.' },
-            { name: 'blocks', default: '200', description: 'Number of past blocks you want Owlracle to scan to build the estimation. <i>Maximum 1000</i>.' },
-            { name: 'percentile', default: '0.3', description: 'Block gas percentile. For every analyzed block, Owlracle calculates the minimum gas price needed to be accepted on that block. The percentile argument tells Owlracle the percentage of transactions that should be included when measuring the minimum accepted gas for the block. The value must be between 0.01 and 0.99 indicating a percentage, or an integer >= 1 indicating the number of transactions to include.' },
+            { name: 'blocks', default: 200, description: 'Number of past blocks you want Owlracle to scan to build the estimation. <i>Maximum 1000</i>.' },
+            { name: 'percentile', default: 0.3, description: 'Block gas percentile. For every analyzed block, Owlracle calculates the minimum gas price needed to be accepted on that block. The percentile argument tells Owlracle the percentage of transactions that should be included when measuring the minimum accepted gas for the block. The value must be between 0.01 and 0.99 indicating a percentage, or an integer >= 1 indicating the number of transactions to include.' },
             { name: 'accept', default: '35,60,90,100', description: 'Acceptance threshold of transactions. The percentage of blocks you want the transaction to be accepted, based on the past mined blocks. Higher acceptance means more speedy transactions. You can provide a single value or a comma separated list of values, representing multiple speeds.' },
-            { name: 'version', default: '2', description: 'Version of the api you want to request.' },
+            { name: 'version', default: 2, description: 'Version of the api you want to request.' },
         ],
         response: [
             { name: 'timestamp', description: 'An <a href="https://www.w3.org/TR/NOTE-datetime" target="_blank" rel="noopener nofollow">ISO 8601</a> compliant date for when the API returned the result.' },
@@ -1034,4 +909,122 @@ class EndpointTable {
             }]
         },
     });
+
+    new EndpointTable(document.querySelector('#table-history'), {
+        endpoint: '/history',
+        network: true,
+        args: [
+            { name: 'apikey', description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one.' },
+            { name: 'from', default: 0, description: '<a href="https://www.unixtimestamp.com/" target="_blank" rel="noopener nofollow">Unix timestamp</a> representing the time where your search will start from.' },
+            { name: 'to', default: { text: 'Current timestamp', value: now }, description: 'Unix timestamp representing the time where to finish your search.' },
+            { name: 'page', default: 1, description: 'If your search returns more than 1000 candles, you must inform the page of the search you wish to retrieve.' },
+            { name: 'candles', default: 1000, description: 'How many results (maximum) you wish the search to retrieve.' },
+            { name: 'timeframe', default: 30, description: 'The time you wish to aggregate results to form candles. The allowed values are 10m, 30m, 1h, 2h, 4h or 1d. You could also inform these values in minutes (10, 30, 60, 120, 240, or 1440).' },
+            { name: 'tokenprice', default: { value: false, text: 'false'}, description: 'Whether you want or not to receive the native network token price history in the request.' },
+            { name: 'txfee', default: { value: false, text: 'false'}, description: 'Whether you want or not to receive the historic average gas paid (in USD) in the request.' },
+        ],
+        response: [
+            { name: 'timestamp', description: 'An ISO 8601 compliant date for the candlestick time.' },
+            { name: 'samples', description: 'Number of samples composing the candle.' },
+            { name: 'avgGas', description: 'Average gas limit set for transactions in the blocks composing the candle.' },
+            { name: 'gasPrice', description: 'Object containing information about gas price paid in the blocks composing the candle.' },
+            { name: 'tokenPrice', description: 'Object containing information about network\'s native token price at the time. <i>Only present if <code class="code inline">tokenprice</code> argument is set to <code class="code inline">true</code></i>' },
+            { name: 'txFee', description: 'Object containing information about average gas fee paid (in USD) for submitting a transaction at the time. <i>Only present if <code class="code inline">txfee</code> argument is set to <code class="code inline">true</code></i>' },
+            { name: 'open', description: 'The data reported on the first moment of the candle.' },
+            { name: 'close', description: 'The data reported on the last moment of the candle.' },
+            { name: 'low', description: 'The lowest data reported on the entire candle.' },
+            { name: 'high', description: 'The highest data reported on the entire candle.' },
+        ],
+        placeholder: [{
+            timestamp: "0000-00-00T00:00:00.000Z",
+            samples: 0,
+            avgGas: 0,
+            gasPrice: { open: 0, close: 0, low: 0, high: 0 },
+            tokenPrice: { open: 0, close: 0, low: 0, high: 0 },
+            txFee: { open: 0, close: 0, low: 0, high: 0 }
+        }],
+
+    });
+
+    new EndpointTable(document.querySelector('#table-keys'), {
+        endpoint: '/keys',
+        args: [
+            { name: 'YOUR_API_KEY', required: true, param: true, description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one. <i>Required</i>.' },
+        ],
+        response: [
+            { name: 'apiKey', description: 'Your API key.' },
+            { name: 'creation', description: 'An ISO 8601 compliant date for the time the API key was created.' },
+            { name: 'wallet', description: 'Your API wallet. You should transfer <span class="token-name"></span> to this address to recharge your credit.' },
+            { name: 'credit', description: 'The amount of your unspent credit (in USD).' },
+            { name: 'origin', description: 'Your requests will only be processed if the request\'s origin match your API key origin field. This field will not be present if you did not fill an origin when creating the API key.' },
+            { name: 'note', description: 'A personal informative note about the key. This field will only be present if you filled a note when creating your key.' },
+            { name: 'usage', description: 'The API key Usage.' },
+            { name: 'apiKeyHour', description: 'Requests made using your API key in the last hour.' },
+            { name: 'apiKeyTotal', description: 'Total requests made using your API key.' },
+        ],
+        placeholder: {
+            apiKey: "00000000000000000000000000000000",
+            creation: "0000-00-00T00:00:00.000Z",
+            wallet: "0x0000000000000000000000000000000000000000",
+            credit: "0.000000000",
+            origin: "domain.com",
+            note: "note to myself",
+            usage: {
+                apiKeyHour: 0,
+                apiKeyTotal: 0
+            }
+        },
+    });
+
+    new EndpointTable(document.querySelector('#table-credit'), {
+        endpoint: '/credit',
+        args: [
+            { name: 'YOUR_API_KEY', required: true, param: true, description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one. <i>Required</i>.' },
+        ],
+        response: [
+            { name: 'network', description: 'Network the transaction was sent. <i>Possible values: "bsc", "poly", "ftm", "avax", "eth"</i>.' },
+            { name: 'tx', description: 'The transaction hash of your deposit. You can check the network\'s block explorer for details about the transaction.' },
+            { name: 'timestamp', description: 'An ISO 8601 compliant date for the time of the transaction.' },
+            { name: 'value', description: 'Credit deposited in <span class="token-name"></span> in Gwei (1 Gwei = 0.000000001 <span class="token-name"></span>).' },
+            { name: 'price', description: '<span class="token-name"></span>/USDT price at the time of the transaction.' },
+            { name: 'fromWallet', description: 'The wallet that sent the credit to your API wallet.' },
+        ],
+        placeholder: {
+            message: "success",
+            results: [{
+                network: "xxx",
+                tx: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                timestamp: "2000-00-00T00:00:00.000Z",
+                value: "0",
+                price: "0",
+                fromWallet: "0x0000000000000000000000000000000000000000"
+            }]
+        },
+    });
+
+    new EndpointTable(document.querySelector('#table-logs'), {
+        endpoint: '/logs',
+        args: [
+            { name: 'YOUR_API_KEY', required: true, param: true, description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one. <i>Required</i>.' },
+            { name: 'fromtime', default: { text: 'One hour in the past', value: now - 3600 }, description: 'The time (unix timestamp) you want to start your search.' },
+            { name: 'totime', default: { text: 'Current timestamp', value: now }, description: 'The time (unix timestamp) you want to end your search.' },
+        ],
+        response: [
+            { name: 'ip', description: 'The ip address of the request. <code class="code inline">null</code> if the request was made from a private ip.' },
+            { name: 'origin', description: 'The origin of the request. This is the domain (the website name) that originates the request. <code class="code inline">null</code> if the request did not originate from a website (or called from the client browser).' },
+            { name: 'timestamp', description: 'An ISO 8601 compliant date for the time of the transaction.' },
+            { name: 'endpoint', description: 'The endpoint requested. <i>Possible values: "gas", "history"</i>.' },
+            { name: 'network', description: 'Network of the information requested. <i>Possible values: "bsc", "poly", "ftm", "avax", "eth"</i>.' },
+        ],
+        placeholder: [{
+            ip: "255.255.255.255",
+            origin: "domain.com",
+            timestamp: "0000-00-00T00:00:00.000Z",
+            endpoint: "xxx",
+            network: "xxx"
+        }],
+
+    });
+
+    document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
 })();

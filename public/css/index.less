@@ -312,6 +312,7 @@
             padding: 20px 30px;
             overflow-x: auto;
             font-family: monospace;
+            font-style: normal;
     
             &.inline {
                 padding: 2px 5px;
@@ -554,16 +555,16 @@
                         grid-template-columns: 0.2fr 1fr 0.2fr;
                     }
 
-                    .cell:nth-last-child(-n+3) {
-                        border: none;
-                    }
-
                     .cell:nth-child(3n-3), .cell:nth-child(3n-2){
                         border: none;
 
                         @media @size-900 {
                             border-bottom: 1px solid var(--border-color);
                         }
+                    }
+
+                    .cell:nth-last-child(-n+3) {
+                        border: none;
                     }
 
                     .cell:nth-child(3n-1) {
@@ -591,10 +592,6 @@
                             grid-template-columns: 0.2fr 1fr;
                         }
 
-                        .cell:nth-last-child(-n+2) {
-                            border: none;
-                        }
-
                         .cell:nth-child(2n-1) {
                             border: none;
     
@@ -602,7 +599,10 @@
                                 border-bottom: 1px solid var(--border-color);
                             }
                         }
-    
+
+                        .cell:nth-last-child(-n+2) {
+                            border: none;
+                        }
                     }
                 }
 
@@ -612,6 +612,7 @@
 
                     @media @size-900 {
                         grid-template-columns: 1fr 1fr;
+                        grid-template-rows: auto auto auto;
                     }
 
                     .arguments {
@@ -625,6 +626,7 @@
 
                         label {
                             display: flex;
+                            align-items: center;
 
                             .checkbox {
                                 transform: scale(1.6);
@@ -634,12 +636,12 @@
 
                         .input {
                             outline: none;
-                            border-bottom: solid var(--border-color);
+                            border-bottom: solid var(--text-color);
                             border-width: 0 0 1px 0;
                             color: var(--text-intense-color);
                             background-color: var(--bg-color);
                             padding: 15px 10px;
-                            border-radius: 3px;
+                            border-radius: 3px 3px 0 0;
                             transition: 0.3s all;
                             margin-bottom: 15px;
                             
@@ -650,6 +652,7 @@
 
                             &:disabled {
                                 background-color: transparent;
+                                border-bottom-color: var(--border-color);
                                 opacity: 0.5;
                             }
                         }
@@ -659,8 +662,9 @@
                         grid-row: 3 / 4;
 
                         @media @size-900 {
-                            grid-row: 1 / 3;
+                            grid-row: 1 / 4;
                             grid-column: 2;
+                            max-height: 800px;
                         }
                     }
 
@@ -678,9 +682,12 @@
                         }
 
                         .url {
-                            border: none;
-                            background-color: transparent;
                             color: #2689cc;
+                            font-family: monospace;
+                            padding: 5px 15px;
+                            word-break: break-all;
+                            background-color: transparent;
+                            border: none;
                         }
 
                         .button-container {
@@ -725,6 +732,7 @@
                         height: 100%;
                         box-sizing: border-box;
                         background-color: var(--bg-color);
+                        word-break: break-all;
                     }
 
                     .cell {

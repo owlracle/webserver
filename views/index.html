@@ -114,78 +114,29 @@
     
             <h2 id="endpoint-gas">Gas price estimation</h2>
     
-            <p>You can retrieve the gas price estimations through our API endpoint:</p>
-    
             <div id="url-gas" class="url"></div>
     
-            <p>This endpoint will retrieve gas prices for <span class="chain-name"></span> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
+            <p>Retrieve gas prices for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
 
             <p>Owlracle scans recent past blocks (<code class="code inline">blocks</code> param) to build an estimative of required gas price to be paid. It looks for the minimum gas price accepted on a transaction for every scanned block (based on the chosen <code class="code inline">percentile</code>). Then it shows you the minimum gas price you should pay to be accepted on a percentage of your choice (<code class="code inline">accept</code> param) of those blocks.</p>
 
             <div id="table-gas"></div>
 
-            <p class="quote">Note that if you plan to integrate this API with your application using the <a
-                    href="https://github.com/ChainSafe/web3.js" target="_blank" rel="noopener nofollow">web3</a> library, you
-                must multiply the value by <code class="code inline">1<sup>9</sup></code> as the library expects the gas price
-                in Wei.</p>
-    
-            <p>A sample response (fetched on page load) is provided below:</p>
-    
-            <pre class="code"><code id="sample"><i class="fas fa-spin fa-cog"></i></code></pre>        
-    
 
             <h2>Gas price history</h2>
-    
-            <p>In case you need to retrieve the gas price history, you could fetch the <b>history</b> endpoint:</p>
-    
+
             <div id="url-history" class="url"></div>
     
-            <p>This endpoint will retrieve the price history for gas, token price and fee for <span class="chain-name"></span> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
+            <p>Retrieve the price history for gas, token price and fee for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
 
-            <p>You can pass the following arguments in a GET request:</p>
-    
-            <ul class="args">
-                <li><code class="code inline">apikey</code>: Your <a href="#api-keys-sec">API key</a>. <i>Required</i>.</li>
-                <li><code class="code inline">from</code>: <a href="https://www.unixtimestamp.com/" target="_blank" rel="noopener nofollow">Unix timestamp</a> representing the time where your search will start from. <i>Default 0</i>.</li>
-                <li><code class="code inline">to</code>: Unix timestamp representing the time where to finish your search. <i>Default current timestamp</i>.</li>
-                <li><code class="code inline">page</code>: If your search returns more than 1000 candles, you must inform the page of the search you wish to retrieve. <i>Default 1</i>.</li>
-                <li><code class="code inline">candles</code>: How many results (maximum) you wish the search to retrieve. <i>Default 1000</i>.</li>
-                <li><code class="code inline">timeframe</code>: The time you wish to aggregate results to form <a href="https://www.investopedia.com/terms/c/candlestick.asp" target="_blank" rel="noopener nofollow">candles</a>. The allowed values are <b>10m</b>, <b>30m</b>, <b>1h</b>, <b>2h</b>, <b>4h</b> or <b>1d</b>. You could also inform these values in minutes (10, 30, 60, 120, 240, or 1440). <i>Default 30</i>.</li>
-                <li><code class="code inline">tokenprice</code>: Whether you want or not to receive the native network token price history in the request. <i>Default false</i>.</li>
-                <li><code class="code inline">txfee</code>: Whether you want or not to receive the historic average gas paid (in USD) in the request. <i>Default false</i>.</li>
-            </ul>
-    
             <p>The API will return an array of <a href="https://www.investopedia.com/terms/c/candlestick.asp" target="_blank" rel="noopener nofollow">candlesticks</a> built from aggregate data of the requested timeframe. The array is ordered from decreasing timestamps.</p>
-    
-            <div id="history-sample-container" class="code"></div>
-    
-            <ul class="args">
-                <li><code class="code inline">timestamp</code>: An ISO 8601 compliant date for the candlestick time.</li>
-                <li><code class="code inline">samples</code>: Number of samples composing the candle.</li>
-                <li><code class="code inline">avgGas</code>: Average gas limit set for transactions in the blocks composing the candle.</li>
-                <li><code class="code inline">gasPrice</code>: Object containing information about gas price paid in the blocks composing the candle.</li>
-                <li><code class="code inline">tokenPrice</code>: Object containing information about network's native token price at the time.</li>
-                <li><code class="code inline">txFee</code>: Object containing information about average gas fee paid (in USD) for submitting a transaction at the time.</li>
-                <li><code class="code inline">gasPrice</code>, <code class="code inline">tokenPrice</code>, and <code class="code inline">txFee</code> contain the following fields:</li>
-                <ul class="args">
-                    <li><code class="code inline">open</code>: The data reported on the first moment of the candle.</li>
-                    <li><code class="code inline">close</code>: The data reported on the last moment of the candle.</li>
-                    <li><code class="code inline">low</code>: The lowest data reported on the entire candle.</li>
-                    <li><code class="code inline">high</code>: The highest data reported on the entire candle.</li>
-                </ul>
-            </ul> 
-    
-    
-            <h3>Sample Code</h3>
-    
-            <p>Fetching data from our API is as simple as a GET request:</p>
-    
-            <div id="codepen1"></div>
-            
 
+            <div id="table-history"></div>
+
+    
             <h2 id="api-keys-sec">API keys</h2>
     
-            <p>When you access our endpoints, you need to use an API key. You can request our data up to <code class="code inline request-limit"></code> times per hour for free. After reaching that limit, you can continue to make requests either waiting a few minutes or using your api credit.</p>
+            <p>When you access our endpoints, it is reccomended that you need to use an API key. You can request our data up to <code class="code inline request-limit"></code> times per hour for free. After reaching that limit, you can continue to make requests either waiting a few minutes or using your api credit. You can also make requests without an api key for testing purposes, up to <code class="code inline guest-limit"></code> times per hour.</p>
     
             <h3>API key management window</h3>
     
@@ -213,89 +164,34 @@
     
             <h3>API key information</h3>
     
-            <p>You can access information about your API key using the keys endpoint</p>
-    
             <div id="url-keys" class="url"></div>
-        
-            <p class="quote">Fill your API key in the field above to get a sample response with real data</p>
-            <div id="key-get-info-container" class="code">
-            </div>
+
+            <p>Request information about your API key.</p>
     
-            <p>If the request is succeeded, you will get a JSON response with the following fields:</p>
-    
-            <ul class="args">
-                <li><code class="code inline">apiKey</code>: Your API key.</li>
-                <li><code class="code inline">creation</code>: An ISO 8601 compliant date for the time the API key was created.</li>
-                <li><code class="code inline">wallet</code>: Your API wallet. You should transfer <span class="token-name"></span> to this address to recharge your credit.</li>
-                <li><code class="code inline">credit</code>: The amount of your unspent credit (in USD).</li>
-                <li><code class="code inline">origin</code>: Your requests will only be processed if the request's origin match your API key origin field. This field will not be present if you did not fill an origin when creating the API key.</li>
-                <li><code class="code inline">note</code>: A personal informative note about the key. This field will only be present if you filled a note when creating your key.</li>
-                <li><code class="code inline">usage</code>: The API key Usage:
-                    <ul class="args">
-                        <li><code class="code inline">apiKeyHour</code>: Requests made using your API key in the last hour.</li>
-                        <li><code class="code inline">apiKeyTotal</code>: Total requests made using your API key.</li>
-                    </ul>
-                </li>
-            </ul> 
-    
-    
+            <div id="table-keys"></div>
+
             <h3>API key credit recharge history</h3>
     
-            <p>Get information about every api recharge</p>
+            <p>Get information about every api recharge.</p>
     
             <div id="url-credit" class="url"></div>
-            
-            <p class="quote">Fill an API key having at least one recharge in the above field to get a sample response with real data</p>
-            <div id="key-credit-info-container" class="code">
-            </div>
-    
+
             <p>On a success, the result will be a JSON containing <code class="code inline">message</code> and <code class="code inline">results</code> fields. The <code class="code inline">results</code> field is an array containing information about each API recharge transaction, where each element is an Object with the following fields:</p>
-    
-            <ul class="args">
-                <li><code class="code inline">network</code>: Network the transaction was sent. <i>Possible values: "bsc", "poly", "ftm", "avax", "eth"</i>.</li>
-                <li><code class="code inline">tx</code>: The transaction hash of your deposit. You can check the network's block explorer for details about the transaction.</li>
-                <li><code class="code inline">timestamp</code>: An ISO 8601 compliant date for the time of the transaction.</li>
-                <li><code class="code inline">value</code>: Credit deposited in <span class="token-name"></span> in Gwei (1 Gwei = 0.000000001 <span class="token-name"></span>).</li>
-                <li><code class="code inline">price</code>: <span class="token-name"></span>/USDT price at the time of the transaction.</li>
-                <li><code class="code inline">fromWallet</code>: The wallet that sent the credit to your API wallet.</li>
-            </ul> 
+            
+            <div id="table-credit"></div>
     
     
             <h3>API key usage log</h3>
             
-            <p>Get information about your API key usage</p>
+            <p>Get information about your API key usage.</p>
     
             <div id="url-logs" class="url"></div>
                     
-            <p>You can pass the optional arguments <code class="code inline">fromtime</code> and <code class="code inline">totime</code>. They define the time range of your search:</p>
+            <p>You can pass the optional arguments <code class="code inline">fromtime</code> and <code class="code inline">totime</code>to set the time range of your search.</p>
     
-            <ul class="args">
-                <li><code class="code inline">fromtime</code>: The time (unix timestamp) you want to start your search. <i>Default: one hour in the past</i>. </li>
-                <li><code class="code inline">totime</code>: The time (unix timestamp) you want to end your search. <i>Default: now</i>.</li>
-            </ul> 
+            <div id="table-logs"></div>
+
     
-            <p class="quote">Fill an API key that have been used in the last hour in the above field to get a sample response with real data</p>
-            <div id="key-logs-info-container" class="code">
-            </div>
-    
-            <p>On a success, the result will be an array of JSON objects for each of your API key requests (limited to the last 10000 requests). Each record have the following fields:</p>
-    
-            <ul class="args">
-                <li><code class="code inline">ip</code>: The ip address of the request. <code class="code inline">null</code> if the request was made from a private ip.</li>
-                <li><code class="code inline">origin</code>: The origin of the request. This is the domain (the website name) that originates the request. <code class="code inline">null</code> if the request did not originate from a website (or called from the client browser).</li>
-                <li><code class="code inline">timestamp</code>: An ISO 8601 compliant date for the time of the transaction.</li>
-                <li><code class="code inline">endpoint</code>: The endpoint requested. <i>Possible values: "gas", "history"</i>.</li>
-                <li><code class="code inline">network</code>: Network of the information requested. <i>Possible values: "bsc", "poly", "ftm", "avax", "eth"</i>.</li>
-            </ul> 
-    
-    
-            <h3>Sample Code</h3>
-    
-            <p>You can fetch your API key information with a GET request:</p>
-    
-            <div id="codepen2"></div>
-    
-            
             <h2 id="faq-title">Frequently Asked Questions</h2>
     
             <div id="faq"></div>
@@ -320,6 +216,7 @@
 
     <input type="hidden" id="requestcost" class="template-var" value="{{requestcost}}">
     <input type="hidden" id="usagelimit" class="template-var" value="{{usagelimit}}">
+    <input type="hidden" id="guestlimit" class="template-var" value="{{guestlimit}}">
     <input type="hidden" id="recaptchakey" class="template-var" value="{{recaptchakey}}">
     <input type="hidden" id="network" class="template-var" value="{{network}}">
 </body>

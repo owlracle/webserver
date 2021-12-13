@@ -49,8 +49,8 @@ async function buildHistory(network, blocks){
 
 
 // update credit recharges and block height for all api keys
-async function updateAllCredit(api){
-    const [rows, error] = await db.query(`SELECT * FROM api_keys`);
+async function updateAllCredit(api, wallet){
+    const [rows, error] = await db.query(`SELECT * FROM api_keys${ wallet ? ` WHERE wallet = '${wallet}'` : '' }`);
     if (!error){
         // wait before every api update so we dont overload the explorers
         for (let i=0 ; i < rows.length ; i++){

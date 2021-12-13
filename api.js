@@ -1043,11 +1043,21 @@ const api = {
         data.api_keys.timeChecked = new Date();
 
         // const txs = await oracle.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now);
-        const txsn = await Promise.all(Object.keys(networkList).map(async network => {
-            const tx = await explorer.getTx(wallet, then, now, network);
-            tx.network = network;
-            return tx;
-        }));
+        const txsn = [
+            // get normal txs
+            ...await Promise.all(Object.keys(networkList).map(async network => {
+                const tx = await explorer.getTx(wallet, then, now, network);
+                tx.network = network;
+                return tx;
+            })),
+            // get internal txs
+            ...await Promise.all(Object.keys(networkList).map(async network => {
+                const tx = await explorer.getTx(wallet, then, now, network, true);
+                tx.network = network;
+                return tx;
+            }))
+        ];
+        // if (txsn.map(e => e.result.length).reduce((p,c) => p+c, 0) > 0){
             
         data.credit_recharges = {};
         data.credit_recharges.fields = [

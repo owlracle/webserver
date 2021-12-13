@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const fs = require('fs');
 
-const { Session, verifyRecaptcha, oracle, networkList, explorer } = require('./utils');
+const { Session, verifyRecaptcha, oracle, networkList, explorer, telegram } = require('./utils');
 const db = require('./database');
 
 
@@ -59,8 +59,8 @@ module.exports = app => {
             
             if (req.query.nmin){
                 req.query.percentile = req.query.nmin;
-                const message = 'nmin argument is deprecated and will be removed in future updates. Use percentile instead.';
-                resp.message = resp.message ? `${resp.message}. ${message}` : message;
+                const warning = 'nmin argument is deprecated and will be removed in future updates. Use percentile instead.';
+                resp.warning = resp.warning ? `${resp.warning}. ${warning}` : warning;
             }
             const perc = version == 1 ? 1 : (req.query.percentile ? parseFloat(req.query.percentile) : 0.3);
     
@@ -1119,6 +1119,11 @@ const api = {
         db.update('api_keys', data.api_keys, `id = ?`, [id]);
         if (data.credit_recharges.values.length){
             db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
+            telegram.alert({
+                message: 'Credit recharge',
+                value: data.credit_recharges.values.map(e => e[2] * e[3]),
+                wallet: data.credit_recharges.values.map(e => e[5]),
+            });
         }
 
         return txsn;

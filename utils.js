@@ -158,7 +158,7 @@ const explorer = {
         // {"status":"1","message":"OK-Missing/Invalid API Key, rate limit of 1/5sec applied","result":"946206"}
     },
 
-    getTx: async function(wallet, fromTime, toTime, network){
+    getTx: async function(wallet, fromTime, toTime, network, internal=false){
         // console.log(wallet, from, to)
         if (!this.url[network]){
             return { status: "0", message: "INVALID NETWORK", result: [] };
@@ -167,7 +167,7 @@ const explorer = {
         const toBlock = await this.getBlockNumber(parseInt(toTime), network);
 
         try {
-            const request = await fetch(`${this.url[network]}/api?module=account&action=txlist&address=${wallet}&startblock=${fromBlock}&endblock=${toBlock}&apikey=${this.apiKey[network]}`);
+            const request = await fetch(`${this.url[network]}/api?module=account&action=txlist${ internal ? 'internal' : '' }&address=${wallet}&startblock=${fromBlock}&endblock=${toBlock}&apikey=${this.apiKey[network]}`);
             const txs = (data => {
                 try {
                     return JSON.parse(data);

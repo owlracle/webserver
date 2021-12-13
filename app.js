@@ -57,6 +57,12 @@ process.argv.forEach((val, index, array) => {
         args.updateCredit = false;
         console.log('Credit will not be updated');
     }
+    if ((val == '-u') && array[index+1]){
+        const wallet = array[index+1];
+        args.updateCredit = false;
+        args.updateWallet = wallet.toLowerCase();
+        console.log(`Updating credit for wallet ${wallet} only`);
+    }
 });
 
 
@@ -143,8 +149,8 @@ updateTokenPrice().then(() => {
         if (args.saveDB){
             Object.keys(networkList).forEach(n => buildHistory(n));
         }
-        if (args.updateCredit){
-            updateAllCredit(api);
+        if (args.updateCredit || args.updateWallet){
+            updateAllCredit(api, args.updateWallet);
         }
     }
 });

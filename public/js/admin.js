@@ -323,6 +323,12 @@ const chart = {
         if (this.history.error){
             console.log(this.history);
 
+            new Modal(`<h2>${this.history.error}</h2>
+                <p>${this.history.message}</p>
+                <div id="button-container"><button id="close">OK</button></div>`, { fog: { dark: true } }
+            ).addEvent({ tag: 'button', event: 'click', callback: () => session.login() });
+
+
             if (this.history.error.status == 401){
                 return this.getHistory({ timeframe: timeframe, page: page, candles: candles, network: network });
             }
@@ -358,6 +364,10 @@ document.querySelector('#side-menu #wallets').addEventListener('click', async ()
 
     if (data.error){
         console.log(data);
+        new Modal(`<h2>${data.error}</h2>
+            <p>${data.message}</p>
+            <div id="button-container"><button id="close">OK</button></div>`, { fog: { dark: true } }
+        ).addEvent({ tag: 'button', event: 'click', callback: () => session.login() });
         return;
     }
 

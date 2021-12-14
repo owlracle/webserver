@@ -431,7 +431,10 @@ document.querySelector('#side-menu #wallets').addEventListener('click', async ()
 // input change
 document.querySelector('#content #credit input').addEventListener('input', function() {
     if (this.value.length > 0){
-        const sliced = (this.value.slice(0,6) + '...' + this.value.slice(-4)).toLowerCase();
+        let sliced = this.value;
+        if (isNaN(parseInt(this.value))){
+            sliced = (this.value.slice(0,6) + '...' + this.value.slice(-4)).toLowerCase();
+        }
         this.parentNode.querySelector('#update').innerHTML = `Update ${sliced}`;
         this.parentNode.querySelector('#check').innerHTML = `Check ${sliced}`;
     }
@@ -448,21 +451,22 @@ document.querySelector('#content #credit #check').addEventListener('click', asyn
     }
 
     const parent = this.closest('#credit');
-    const wallet = parent.querySelector('input').value;
+    const value = parent.querySelector('input').value;
+    const field = isNaN(parseInt(value)) ? 'wallet' : 'id';
 
     this.setAttribute('disabled', true);
     const table = parent.querySelector('#wallet-table');
     table.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
 
-    const data = await api.request(`/admin/credit${ wallet.length ? `?wallet=${wallet}` : '' }`);
+    const data = await api.request(`/admin/credit${ value.length ? `?${field}=${value}` : '' }`);
 
     if (data.error){
         console.log(error);
         return;
     }
 
-    let tableHTML = '<div class="cell head">Id</div><div class="cell head">Origin</div><div class="cell head">Note</div><div class="cell head">Credit</div><div class="cell head">Time Checked</div>';
-    tableHTML += data.results.map((e,i) => `<div class="cell">${e.id}</div><div class="cell">${e.origin}</div><div class="cell">${e.note}</div><div class="cell">${e.credit}</div><div class="cell">${e.timeChecked}</div>`).join('');
+    let tableHTML = '<div class="cell head">Id</div><div class="cell head">Origin</div><div class="cell head">Note</div><div class="cell head">Wallet</div><div class="cell head">Credit</div><div class="cell head">Time Checked</div>';
+    tableHTML += data.results.map((e,i) => `<div class="cell">${e.id}</div><div class="cell">${e.origin}</div><div class="cell">${e.note}</div><div class="cell">${e.wallet}</div><div class="cell">${e.credit}</div><div class="cell">${e.timeChecked}</div>`).join('');
 
     table.innerHTML = tableHTML;
 
@@ -476,14 +480,20 @@ document.querySelector('#content #credit #update').addEventListener('click', asy
     }
 
     const parent = this.closest('#credit');
-    const wallet = parent.querySelector('input').value;
+    const value = parent.querySelector('input').value;
 
     this.setAttribute('disabled', true);
+
+    const body = {};
+    if (value.length){
+        const field = isNaN(parseInt(value)) ? 'wallet' : 'id';
+        body[field] = value;
+    }
 
     const data = await api.request(`/admin/credit`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: wallet.length ? wallet : null }),
+        body: JSON.stringify(body),
     });
 
     if (data.error){

@@ -237,7 +237,7 @@
         }
 
         #credit {
-            max-width: 600px;
+            max-width: 1200px;
 
             input {
                 width: 100%;
@@ -281,10 +281,12 @@
 
             #wallet-table {
                 display: grid;
-                grid-template-columns: 50px 1fr 1fr 1fr 2fr;
+                grid-template-columns: 50px 1fr 1fr 1fr 2fr 2fr;
                 grid-auto-rows: 1fr;
                 grid-row-gap: 5px;
                 margin-top: 25px;
+                max-height: 800px;
+                overflow-y: auto;
 
                 .cell {
                     padding: 5px 20px;

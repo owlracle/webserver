@@ -173,13 +173,17 @@ module.exports = (app, api) => {
     // get api credit
     app.get('/admin/credit', async (req, res) => {
         const data = [];
-        let walletSQL = '';
+        let filter = '';
         if (req.query.wallet) {
-            walletSQL = ' WHERE wallet = ?';
+            filter = ' WHERE wallet = ?';
             data.push(req.query.wallet);
         }
+        else if (req.query.id) {
+            filter = ' WHERE id = ?';
+            data.push(req.query.id);
+        }
 
-        const [rows, error] = await db.query(`SELECT id, origin, note, credit, timeChecked FROM api_keys${walletSQL} ORDER BY timeChecked DESC`, data);
+        const [rows, error] = await db.query(`SELECT id, origin, note, credit, wallet, timeChecked FROM api_keys${filter} ORDER BY timeChecked DESC`, data);
 
         if (error) {
             res.status(500).send({
@@ -199,16 +203,18 @@ module.exports = (app, api) => {
 
     // update api credit
     app.put('/admin/credit', async (req, res) => {
-        const wallet = req.body.wallet;
-
         const data = [];
-        let walletSQL = '';
-        if (wallet) {
-            walletSQL = ' WHERE wallet = ?';
-            data.push(wallet.toLowerCase());
+        let filter = '';
+        if (req.body.wallet) {
+            filter = ' WHERE wallet = ?';
+            data.push(req.body.wallet.toLowerCase());
+        }
+        else if (req.body.id) {
+            filter = ' WHERE id = ?';
+            data.push(req.body.id);
         }
 
-        const [rows, error] = await db.query(`SELECT * FROM api_keys${walletSQL} ORDER BY timeChecked`, data);
+        const [rows, error] = await db.query(`SELECT * FROM api_keys${filter} ORDER BY timeChecked`, data);
 
         if (error) {
             res.status(500).send({

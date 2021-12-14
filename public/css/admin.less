@@ -259,7 +259,7 @@
                     border-radius: 3px;
                     border: 1px solid var(--border-color);
                     background-color: var(--main-color);
-                    color: var(--text-color);
+                    color: var(--text-dark-color);
                     min-width: 200px;
                     padding: 10px 20px;
                     font-size: 1.2rem;
@@ -295,9 +295,17 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
-
+                    font-size: 0.9rem;
+                    font-family: monospace;
+                    
                     &.head {
+                        font-size: 1rem;
                         color: var(--text-intense-color);
+                        font-family: inherit;
+                    }
+                    
+                    &.text {
+                        font-family: inherit;
                     }
                 }
             }

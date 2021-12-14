@@ -466,7 +466,7 @@ document.querySelector('#content #credit #check').addEventListener('click', asyn
     }
 
     let tableHTML = '<div class="cell head">Id</div><div class="cell head">Origin</div><div class="cell head">Note</div><div class="cell head">Wallet</div><div class="cell head">Credit</div><div class="cell head">Time Checked</div>';
-    tableHTML += data.results.map((e,i) => `<div class="cell">${e.id}</div><div class="cell">${e.origin}</div><div class="cell">${e.note}</div><div class="cell">${e.wallet}</div><div class="cell">${e.credit}</div><div class="cell">${e.timeChecked}</div>`).join('');
+    tableHTML += data.results.map((e,i) => `<div class="cell">${e.id}</div><div class="cell text">${e.origin}</div><div class="cell text">${e.note}</div><div class="cell">${e.wallet}</div><div class="cell">${e.credit}</div><div class="cell">${e.timeChecked}</div>`).join('');
 
     table.innerHTML = tableHTML;
 

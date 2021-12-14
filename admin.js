@@ -1,7 +1,7 @@
 const db = require('./database');
 const { configFile, Session, explorer } = require('./utils');
 
-module.exports = app => {
+module.exports = (app, api) => {
     // admin login
     app.post('/admin/login', (req, res) => {
         if (!configFile.production) {
@@ -54,6 +54,7 @@ module.exports = app => {
         return;
     });
 
+    // request api key requests
     app.get('/admin/requests', async (req, res) => {
         const session = Session.getInstance(req.query.currentSession || false);
 
@@ -109,6 +110,7 @@ module.exports = app => {
     });
 
 
+    // wallet balances
     app.get('/admin/wallets', async (req, res) => {
         // session check
         const session = Session.getInstance(req.query.currentSession || false);
@@ -165,5 +167,63 @@ module.exports = app => {
             balances: balances,
             tokenPrices: tokenPrices,
         });
+    });
+
+
+    // get api credit
+    app.get('/admin/credit', async (req, res) => {
+        const data = [];
+        let walletSQL = '';
+        if (req.query.wallet) {
+            walletSQL = ' WHERE wallet = ?';
+            data.push(req.query.wallet);
+        }
+
+        const [rows, error] = await db.query(`SELECT id, origin, note, credit, timeChecked FROM api_keys${walletSQL} ORDER BY timeChecked DESC`, data);
+
+        if (error) {
+            res.status(500).send({
+                status: 500,
+                error: 'Internal server error',
+                message: 'Error retrieving the api key information'
+            });
+            return;
+        }
+
+        res.send({
+            message: 'success',
+            results: rows,
+        })
+    });
+
+
+    // update api credit
+    app.put('/admin/credit', async (req, res) => {
+        const wallet = req.body.wallet;
+
+        const data = [];
+        let walletSQL = '';
+        if (wallet) {
+            walletSQL = ' WHERE wallet = ?';
+            data.push(wallet.toLowerCase());
+        }
+
+        const [rows, error] = await db.query(`SELECT * FROM api_keys${walletSQL} ORDER BY timeChecked`, data);
+
+        if (error) {
+            res.status(500).send({
+                status: 500,
+                error: 'Internal server error',
+                message: 'Error retrieving the api key information'
+            });
+            return;
+        }
+
+        // wait before every api update so we dont overload the explorers
+        for (let i=0 ; i < rows.length ; i++){
+            await api.updateCredit(rows[i]);
+        }
+
+        res.send({ message: 'success' });
     });
 };

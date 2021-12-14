@@ -235,6 +235,71 @@
                 }
             }
         }
+
+        #credit {
+            max-width: 600px;
+
+            input {
+                width: 100%;
+                padding: 10px 20px;
+                outline: none;
+                border-radius: 3px;
+                border: 1px solid var(--border-color);
+                background-color: var(--bg-intense-color);
+                color: var(--text-intense-color);
+                box-sizing: border-box;
+            }
+
+            #button-container {
+                display: flex;
+                justify-content: space-around;
+                margin-top: 15px;
+
+                button {
+                    border-radius: 3px;
+                    border: 1px solid var(--border-color);
+                    background-color: var(--main-color);
+                    color: var(--text-color);
+                    min-width: 200px;
+                    padding: 10px 20px;
+                    font-size: 1.2rem;
+                    transition: 0.3s all;
+                    cursor: pointer;
+
+                    &:hover {
+                        filter: brightness(1.3);
+                    }
+
+                    &:disabled {
+                        cursor: not-allowed;
+                        background-color: var(--bg-intense-color);
+                        color: #888888;
+                        filter: none;
+                    }
+                }
+            }
+
+            #wallet-table {
+                display: grid;
+                grid-template-columns: 50px 1fr 1fr 1fr 2fr;
+                grid-auto-rows: 1fr;
+                grid-row-gap: 5px;
+                margin-top: 25px;
+
+                .cell {
+                    padding: 5px 20px;
+                    background-color: var(--bg-intense-color);
+                    color: var(--text-color);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+
+                    &.head {
+                        color: var(--text-intense-color);
+                    }
+                }
+            }
+        }
     }
 }
 

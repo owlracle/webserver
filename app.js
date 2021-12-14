@@ -20,7 +20,7 @@ app.set('views', __dirname + '/views');
 
 
 const api = require('./api')(app);
-require('./admin')(app);
+require('./admin')(app, api);
 
 
 const args = {
@@ -56,12 +56,6 @@ process.argv.forEach((val, index, array) => {
     if ((val == '-c' || val == '--credit')){
         args.updateCredit = false;
         console.log('Credit will not be updated');
-    }
-    if ((val == '-u') && array[index+1]){
-        const wallet = array[index+1];
-        args.updateCredit = false;
-        args.updateWallet = wallet.toLowerCase();
-        console.log(`Updating credit for wallet ${wallet} only`);
     }
 });
 
@@ -149,8 +143,8 @@ updateTokenPrice().then(() => {
         if (args.saveDB){
             Object.keys(networkList).forEach(n => buildHistory(n));
         }
-        if (args.updateCredit || args.updateWallet){
-            updateAllCredit(api, args.updateWallet);
+        if (args.updateCredit){
+            updateAllCredit(api);
         }
     }
 });

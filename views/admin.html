@@ -20,7 +20,8 @@
     <div id="frame">
         <div id="side-menu">
             <div id="requests" class="item">API requests</div>
-            <div id="wallets" class="item">Wallets</div>
+            <div id="wallets" class="item">Check Wallets</div>
+            <div id="credit" class="item">Update Credit</div>
         </div>
         
         <div id="content">
@@ -48,9 +49,21 @@
             </div>
     
             <div id="wallets" class="menu-content">
-                <h1>Wallets</h1>
+                <h1>Check Wallets</h1>
 
                 <div id="wallet-table"></div>
+            </div>
+
+            <div id="credit" class="menu-content">
+                <h1>Update Credit</h1>
+
+                <input type="text" id="input-wallet" placeholder="0x0000...0000">
+                <div id="button-container">
+                    <button id="update">Update all</button>
+                    <button id="check">Check all</button>
+                </div>
+                <div id="wallet-table"></div>
+
             </div>
         </div>
 

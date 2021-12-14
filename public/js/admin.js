@@ -424,3 +424,74 @@ document.querySelector('#side-menu #wallets').addEventListener('click', async ()
     }));
     
 });
+
+
+// update credit functions
+
+// input change
+document.querySelector('#content #credit input').addEventListener('input', function() {
+    if (this.value.length > 0){
+        const sliced = (this.value.slice(0,6) + '...' + this.value.slice(-4)).toLowerCase();
+        this.parentNode.querySelector('#update').innerHTML = `Update ${sliced}`;
+        this.parentNode.querySelector('#check').innerHTML = `Check ${sliced}`;
+    }
+    else {
+        this.parentNode.querySelector('#update').innerHTML = `Update all`;
+        this.parentNode.querySelector('#check').innerHTML = `Check all`;
+    }
+});
+
+// check api keys by wallet
+document.querySelector('#content #credit #check').addEventListener('click', async function() {
+    if (this.hasAttribute('disabled')){
+        return;
+    }
+
+    const parent = this.closest('#credit');
+    const wallet = parent.querySelector('input').value;
+
+    this.setAttribute('disabled', true);
+    const table = parent.querySelector('#wallet-table');
+    table.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
+
+    const data = await api.request(`/admin/credit${ wallet.length ? `?wallet=${wallet}` : '' }`);
+
+    if (data.error){
+        console.log(error);
+        return;
+    }
+
+    let tableHTML = '<div class="cell head">Id</div><div class="cell head">Origin</div><div class="cell head">Note</div><div class="cell head">Credit</div><div class="cell head">Time Checked</div>';
+    tableHTML += data.results.map((e,i) => `<div class="cell">${e.id}</div><div class="cell">${e.origin}</div><div class="cell">${e.note}</div><div class="cell">${e.credit}</div><div class="cell">${e.timeChecked}</div>`).join('');
+
+    table.innerHTML = tableHTML;
+
+    this.removeAttribute('disabled');
+});
+
+// update api keys by wallet
+document.querySelector('#content #credit #update').addEventListener('click', async function() {
+    if (this.hasAttribute('disabled')){
+        return;
+    }
+
+    const parent = this.closest('#credit');
+    const wallet = parent.querySelector('input').value;
+
+    this.setAttribute('disabled', true);
+
+    const data = await api.request(`/admin/credit`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: wallet.length ? wallet : null }),
+    });
+
+    if (data.error){
+        console.log(error);
+        return;
+    }
+
+    this.removeAttribute('disabled');
+
+    parent.querySelector('#check').click();
+});

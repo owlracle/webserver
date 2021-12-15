@@ -1110,16 +1110,19 @@ const api = {
                         // update price using tx value (it is in gwei, convert to ether) * price value at that time.
                         const value = parseInt(tx.value.slice(0,-9));
                         data.api_keys.credit = parseFloat(credit) + (value * 0.000000001 * priceThen);
-        
-                        data.credit_recharges.values.push([
-                            txs.network,
-                            tx.hash,
-                            value,
-                            priceThen,
-                            db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
-                            tx.from,
-                            id
-                        ]);
+
+                        // insert only if tx not duplicate in the array (internal and regular)
+                        if (!data.credit_recharges.values.map(e => e[1]).includes(tx.hash)){
+                            data.credit_recharges.values.push([
+                                txs.network,
+                                tx.hash,
+                                value,
+                                priceThen,
+                                db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
+                                tx.from,
+                                id
+                            ]);
+                        }
                     }
                 }));
             }
@@ -1131,8 +1134,12 @@ const api = {
             db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
             telegram.alert({
                 message: 'Credit recharge',
-                value: data.credit_recharges.values.map(e => e[2] * e[3]),
-                wallet: data.credit_recharges.values.map(e => e[5]),
+                network: data.credit_recharges.values.map(e => e[0]), // network
+                hash: data.credit_recharges.values.map(e => e[1]), // hash
+                value: data.credit_recharges.values.map(e => e[2] * e[3] * 0.000000001), // value * tokenprice
+                token: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
+                fromWallet: data.credit_recharges.values.map(e => e[5]), // from
+                toWallet: wallet.toLowerCase(),
             });
         }
 

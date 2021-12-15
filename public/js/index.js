@@ -125,7 +125,7 @@ const network = (symbol => {
         info.innerHTML = `<div id="owlracle-info">
             <div id="message">
                 <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
-                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$5</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
+                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$10</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
             </div>
             <div id="close"><i class="fas fa-times-circle"></i></div>
         </div>`;

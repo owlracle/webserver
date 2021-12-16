@@ -281,12 +281,13 @@
 
             #wallet-table {
                 display: grid;
-                grid-template-columns: 50px 1fr 1fr 1fr 2fr 2fr;
+                grid-template-columns: 50px 1fr 1fr 2fr 1fr 100px 2fr;
                 grid-auto-rows: 1fr;
                 grid-row-gap: 5px;
                 margin-top: 25px;
                 max-height: 800px;
-                overflow-y: auto;
+                overflow: auto;
+                max-width: calc(100vw - 350px);
 
                 .cell {
                     padding: 5px 20px;
@@ -302,6 +303,11 @@
                         font-size: 1rem;
                         color: var(--text-intense-color);
                         font-family: inherit;
+
+                        .sort {
+                            margin-left: 5px;
+                            cursor: pointer;
+                        }
                     }
                     
                     &.text {

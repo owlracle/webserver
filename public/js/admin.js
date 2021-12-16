@@ -426,82 +426,133 @@ document.querySelector('#side-menu #wallets').addEventListener('click', async ()
 });
 
 
-// update credit functions
+const creditTable = {
+    input: document.querySelector('#content #credit input'),
+    updateBtn: document.querySelector('#content #credit #update'),
+    checkBtn: document.querySelector('#content #credit #check'),
+    table: document.querySelector('#content #credit #wallet-table'),
 
-// input change
-document.querySelector('#content #credit input').addEventListener('input', function() {
-    if (this.value.length > 0){
-        let sliced = this.value;
-        if (isNaN(parseInt(this.value))){
-            sliced = (this.value.slice(0,6) + '...' + this.value.slice(-4)).toLowerCase();
+    data: {
+        input: '',
+        order: 'desc',
+        field: 'time',
+    },
+
+    init: function() {
+        // input change
+        this.input.addEventListener('input', () => {
+            if (this.input.value.length > 0){
+                let sliced = this.input.value;
+                if (isNaN(parseInt(this.input.value))){
+                    sliced = (this.input.value.slice(0,6) + '...' + this.input.value.slice(-4)).toLowerCase();
+                }
+                this.updateBtn.innerHTML = `Update ${sliced}`;
+                this.checkBtn.innerHTML = `Check ${sliced}`;
+            }
+            else {
+                this.updateBtn.innerHTML = `Update all`;
+                this.checkBtn.innerHTML = `Check all`;
+            }
+
+            this.data.input = this.input.value;
+        });
+
+        // check api keys by wallet
+        this.checkBtn.addEventListener('click', async () => {
+            if (this.checkBtn.hasAttribute('disabled')){
+                return;
+            }
+
+            this.checkBtn.setAttribute('disabled', true);
+            this.table.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
+
+            const data = await this.check();
+
+            if (data.error){
+                console.log(data);
+                return;
+            }
+
+            this.checkBtn.removeAttribute('disabled');
+        });
+
+        // update api keys by wallet
+        this.updateBtn.addEventListener('click', async () => {
+            if (this.updateBtn.hasAttribute('disabled')){
+                return;
+            }
+
+            const value = this.input.value;
+
+            this.updateBtn.setAttribute('disabled', true);
+
+            const body = {};
+            if (value.length){
+                const field = isNaN(parseInt(value)) ? 'wallet' : 'id';
+                body[field] = value;
+            }
+
+            const data = await api.request(`/admin/credit`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            if (data.error){
+                console.log(error);
+                return;
+            }
+
+            this.updateBtn.removeAttribute('disabled');
+
+            this.checkBtn.click();
+        });
+
+    },
+
+    check: async function() {
+        const value = this.data.input;
+        const input = isNaN(parseInt(value)) ? 'wallet' : 'id';
+
+        let query = {};
+        query.order = this.data.order;
+        query.field = this.data.field;
+
+        if (value.length){
+            query[input] = value;
         }
-        this.parentNode.querySelector('#update').innerHTML = `Update ${sliced}`;
-        this.parentNode.querySelector('#check').innerHTML = `Check ${sliced}`;
-    }
-    else {
-        this.parentNode.querySelector('#update').innerHTML = `Update all`;
-        this.parentNode.querySelector('#check').innerHTML = `Check all`;
-    }
-});
 
-// check api keys by wallet
-document.querySelector('#content #credit #check').addEventListener('click', async function() {
-    if (this.hasAttribute('disabled')){
-        return;
-    }
+        query = new URLSearchParams(query).toString();
+        const data = await api.request(`/admin/credit${ query.length ? `?${query}` : '' }`);
 
-    const parent = this.closest('#credit');
-    const value = parent.querySelector('input').value;
-    const field = isNaN(parseInt(value)) ? 'wallet' : 'id';
+        let tableHTML = `
+            <div class="cell head">Id</div>
+            <div class="cell head">Origin</div>
+            <div class="cell head">Note</div>
+            <div class="cell head">Wallet</div>
+            <div class="cell head">Credit <span id="credit" class="sort"><i class="fas fa-sort"></i></span></div>
+            <div class="cell head">Usage 1D<span id="usage" class="sort"><i class="fas fa-sort"></i></span></div>
+            <div class="cell head">Time Checked <span id="time" class="sort"><i class="fas fa-sort"></i></span></div>
+        `;
+        tableHTML += data.results.map(e => `
+            <div class="cell">${e.id}</div>
+            <div class="cell text">${e.origin}</div>
+            <div class="cell text">${e.note}</div>
+            <div class="cell">${e.wallet}</div>
+            <div class="cell">${e.credit}</div>
+            <div class="cell">${e.usage}</div>
+            <div class="cell">${e.timeChecked}</div>
+        `).join('');
 
-    this.setAttribute('disabled', true);
-    const table = parent.querySelector('#wallet-table');
-    table.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
+        this.table.innerHTML = tableHTML;
 
-    const data = await api.request(`/admin/credit${ value.length ? `?${field}=${value}` : '' }`);
+        this.table.querySelectorAll('.head .sort').forEach(e => e.addEventListener('click', () => {
+            this.data.field = e.id;
+            this.data.order = this.data.order == 'desc' ? 'asc' : 'desc';
+            this.check();
+        }));
 
-    if (data.error){
-        console.log(error);
-        return;
-    }
-
-    let tableHTML = '<div class="cell head">Id</div><div class="cell head">Origin</div><div class="cell head">Note</div><div class="cell head">Wallet</div><div class="cell head">Credit</div><div class="cell head">Time Checked</div>';
-    tableHTML += data.results.map((e,i) => `<div class="cell">${e.id}</div><div class="cell text">${e.origin}</div><div class="cell text">${e.note}</div><div class="cell">${e.wallet}</div><div class="cell">${e.credit}</div><div class="cell">${e.timeChecked}</div>`).join('');
-
-    table.innerHTML = tableHTML;
-
-    this.removeAttribute('disabled');
-});
-
-// update api keys by wallet
-document.querySelector('#content #credit #update').addEventListener('click', async function() {
-    if (this.hasAttribute('disabled')){
-        return;
-    }
-
-    const parent = this.closest('#credit');
-    const value = parent.querySelector('input').value;
-
-    this.setAttribute('disabled', true);
-
-    const body = {};
-    if (value.length){
-        const field = isNaN(parseInt(value)) ? 'wallet' : 'id';
-        body[field] = value;
-    }
-
-    const data = await api.request(`/admin/credit`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-    });
-
-    if (data.error){
-        console.log(error);
-        return;
-    }
-
-    this.removeAttribute('disabled');
-
-    parent.querySelector('#check').click();
-});
+        return data;
+    },
+};
+creditTable.init();

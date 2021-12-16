@@ -183,7 +183,15 @@ module.exports = (app, api) => {
             data.push(req.query.id);
         }
 
-        const [rows, error] = await db.query(`SELECT id, origin, note, credit, wallet, timeChecked FROM api_keys${filter} ORDER BY timeChecked DESC`, data);
+        let orderBy = 'k.timeChecked DESC';
+        const field = { credit: 'k.credit', usage: `'usage'`, time: 'k.timeChecked' };
+        if (req.query.field && field[req.query.field]){
+            const order = req.query.order && req.query.order == 'desc' ? 'DESC' : 'ASC';
+            orderBy = `${field[req.query.field]} ${order}`;
+        }
+
+        const usage = `SELECT count(*) FROM api_requests r INNER JOIN api_keys k2 ON r.apiKey = k2.id WHERE r.timestamp > now() - INTERVAL 1 DAY AND k2.id = k.id`;
+        const [rows, error] = await db.query(`SELECT k.id, k.origin, k.note, k.credit, k.wallet, (${usage}) AS 'usage', k.timeChecked FROM api_keys k${filter} ORDER BY ${orderBy}`, data);
 
         if (error) {
             res.status(500).send({

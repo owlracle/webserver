@@ -540,7 +540,7 @@ const creditTable = {
             <div class="cell text">${e.note}</div>
             <div class="cell">${e.wallet}</div>
             <div class="cell">${e.credit}</div>
-            <div class="cell">${e.usage}</div>
+            <div class="cell">${e.key_use}</div>
             <div class="cell">${e.timeChecked}</div>
         `).join('');
 

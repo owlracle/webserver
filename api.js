@@ -209,10 +209,10 @@ module.exports = app => {
             candles = Math.max(Math.min(candles || 1000, 1000), 1);
             const offset = (parseInt(page) - 1) * candles || 0;
 
-            const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(p.id) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network = ? AND UNIX_TIMESTAMP(timestamp) BETWEEN ? AND ? GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
+            const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(p.id) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network2 = ? AND UNIX_TIMESTAMP(timestamp) BETWEEN ? AND ? GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
             // console.log(sql)
             const data = [
-                network,
+                networkList[network].dbid,
                 from || 0,
                 to || new Date().getTime() / 1000,
                 timeframe * 60,
@@ -569,7 +569,7 @@ module.exports = app => {
         const toTime = req.query.totime || db.raw('UNIX_TIMESTAMP(now())');
         const fromTime = req.query.fromtime || (req.query.totime ? parseInt(req.query.totime) - 3600 : db.raw('UNIX_TIMESTAMP(now()) - 3600'));
 
-        const sql = `SELECT ip, origin, timestamp, endpoint, network FROM api_requests WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
+        const sql = `SELECT ip, origin, timestamp, endpoint, network2 FROM api_requests WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
         const sqlData = [
             fromTime,
             toTime,
@@ -1021,6 +1021,7 @@ const api = {
         sqlData.endpoint = endpoint;
         sqlData.version = version;
         sqlData.network = network;
+        sqlData.network2 = networkList[network].dbid;
 
         if (ip){
             sqlData.ip = ip;
@@ -1065,12 +1066,14 @@ const api = {
             ...await Promise.all(Object.keys(networkList).map(async network => {
                 const tx = await explorer.getTx(wallet, then, now, network);
                 tx.network = network;
+                tx.network2 = networkList[network].dbid;
                 return tx;
             })),
             // get internal txs
             ...await Promise.all(Object.keys(networkList).map(async network => {
                 const tx = await explorer.getTx(wallet, then, now, network, true);
                 tx.network = network;
+                tx.network2 = networkList[network].dbid;
                 return tx;
             }))
         ];
@@ -1079,6 +1082,7 @@ const api = {
         data.credit_recharges = {};
         data.credit_recharges.fields = [
             'network',
+            'network2',
             'tx',
             'value',
             'price',
@@ -1109,7 +1113,7 @@ const api = {
 
                 return Promise.all(txs.result.map(async tx => {
                     // get closest block available on history. get token_price from it
-                    const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
+                    const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
                     const [rows, error] = await db.query(sql, [ tx.blockNumber, txs.network, tx.blockNumber ]);
             
                     if (error){
@@ -1132,6 +1136,7 @@ const api = {
                         if (!data.credit_recharges.values.map(e => e[1]).includes(tx.hash)){
                             data.credit_recharges.values.push([
                                 txs.network,
+                                txs.network2,
                                 tx.hash,
                                 value,
                                 priceThen,
@@ -1152,10 +1157,11 @@ const api = {
             telegram.alert({
                 message: 'Credit recharge',
                 network: data.credit_recharges.values.map(e => e[0]), // network
-                hash: data.credit_recharges.values.map(e => e[1]), // hash
-                value: data.credit_recharges.values.map(e => e[2] * e[3] * 0.000000001), // value * tokenprice
-                token: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
-                fromWallet: data.credit_recharges.values.map(e => e[5]), // from
+                network2: data.credit_recharges.values.map(e => e[1]), // network
+                hash: data.credit_recharges.values.map(e => e[2]), // hash
+                value: data.credit_recharges.values.map(e => e[3] * e[4] * 0.000000001), // value * tokenprice
+                token: data.credit_recharges.values.map(e => e[3] * 0.000000001), // value
+                fromWallet: data.credit_recharges.values.map(e => e[6]), // from
                 toWallet: wallet.toLowerCase(),
             });
         }

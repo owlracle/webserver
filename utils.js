@@ -95,13 +95,13 @@ const oracle = {
 
 // network list
 const networkList = {
-    eth: { name: 'ethereum', token: 'ETH', cgid: 'ethereum'},
-    bsc: { name: 'bsc', token: 'BNB', cgid: 'binancecoin'},
-    poly: { name: 'polygon', token: 'MATIC', cgid: 'matic-network'},
-    ftm: { name: 'fantom', token: 'FTM', cgid: 'fantom'},
-    avax: { name: 'avax', token: 'AVAX', cgid: 'avalanche-2'},
-    cro: { name: 'cronos', token: 'CRO', cgid: 'crypto-com-chain'},
-    movr: { name: 'moonriver', token: 'MOVR', cgid: 'moonriver'},
+    eth: { name: 'ethereum', token: 'ETH', cgid: 'ethereum', dbid: 1 },
+    bsc: { name: 'bsc', token: 'BNB', cgid: 'binancecoin', dbid: 2 },
+    poly: { name: 'polygon', token: 'MATIC', cgid: 'matic-network', dbid: 3 },
+    ftm: { name: 'fantom', token: 'FTM', cgid: 'fantom', dbid: 4 },
+    avax: { name: 'avax', token: 'AVAX', cgid: 'avalanche-2', dbid: 5 },
+    cro: { name: 'cronos', token: 'CRO', cgid: 'crypto-com-chain', dbid: 6 },
+    movr: { name: 'moonriver', token: 'MOVR', cgid: 'moonriver', dbid: 7 },
 };
 
 

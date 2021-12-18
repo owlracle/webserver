@@ -1,5 +1,5 @@
 const db = require('./database');
-const { configFile, Session, explorer } = require('./utils');
+const { configFile, Session, explorer, networkList } = require('./utils');
 
 module.exports = (app, api) => {
     // admin login
@@ -83,14 +83,14 @@ module.exports = (app, api) => {
         data.push(timeframe);
 
         if (network) {
-            data.push(network);
+            data.push(networkList[network].dbid);
         }
 
         data.push(timeframe);
 
         // remove last unfinished timeframe from chart
         const cutLast = `UNIX_TIMESTAMP(timestamp) DIV ? != UNIX_TIMESTAMP(now()) DIV ?`;
-        const sql = `SELECT timestamp, count(*) AS 'requests' FROM api_requests WHERE ${cutLast} ${network ? `AND network = ?` : ''} GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC`;
+        const sql = `SELECT timestamp, count(*) AS 'requests' FROM api_requests WHERE ${cutLast} ${network ? `AND network2 = ?` : ''} GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC`;
         const [rows, error] = await db.query(sql, data);
 
         if (error) {
@@ -147,7 +147,7 @@ module.exports = (app, api) => {
         rows.forEach(e => balances[e.wallet].private = e.private);
 
         // get last token price for every network
-        sql = `SELECT token_price, network FROM price_history WHERE id IN (SELECT MAX(id) FROM price_history GROUP BY network);`;
+        sql = `SELECT token_price, network2 FROM price_history WHERE id IN (SELECT MAX(id) FROM price_history GROUP BY network2);`;
         [rows, error] = await db.query(sql, []);
 
         if (error) {
@@ -160,7 +160,8 @@ module.exports = (app, api) => {
             return;
         }
 
-        const tokenPrices = Object.fromEntries(rows.map(row => [row.network, row.token_price]));
+        const networkSymbol = Object.entries(networkList).filter(([k,v]) => v.dbid == row.network2)[0][0];
+        const tokenPrices = Object.fromEntries(rows.map(row => [ networkSymbol, row.token_price ]));
     
         res.send({
             message: 'success',

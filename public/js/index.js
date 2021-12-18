@@ -72,7 +72,9 @@ const network = (symbol => {
     obj.querySelector('.name').innerHTML = network.name;
     obj.querySelector('.icon').src = `img/${symbol}.png`;
 
-    document.querySelector('#title #network-name').innerHTML = `${network.longName || network.name}'s`;
+    let netName = network.longName || network.name;
+    netName = netName.slice(-1) == 's' ? `${netName}'` : `${netName}'s`;
+    document.querySelector('#title #network-name').innerHTML = netName;
 
     // network button action
     obj.addEventListener('click', function() {
@@ -162,6 +164,18 @@ const chart = {
     lastCandle: (new Date().getTime() / 1000).toFixed(0),
     allRead: false,
     network: network.symbol,
+    mode: 'gas',
+    config: {
+        area: {
+            style: 'area',
+            color: '#2962ff',
+        },
+        candlestick: {
+            style: 'candlestick',
+            colorUp: '#4CA69A',
+            colorDown: '#E0544E',
+        },
+    },
 
     init: async function() {
         await this.package;
@@ -183,43 +197,42 @@ const chart = {
             this.obj.resize(Math.min(document.querySelector('#frame').offsetWidth - 20, 600), 300);
         });
     
+        // copy object
         this.series = {
-            gas: {
-                style: 'area',
-                color: '#2962ff',
-            },
-            token: {
-                style: 'candlestick',
-                colorUp: '#4CA69A',
-                colorDown: '#E0544E',
-            },
-            fee: {
-                style: 'area',
-                color: '#2962ff',
-            }
+            gas: { config: Object.assign({}, this.config.area) },
+            token: { config: Object.assign({}, this.config.candlestick) },
+            fee: { config: Object.assign({}, this.config.area) },
         };
         
         // set modality buttons behaviour
         document.querySelectorAll(`#chart-container #toggle-container button`).forEach(e => e.addEventListener('click', async () => {
-            if (!e.classList.contains('active')){
-                document.querySelectorAll(`#chart-container #toggle-container button`).forEach(a => {
-                    const series = this.series[a.id];
-                    if (a == e){
-                        a.classList.add('active');
-                        series.visible = true;
-                    }
-                    else {
-                        a.classList.remove('active');
-                        series.visible = false;
-                    }
-
-                    if (series.series){
-                        series.series.applyOptions({ visible: series.visible });
-                    }
-                });
+            if (e.classList.contains('active')){
+                return;
             }
+
+            document.querySelectorAll(`#chart-container #toggle-container button`).forEach(a => {
+                const series = this.series[a.id];
+                if (a == e) {
+                    a.classList.add('active');
+                    series.visible = true;
+                    this.mode = a.id;
+
+                    // set candlestick or area button
+                    document.querySelectorAll('#chart-container #style-switcher button').forEach(e => e.classList.remove('active'));
+                    document.querySelector(`#chart-container #style-${series.config.style}`).classList.add('active');
+
+                }
+                else {
+                    a.classList.remove('active');
+                    series.visible = false;
+                }
+
+                if (series.series) {
+                    series.series.applyOptions({ visible: series.visible });
+                }
+            });
         }));
-    
+
         const container = document.querySelector('#chart');
         const toolTip = document.createElement('div');
         toolTip.id = 'tooltip-chart';
@@ -227,13 +240,12 @@ const chart = {
     
         // hover mouse over candles
         this.obj.subscribeCrosshairMove(param => {
-            const s = Object.keys(this.series).map(e => this.series[e].series);
+            // const s = Object.keys(this.series).map(e => this.series[e].series);
             if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
                 toolTip.style.display = 'none';
             }
             else {
                 toolTip.style.display = 'block';
-    
                 
                 const visibleSerie = Object.keys(this.series).filter(e => this.series[e].visible)[0];
                 const price = param.seriesPrices.get(this.series[visibleSerie].series);
@@ -299,6 +311,32 @@ const chart = {
             }
         });
 
+
+        // set candle/area style buttons behaviour
+        document.querySelectorAll('#chart-container #style-switcher button').forEach(e => e.addEventListener('click', async () => {
+            if (e.classList.contains('active')){
+                return;
+            }
+
+            e.parentNode.querySelectorAll('button').forEach(e => e.classList.toggle('active'));
+            const text = e.innerHTML;
+            e.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
+
+            const serie = this.series[this.mode];
+            serie.config = Object.assign({}, this.config[e.id.split('style-')[1]]);
+            const history = await this.getHistory(this.timeframe);
+
+            this.obj.removeSeries(serie.series);
+            serie.series = null;
+
+            this.update(history);
+
+            serie.series.applyOptions({ visible: serie.visible });
+
+            e.innerHTML = text;
+        }));
+
+
         this.ready = true;
 
         return;
@@ -311,7 +349,7 @@ const chart = {
 
             Object.entries(this.series).forEach(([key, value]) => {
                 const speedData = data.map(e => { 
-                    if (value.style == 'candlestick'){
+                    if (value.config.style == 'candlestick'){
                         return { 
                             // value: e[key].high,
                             open: e[seriesName[key]].open,
@@ -328,26 +366,29 @@ const chart = {
                 }).reverse();
         
                 if (!value.series){
-                    if (value.style == 'candlestick'){
+                    if (value.config.style == 'candlestick'){
                         value.series = this.obj.addCandlestickSeries({
-                            upColor: value.colorUp,
-                            downColor: value.colorDown,
-                            borderDownColor: value.colorDown,
-                            borderUpColor: value.colorUp,
-                            wickDownColor: value.colorDOwn,
-                            wickUpColor: value.colorUp,
+                            upColor: value.config.colorUp,
+                            downColor: value.config.colorDown,
+                            borderDownColor: value.config.colorDown,
+                            borderUpColor: value.config.colorUp,
+                            wickDownColor: value.config.colorDOwn,
+                            wickUpColor: value.config.colorUp,
                             visible: false,
-                        });    
+                        }); 
                     }
                     else {
                         value.series = this.obj.addAreaSeries({
-                            lineColor: value.color,
-                            topColor: `${value.color}80`,
-                            bottomColor: `${value.color}10`,
+                            lineColor: value.config.color,
+                            topColor: `${value.config.color}80`,
+                            bottomColor: `${value.config.color}10`,
                             lineWidth: 2,
                             visible: false,
                         });
                     }
+
+                    document.querySelectorAll('#chart-container #style-switcher button').forEach(e => e.classList.remove('active'));
+                    document.querySelector(`#chart-container #style-${value.config.style}`).classList.add('active');
                 }
                 value.series.setData(speedData);
             });

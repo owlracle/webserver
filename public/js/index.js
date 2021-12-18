@@ -176,6 +176,7 @@ const chart = {
             colorDown: '#E0544E',
         },
     },
+    preferences: { gas: 'area', token: 'candlestick', fee: 'area' },
 
     init: async function() {
         await this.package;
@@ -199,9 +200,9 @@ const chart = {
     
         // copy object
         this.series = {
-            gas: { config: Object.assign({}, this.config.area) },
-            token: { config: Object.assign({}, this.config.candlestick) },
-            fee: { config: Object.assign({}, this.config.area) },
+            gas: { config: Object.assign({}, this.config[this.preferences.gas]) },
+            token: { config: Object.assign({}, this.config[this.preferences.token]) },
+            fee: { config: Object.assign({}, this.config[this.preferences.fee]) },
         };
         
         // set modality buttons behaviour
@@ -279,6 +280,7 @@ const chart = {
             b.classList.add('active');
             b.innerHTML = text;
             this.update(history);
+            this.setCookie();
 
             document.querySelectorAll(`#toggle-container button`).forEach(b => {
                 const series = this.series[b.id];
@@ -334,12 +336,20 @@ const chart = {
             serie.series.applyOptions({ visible: serie.visible });
 
             e.innerHTML = text;
+
+            this.setCookie();
         }));
 
 
         this.ready = true;
 
         return;
+    },
+
+    setCookie: function() {
+        const cookieChart = Object.fromEntries(Object.entries(this.series).map(([k,v]) => [k, v.config.style]));
+        cookieChart.timeframe = this.timeframe;
+        cookies.set('chart', JSON.stringify(cookieChart), { expires: { days: 365 } });
     },
 
     update: function(data) {
@@ -386,9 +396,6 @@ const chart = {
                             visible: false,
                         });
                     }
-
-                    document.querySelectorAll('#chart-container #style-switcher button').forEach(e => e.classList.remove('active'));
-                    document.querySelector(`#chart-container #style-${value.config.style}`).classList.add('active');
                 }
                 value.series.setData(speedData);
             });
@@ -443,6 +450,33 @@ const chart = {
         return this.ready || new Promise(resolve => setTimeout(() => resolve(this.isReady()), 10));
     }
 };
+
+// load chart preferences cookie
+if (cookies.get('chart')){
+    let chartCookie = null;
+    try {
+        chartCookie = JSON.parse(cookies.get('chart'));
+    }
+    catch (error){
+        console.log(error);
+        cookies.delete('chart');
+    }
+
+    // test each individually to unsure loading only valid values
+    if (chartCookie.gas){
+        chart.preferences.gas = chartCookie.gas;
+    }
+    if (chartCookie.token){
+        chart.preferences.token = chartCookie.token;
+    }
+    if (chartCookie.fee){
+        chart.preferences.fee = chartCookie.fee;
+    }
+    if (chartCookie.timeframe){
+        chart.timeframe = chartCookie.timeframe;
+    }
+}
+
 chart.init().then(() => {
     theme.onChange = () => {
         chart.setTheme(cookies.get('theme') || 'dark');
@@ -547,7 +581,7 @@ gasTimer.onUpdate = function(data){
     });
 
     if (!this.started){ 
-        document.querySelector(`#timeframe-switcher #tf-60`).click();
+        document.querySelector(`#timeframe-switcher #tf-${chart.timeframe}`).click();
         document.querySelector(`#toggle-container #gas`).click();
         this.started = true;
     }

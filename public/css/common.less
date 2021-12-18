@@ -21,6 +21,14 @@
     @chain-color: #1A7CE4;
 }
 
+.cro {
+    @chain-color: #113e67;
+}
+
+.movr {
+    @chain-color: #50cbc6;
+}
+
 .eth {
     @chain-color: #5c5c5c;
 }
@@ -508,6 +516,18 @@ header {
                 border-color: @chain-color;
             }
 
+            &.cro {
+                .cro();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
+            &.movr {
+                .movr();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
             &.eth {
                 .eth();
                 background-color: darken(@chain-color, 20%);
@@ -600,6 +620,28 @@ header {
         &.avax {
             #title, #colored {
                 .avax();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.cro {
+            #title, #colored {
+                .cro();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.movr {
+            #title, #colored {
+                .movr();
                 background-color: @chain-color;
 
                 #copy {

@@ -251,23 +251,28 @@ const chart = {
                 const visibleSerie = Object.keys(this.series).filter(e => this.series[e].visible)[0];
                 const price = param.seriesPrices.get(this.series[visibleSerie].series);
                 // console.log(price)
-                toolTip.innerHTML = Object.entries(price).map(([key, value]) => {
-                    const name = key.charAt(0).toUpperCase() + key.slice(1);
-                    
-                    // trunc to max 4 decimal places
-                    if (value.toString().split('.').length >= 2 && value.toString().split('.')[1].length > 4){
-                        value = value.toString().split('.');
-                        value = value[0] + '.' + value[1].slice(0,4);
-                    }
-
-                    return `<div class="${key}"><span class="name">${name}</span>: ${value}</div>`;
-                }).join('');
-
-                const coordinateY = container.offsetTop + 10;
-                const coordinateX = container.offsetLeft + 10;
+                if (!param.seriesPrices.size){
+                    return;
+                }
+                else{
+                    toolTip.innerHTML = Object.entries(price).map(([key, value]) => {
+                        const name = key.charAt(0).toUpperCase() + key.slice(1);
+                        
+                        // trunc to max 4 decimal places
+                        if (value.toString().split('.').length >= 2 && value.toString().split('.')[1].length > 4){
+                            value = value.toString().split('.');
+                            value = value[0] + '.' + value[1].slice(0,4);
+                        }
     
-                toolTip.style.left = `${coordinateX}px`;
-                toolTip.style.top = `${coordinateY}px`;
+                        return `<div class="${key}"><span class="name">${name}</span>: ${value}</div>`;
+                    }).join('');
+    
+                    const coordinateY = container.offsetTop + 10;
+                    const coordinateX = container.offsetLeft + 10;
+        
+                    toolTip.style.left = `${coordinateX}px`;
+                    toolTip.style.top = `${coordinateY}px`;
+                }
             }
         });
 

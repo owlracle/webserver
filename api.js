@@ -86,7 +86,7 @@ module.exports = app => {
                 
                 // avg gas and estimated gas fee price (in $)
                 const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
-                const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[`${network.token}USDT`];
+                const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[network.token].price;
 
                 speeds = speeds.map(speed => {
                     return {
@@ -799,6 +799,23 @@ module.exports = app => {
             }
         }
     });
+
+
+    app.get('/tokenprice/:token', async (req, res) => {
+        const token = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[req.params.token.toUpperCase()];
+
+        if (!token){
+            res.status(404).send({
+                status: 404,
+                error: 'Not Found',
+                message: 'The token you are looking for could not be found.',
+            });
+            return;
+        }
+
+        res.send(token);
+    });
+    
 
     return api;
 }

@@ -95,11 +95,13 @@ const oracle = {
 
 // network list
 const networkList = {
-    eth: { name: 'ethereum', token: 'ETH'},
-    bsc: { name: 'bsc', token: 'BNB'},
-    poly: { name: 'polygon', token: 'MATIC'},
-    ftm: { name: 'fantom', token: 'FTM'},
-    avax: { name: 'avax', token: 'AVAX'},
+    eth: { name: 'ethereum', token: 'ETH', cgid: 'ethereum'},
+    bsc: { name: 'bsc', token: 'BNB', cgid: 'binancecoin'},
+    poly: { name: 'polygon', token: 'MATIC', cgid: 'matic-network'},
+    ftm: { name: 'fantom', token: 'FTM', cgid: 'fantom'},
+    avax: { name: 'avax', token: 'AVAX', cgid: 'avalanche-2'},
+    cro: { name: 'cronos', token: 'CRO', cgid: 'crypto-com-chain'},
+    movr: { name: 'moonriver', token: 'MOVR', cgid: 'moonriver'},
 };
 
 
@@ -111,6 +113,7 @@ const explorer = {
         poly: `https://api.polygonscan.com`,
         ftm: `https://api.ftmscan.com`,
         avax: `https://api.snowtrace.io`,
+        movr: `https://api-moonriver.moonscan.io`,
     },
 
     getBlockNumber: async function(timestamp, network) {
@@ -209,7 +212,7 @@ const explorer = {
             for (let i=0 ; i < parseInt(wallets.length / 20) + 1 ; i++){
                 const sliced = wallets.slice(i*20, (i+1)*20);
                 const result = await call(sliced, network);
-        
+
                 if (result.status == '1'){
                     result.result.forEach(e => {
                         if (!balance[e.account]){

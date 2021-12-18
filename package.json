@@ -1,13 +1,13 @@
 {
-  "name": "bscgas",
+  "name": "owlracle",
   "version": "1.0.0",
-  "description": "Binance Smart Chain Gas Price Oracle",
+  "description": "Multichain gas price tracker API",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Pablo Werlang",
-  "license": "ISC",
+  "license": "GPL3",
   "dependencies": {
     "bcrypt": "^5.0.1",
     "bn.js": "^5.2.0",

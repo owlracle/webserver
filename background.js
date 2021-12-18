@@ -21,7 +21,7 @@ async function buildHistory(network, blocks){
 
             const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
 
-            const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[`${networkList[network].token}USDT`];
+            const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[networkList[network].token].price;
 
             const [rows, error] = await db.insert(`price_history`, {
                 network: network,
@@ -64,9 +64,8 @@ async function updateAllCredit(api){
 
 // update native token prices, and hold a cached price to avoid fetching at every api call
 async function updateTokenPrice(){
-    let prices = await (await fetch(`https://api.binance.com/api/v3/ticker/price`)).json();
-    prices = prices.filter(e => Object.values(networkList).map(e => `${e.token}USDT`).includes(e.symbol));
-    prices = Object.fromEntries(prices.map(e => [e.symbol, parseFloat(e.price)]));
+    let prices = await (await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ Object.values(networkList).map(e => e.cgid).join(',') }`)).json();
+    prices = Object.fromEntries(prices.map(e => [e.symbol.toUpperCase(), { price: parseFloat(e.current_price), change24h: parseFloat(e.price_change_percentage_24h) } ]));
     prices.timestamp = new Date().toISOString();
 
     fs.writeFile(`${__dirname}/tokenPrice.json`, JSON.stringify(prices), () => {});

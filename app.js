@@ -66,6 +66,8 @@ app.get('/poly', indexRoute);
 app.get('/avax', indexRoute);
 app.get('/ftm', indexRoute);
 app.get('/eth', indexRoute);
+app.get('/movr', indexRoute);
+app.get('/cro', indexRoute);
 
 function indexRoute(req, res) {
     const network = req.url.split('/')[1];

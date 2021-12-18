@@ -224,15 +224,25 @@ const price = {
     token: 'BNB',
 
     get: async function() {
-        const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
-        const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
+        let price;
+        let price24h;
 
-        const price = (await (await fetch(url)).json()).price;
-        const price24h = (await (await fetch(url24)).json()).priceChangePercent;
-
-        return {
-            now: parseFloat(price).toFixed(2),
-            changePercent: parseFloat(price24h).toFixed(2), 
+        try {
+            const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
+            const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
+    
+            price = (await (await fetch(url)).json()).price;
+            price24h = (await (await fetch(url24)).json()).priceChangePercent;
+        }
+        catch (error) {
+            const data = await (await fetch(`/tokenprice/${this.token}`)).json();
+            [ price, price24h ] = [ data.price, data.change24h ];
+        }
+        finally {
+            return {
+                now: parseFloat(price).toFixed(2),
+                changePercent: parseFloat(price24h).toFixed(2), 
+            }
         }
     },
 
@@ -272,6 +282,12 @@ const network = {
         } },
         bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
             icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
+        } },
+        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', explorer: {
+            icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
+        } },
+        cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', explorer: {
+            icon: 'https://cronos.crypto.org/explorer/images/favicon-32x32-1d2f176ba4e0bc1155947d52652a35c8.png', href: 'https://cronos.crypto.org/explorer/', name: 'Cronos Explorer', apiAvailable: false,
         } },
     },
     

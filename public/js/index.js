@@ -251,10 +251,7 @@ const chart = {
                 const visibleSerie = Object.keys(this.series).filter(e => this.series[e].visible)[0];
                 const price = param.seriesPrices.get(this.series[visibleSerie].series);
                 // console.log(price)
-                if (!param.seriesPrices.size){
-                    return;
-                }
-                else{
+                if (price && typeof price !== 'number'){
                     toolTip.innerHTML = Object.entries(price).map(([key, value]) => {
                         const name = key.charAt(0).toUpperCase() + key.slice(1);
                         
@@ -272,6 +269,9 @@ const chart = {
         
                     toolTip.style.left = `${coordinateX}px`;
                     toolTip.style.top = `${coordinateY}px`;
+                }
+                else {
+                    toolTip.style.display = 'none';
                 }
             }
         });

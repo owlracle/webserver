@@ -1054,7 +1054,7 @@ const api = {
 
     updateCredit: async function({id, wallet, timeChecked, credit}){
         const now = parseInt(new Date().getTime() / 1000);
-        const then = parseInt(new Date(timeChecked).getTime() / 1000);
+        const then = parseInt(new Date(timeChecked).getTime() / 1000 - 3600);
         const data = {};
         data.api_keys = { credit: credit };
         data.api_keys.timeChecked = new Date();

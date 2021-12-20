@@ -569,7 +569,7 @@ module.exports = app => {
         const toTime = req.query.totime || db.raw('UNIX_TIMESTAMP(now())');
         const fromTime = req.query.fromtime || (req.query.totime ? parseInt(req.query.totime) - 3600 : db.raw('UNIX_TIMESTAMP(now()) - 3600'));
 
-        const sql = `SELECT ip, origin, timestamp, endpoint, network2 FROM api_requests WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
+        const sql = `SELECT r.ip AS ip, origin, timestamp, endpoint, n.symbol AS network FROM api_requests r INNER JOIN networks n ON n.id = r.network2 WHERE UNIX_TIMESTAMP(timestamp) >= ? AND UNIX_TIMESTAMP(timestamp) <= ? AND apiKey = ? ORDER BY timestamp DESC LIMIT 10000`;
         const sqlData = [
             fromTime,
             toTime,
@@ -1114,7 +1114,7 @@ const api = {
                 return Promise.all(txs.result.map(async tx => {
                     // get closest block available on history. get token_price from it
                     const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
-                    const [rows, error] = await db.query(sql, [ tx.blockNumber, txs.network, tx.blockNumber ]);
+                    const [rows, error] = await db.query(sql, [ tx.blockNumber, txs.network2, tx.blockNumber ]);
             
                     if (error){
                         return { error: {
@@ -1157,7 +1157,6 @@ const api = {
             telegram.alert({
                 message: 'Credit recharge',
                 network: data.credit_recharges.values.map(e => e[0]), // network
-                network2: data.credit_recharges.values.map(e => e[1]), // network
                 hash: data.credit_recharges.values.map(e => e[2]), // hash
                 value: data.credit_recharges.values.map(e => e[3] * e[4] * 0.000000001), // value * tokenprice
                 token: data.credit_recharges.values.map(e => e[3] * 0.000000001), // value

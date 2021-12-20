@@ -147,7 +147,7 @@ module.exports = (app, api) => {
         rows.forEach(e => balances[e.wallet].private = e.private);
 
         // get last token price for every network
-        sql = `SELECT token_price, network2 FROM price_history WHERE id IN (SELECT MAX(id) FROM price_history GROUP BY network2);`;
+        sql = `SELECT token_price, n.symbol AS network FROM price_history p INNER JOIN networks n ON n.id = p.network2 WHERE p.id IN (SELECT MAX(id) FROM price_history GROUP BY network2);`;
         [rows, error] = await db.query(sql, []);
 
         if (error) {
@@ -160,8 +160,7 @@ module.exports = (app, api) => {
             return;
         }
 
-        const networkSymbol = Object.entries(networkList).filter(([k,v]) => v.dbid == row.network2)[0][0];
-        const tokenPrices = Object.fromEntries(rows.map(row => [ networkSymbol, row.token_price ]));
+        const tokenPrices = Object.fromEntries(rows.map(row => [ row.network, row.token_price ]));
     
         res.send({
             message: 'success',

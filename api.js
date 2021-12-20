@@ -737,7 +737,7 @@ module.exports = app => {
             return;
         }
 
-        [rows, error] = await db.query(`SELECT network, tx, timestamp, value, price, fromWallet FROM credit_recharges WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
+        [rows, error] = await db.query(`SELECT n.symbol AS network, tx, timestamp, value, price, fromWallet FROM credit_recharges INNER JOIN networks n ON n.id = network2 WHERE apiKey = ? ORDER BY timestamp DESC`, [ row[0].id ]);
 
         if (error){
             res.status(500);
@@ -1020,7 +1020,6 @@ const api = {
 
         sqlData.endpoint = endpoint;
         sqlData.version = version;
-        sqlData.network = network;
         sqlData.network2 = networkList[network].dbid;
 
         if (ip){
@@ -1065,23 +1064,20 @@ const api = {
             // get normal txs
             ...await Promise.all(Object.keys(networkList).map(async network => {
                 const tx = await explorer.getTx(wallet, then, now, network);
-                tx.network = network;
                 tx.network2 = networkList[network].dbid;
                 return tx;
             })),
             // get internal txs
             ...await Promise.all(Object.keys(networkList).map(async network => {
                 const tx = await explorer.getTx(wallet, then, now, network, true);
-                tx.network = network;
                 tx.network2 = networkList[network].dbid;
                 return tx;
             }))
         ];
         // if (txsn.map(e => e.result.length).reduce((p,c) => p+c, 0) > 0){
-            
+
         data.credit_recharges = {};
         data.credit_recharges.fields = [
-            'network',
             'network2',
             'tx',
             'value',
@@ -1096,7 +1092,7 @@ const api = {
             if (txs.status == "1"){
                 // check for existing txs
                 const hashes = txs.result.map(tx => tx.hash);
-                const sql = `SELECT tx FROM credit_recharges WHERE tx IN(${hashes.map(e => '?').join(',')})`;
+                const sql = `SELECT tx FROM credit_recharges WHERE tx IN(${hashes.map(() => '?').join(',')})`;
                 const [rows, error] = await db.query(sql, hashes);
 
                 if (error){
@@ -1135,7 +1131,6 @@ const api = {
                         // insert only if tx not duplicate in the array (internal and regular)
                         if (!data.credit_recharges.values.map(e => e[1]).includes(tx.hash)){
                             data.credit_recharges.values.push([
-                                txs.network,
                                 txs.network2,
                                 tx.hash,
                                 value,
@@ -1157,10 +1152,10 @@ const api = {
             telegram.alert({
                 message: 'Credit recharge',
                 network: data.credit_recharges.values.map(e => e[0]), // network
-                hash: data.credit_recharges.values.map(e => e[2]), // hash
-                value: data.credit_recharges.values.map(e => e[3] * e[4] * 0.000000001), // value * tokenprice
-                token: data.credit_recharges.values.map(e => e[3] * 0.000000001), // value
-                fromWallet: data.credit_recharges.values.map(e => e[6]), // from
+                hash: data.credit_recharges.values.map(e => e[1]), // hash
+                value: data.credit_recharges.values.map(e => e[2] * e[3] * 0.000000001), // value * tokenprice
+                token: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
+                fromWallet: data.credit_recharges.values.map(e => e[5]), // from
                 toWallet: wallet.toLowerCase(),
             });
         }

@@ -10,7 +10,7 @@ This is the webserver and frontend code for [Owlracle](https://owlracle.info) we
 
 When the dawn of smart networks arrived, dapp developers saw the need to know the [gas price](https://en.wikipedia.org/wiki/Ethereum#Gas) they should pay for submitting a transaction in those networks. While those developers could fetch the last transactions and look at the gas price paid, this method is not reliable enough as gas prices wildly fluctuate between each transaction. So the gas price oracles arrived to help solving this problem. 
 
-Inspired by works like [ethgasstation](https://ethgasstation.info/), I have decided to create a gas price oracle working on several networks. Right now we provide estimations for Ethereum, Binance Smart Chain, Polygon, Fantom and Avalanche networks. Services like owlracle are a way to remove this burden from your servers (this can be somewhat resource-intensive), while providing API to help integrate your dapps to our predictions.
+Inspired by works like [ethgasstation](https://ethgasstation.info/), I have decided to create a gas price oracle working on several networks. Right now we provide estimations for Ethereum, Binance Smart Chain, Polygon, Fantom, Avalanche, Moonriver, and Cronos networks. Services like owlracle are a way to remove this burden from your servers (this can be somewhat resource-intensive), while providing API to help integrate your dapps to our predictions.
 
 ## Gas Price Estimation
 
@@ -47,7 +47,7 @@ Inspired by works like [ethgasstation](https://ethgasstation.info/), I have deci
 
 ---
 
-Support our project! We accept any token donation on <img src="https://owlracle.info/img/bsc.png" height="20"> **BSC**, <img src="https://owlracle.info/img/poly.png" height="20"> **Polygon**, <img src="https://owlracle.info/img/ftm.png" height="20"> **Fantom**, <img src="https://owlracle.info/img/eth.png" height="20"> **Ethereum**, and <img src="https://owlracle.info/img/avax.png" height="20"> **Avalanche** networks.
+Support our project! We accept any token donation on <img src="https://owlracle.info/img/bsc.png" height="20"> **BSC**, <img src="https://owlracle.info/img/poly.png" height="20"> **Polygon**, <img src="https://owlracle.info/img/ftm.png" height="20"> **Fantom**, <img src="https://owlracle.info/img/eth.png" height="20"> **Ethereum**, <img src="https://owlracle.info/img/avax.png" height="20"> **Avalanche**, <img src="https://owlracle.info/img/movr.png" height="20"> **Moonriver**, and <img src="https://owlracle.info/img/cro.png" height="20"> **Cronos** networks.
 
 <a href="https://user-images.githubusercontent.com/19828711/139945432-f6b07860-c986-4221-a291-10370f24ea5a.png">
 <h3 align=center><img src="https://img.shields.io/badge/Wallet-0xA6E126a5bA7aE209A92b16fcf464E502f27fb658-blue"></h3>

@@ -24,7 +24,6 @@ async function buildHistory(network, blocks){
             const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[networkList[network].token].price;
 
             const [rows, error] = await db.insert(`price_history`, {
-                network: network,
                 network2: networkList[network].dbid,
                 last_block: data.lastBlock,
                 token_price: tokenPrice,

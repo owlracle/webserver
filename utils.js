@@ -170,7 +170,8 @@ const explorer = {
         const toBlock = await this.getBlockNumber(parseInt(toTime), network);
 
         try {
-            const request = await fetch(`${this.url[network]}/api?module=account&action=txlist${ internal ? 'internal' : '' }&address=${wallet}&startblock=${fromBlock}&endblock=${toBlock}&apikey=${this.apiKey[network]}`);
+            const url = `${this.url[network]}/api?module=account&action=txlist${ internal ? 'internal' : '' }&address=${wallet}&startblock=${fromBlock}&endblock=${toBlock}&apikey=${this.apiKey[network]}`;
+            const request = await fetch(url);
             const txs = (data => {
                 try {
                     return JSON.parse(data);

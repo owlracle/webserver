@@ -1,4 +1,4 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha } from './utils.min.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn } from './utils.min.js';
 
 
 // remove hidden inputs sent from server
@@ -495,19 +495,6 @@ chart.init().then(() => {
 });
 
 
-// show tooltips for each gas speed card
-
-const tooltipList = [
-    'Accepted on 35% of blocks',
-    'Accepted on 60% of blocks',
-    'Accepted on 90% of blocks',
-    'Accepted on every block',
-];
-document.querySelectorAll('.gas i.fa-question-circle').forEach((e,i) => {
-    new Tooltip(e, tooltipList[i]);
-});
-
-
 // update gas prices every 10s
 
 const gasTimer = {
@@ -515,13 +502,145 @@ const gasTimer = {
     toInterval: 100, // interval between timer updates
     counter: 100,
     element: document.querySelector('#countdown #filled'),
+    defaultCards : [ // preferences for cards
+        { name: '🛴Slow', tooltip: 'Accepted on 35% of blocks', accept: 35 },
+        { name: '🚗Standard', tooltip: 'Accepted on 60% of blocks', accept: 60 },
+        { name: '✈️Fast', tooltip: 'Accepted on 90% of blocks', accept: 90 },
+        { name: '🚀Instant', tooltip: 'Accepted on every block', accept: 100 },
+    ],
 
     init: function(interval, toInterval){
         this.interval = interval;
         this.toInterval = toInterval;
         this.counter = 1;
+        this.cards = this.defaultCards;
 
+        this.loadCookie();
+        this.buildCards();
         this.countDown();
+    },
+
+    buildCards: function() {
+        const container = document.querySelector('#gas-container');
+        container.innerHTML = '';
+
+        this.cards.forEach(card => {
+            const dom = `<div class="gas">
+                <div class="title">
+                    <div class="left">${card.name} ${card.tooltip ? '<i class="far fa-question-circle"></i>' : ''}</div>
+                    <div class="right" title="Change this card"><i class="fas fa-edit"></i></div>
+                </div>
+                <div class="body">
+                    <div class="gwei"><i class="fas fa-spin fa-cog"></i></div>
+                    <div class="usd"></div>
+                </div>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', dom);
+        });
+
+        container.querySelectorAll('.gas i.fa-question-circle').forEach((e,i) => new Tooltip(e, this.cards[i].tooltip));
+        container.querySelectorAll('.gas i.fa-edit').forEach((e,i) => {
+            new Tooltip(e.parentNode, null, { createEvent: 'mouseenter', delay: 1500 });
+
+            e.parentNode.addEventListener('click', () => {
+                const fog = document.createElement('div');
+                fog.id = 'fog';
+                fog.innerHTML = `<div id='edit-cards' class="modal">
+                    <h2>Edit gas cards</h2>
+                    <h3>Replace the following query parameters</h3>
+                    <div class="input-container"><span class="title">Blocks</span><input id="blocks" class="input-text" value="${this.blocks || ''}"></div>
+                    <div class="input-container"><span class="title">Percentile</span><input id="percentile" class="input-text" value="${this.percentile || ''}"></div>
+                    <div class="input-container"><span class="title">Accept</span><input id="accept" class="input-text" value="${this.cards.map(e => e.accept).join(',')}"></div>
+                    <div class="input-container"><span class="title">Card names</span><input id="names" class="input-text" value="${this.cards.map(e => e.name).join(',')}"></div>
+                    <div id="button-container">
+                        <button id="reset">RESET</button>
+                        <button id="save">SAVE</button>
+                    </div>
+                </div>`;
+        
+                fog.addEventListener('click', () => fog.remove());
+                fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+        
+                fog.querySelector("#reset").addEventListener('click', () => {
+                    delete this.blocks;
+                    delete this.percentile;
+                    this.cards = this.defaultCards;
+
+                    this.setCookie();
+                    window.location.reload();
+                });
+
+                fog.querySelector("#save").addEventListener('click', () => {
+                    const blocks = fog.querySelector('#blocks').value;
+                    const percentile = fog.querySelector('#percentile').value;
+                    const accept = fog.querySelector('#accept').value.split(',');
+                    const names = fog.querySelector('#names').value.split(',');
+
+                    if (parseInt(blocks)){
+                        this.blocks = parseInt(blocks);
+                    }
+
+                    if (parseFloat(percentile) && parseFloat(percentile) >= 0.01){
+                        this.percentile = parseFloat(percentile);
+                    }
+
+                    if (accept.length){
+                        this.cards = accept.map((e,i) => { return { name: names[i], accept: parseInt(e) }});
+                    }
+
+                    this.setCookie();
+                    window.location.reload();
+                })
+
+                document.body.appendChild(fog);
+                fadeIn(fog, 500);        
+            });
+        });
+    },
+
+    loadCookie: function() {
+        if (cookies.get('gas-cards')){
+            let cardCookie = null;
+            try {
+                cardCookie = JSON.parse(cookies.get('gas-cards'));
+            }
+            catch (error){
+                console.log(error);
+                cookies.delete('gas-cards');
+            }
+        
+            // test each individually to unsure loading only valid values
+            if (cardCookie.blocks){
+                const blocks = Math.min(Math.max(1, cardCookie.blocks), 1000);
+                if (blocks) {
+                    this.blocks = blocks;
+                }
+
+            }
+            if (cardCookie.percentile){
+                const percentile = parseFloat(cardCookie.percentile);
+                if (percentile && percentile >= 0.01) {
+                    this.percentile = percentile;
+                }
+    
+            }
+            if (cardCookie.cards){
+                this.cards = cardCookie.cards.filter(e => parseInt(e.accept) && parseInt(e.accept) >= 0 && parseInt(e.accept) <= 100);
+            }
+        }
+    },
+
+    setCookie: function() {
+        const data = { cards: this.cards };
+
+        if (this.blocks){
+            data.blocks = this.blocks;
+        }
+        if (this.percentile){
+            data.percentile = this.percentile;
+        }
+
+        cookies.set('gas-cards', JSON.stringify(data), { expires: { days: 365 } });
     },
 
     countDown: function() {
@@ -540,9 +659,21 @@ const gasTimer = {
     },
 
     update: async function() {
-        const sessionid = await session.get();
-        const token = await recaptcha.getToken();
-        const data = await (await fetch(`/${network.symbol}/gas?grc=${token}&sid=${sessionid}`)).json();
+        let query = {
+            grc: await recaptcha.getToken(),
+            sid: await session.get(),
+            accept: this.cards.map(e => e.accept).join(','),
+        };
+
+        if (this.blocks){
+            query.blocks = this.blocks;
+        }
+        if (this.percentile){
+            query.percentile = this.percentile;
+        }
+
+        query = new URLSearchParams(query).toString();
+        const data = await (await fetch(`/${network.symbol}/gas?${query}`)).json();
 
         if (data.error){
             console.log(data);
@@ -980,6 +1111,8 @@ class EndpointTable {
     }
 }
 
+
+// create all endpoint tables
 (() => {
     const now = parseInt(new Date().getTime() / 1000);
 

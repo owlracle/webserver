@@ -502,7 +502,7 @@ const gasTimer = {
     toInterval: 100, // interval between timer updates
     counter: 100,
     element: document.querySelector('#countdown #filled'),
-    defaultCards : [ // preferences for cards
+    cards : [ // preferences for cards
         { name: '🛴Slow', tooltip: 'Accepted on 35% of blocks', accept: 35 },
         { name: '🚗Standard', tooltip: 'Accepted on 60% of blocks', accept: 60 },
         { name: '✈️Fast', tooltip: 'Accepted on 90% of blocks', accept: 90 },
@@ -513,7 +513,6 @@ const gasTimer = {
         this.interval = interval;
         this.toInterval = toInterval;
         this.counter = 1;
-        this.cards = this.defaultCards;
 
         this.loadCookie();
         this.buildCards();
@@ -561,15 +560,13 @@ const gasTimer = {
                 fog.addEventListener('click', () => fog.remove());
                 fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
         
+                // restore original cards
                 fog.querySelector("#reset").addEventListener('click', () => {
-                    delete this.blocks;
-                    delete this.percentile;
-                    this.cards = this.defaultCards;
-
-                    this.setCookie();
+                    cookies.delete('gas-cards');
                     window.location.reload();
                 });
 
+                // save card config
                 fog.querySelector("#save").addEventListener('click', () => {
                     const blocks = fog.querySelector('#blocks').value;
                     const percentile = fog.querySelector('#percentile').value;

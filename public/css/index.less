@@ -1,5 +1,18 @@
 @import "common.less";
 
+
+.light {
+    #frame #content #chart-container #style-switcher button {
+        img {
+            filter: invert(100%);
+        }
+
+        &.active img {
+            filter: none;
+        }
+    }
+}
+
 #frame {
     width: 100%;
     margin: auto;

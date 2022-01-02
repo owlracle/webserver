@@ -253,4 +253,23 @@ const telegram = {
 }
 
 
-module.exports = { configFile, Session, verifyRecaptcha, oracle, networkList, explorer, telegram };
+const logError = (data, sendTelegram=true) => {
+    try {
+        data.timestamp = new Date().toISOString();
+        const log = JSON.parse(fs.readFileSync(`${__dirname}/log.json`));
+        log.push(data);
+        fs.writeFile(`${__dirname}/log.json`, JSON.stringify(log), () => {});
+
+        if (sendTelegram){
+            telegram.alert(data);
+        }
+
+        return true;
+    }
+    catch (error) {
+        return false;
+    }
+}
+
+
+module.exports = { configFile, Session, verifyRecaptcha, oracle, networkList, explorer, telegram, logError };

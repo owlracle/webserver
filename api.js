@@ -1151,10 +1151,10 @@ const api = {
             db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
             telegram.alert({
                 message: 'Credit recharge',
-                network: data.credit_recharges.values.map(e => e[0]), // network
+                token: data.credit_recharges.values.map(e => Object.values(networkList).filter(n => n.dbid == e[0])[0].token), // network
                 hash: data.credit_recharges.values.map(e => e[1]), // hash
                 value: data.credit_recharges.values.map(e => e[2] * e[3] * 0.000000001), // value * tokenprice
-                token: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
+                amount: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
                 fromWallet: data.credit_recharges.values.map(e => e[5]), // from
                 toWallet: wallet.toLowerCase(),
             });

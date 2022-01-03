@@ -318,6 +318,10 @@
                 background-color: var(--bg-intense-color);
                 width: 200px;
                 margin-bottom: 10px;
+
+                &:hover .title .right {
+                    opacity: 1;
+                }
     
                 .title {
                     height: 35px;
@@ -325,6 +329,21 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
+                    padding: 0 10px;
+
+                    .left {
+                        flex-grow: 1;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .right {
+                        width: 25px;
+                        margin-left: -25px;
+                        opacity: 0;
+                        transition: 0.3s all;
+                    }
 
                     i {
                         margin-left: 10px;
@@ -926,6 +945,23 @@
             color: red;
         }
 
+    }
+
+    &#edit-cards {
+        padding: 5px 5px 20px 5px;
+
+        @media @size-400 {
+            padding: 20px 30px;
+        }
+
+        h2 {
+            margin: 10px 0 20px 0;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+        }
     }
 }
 

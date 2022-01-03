@@ -1118,4 +1118,4 @@ const recaptcha = {
 }
 
 
-export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha };
+export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn };

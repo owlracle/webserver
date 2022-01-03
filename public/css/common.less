@@ -797,71 +797,7 @@ header {
                 padding: 10px 20px;
                 border-radius: 3px;
             }    
-    
-            .input-text {
-                padding: 10px 15px;
-                margin-bottom: 15px;
-                border-radius: 3px;
-                background-color: var(--bg-intense-color);
-                border: none;
-                color: var(--text-intense-color);
-                outline: none;
-                border: 1px solid transparent;
-                font-size: 1rem;
-                transition: 0.3s all;
-    
-                &:focus {
-                    border-color: var(--border-color);
-                }
-    
-                &.red {
-                    border-color: #cc0000;
-                }
-            }
-    
-            .input-container {
-                display: flex;
-                justify-content: space-between;
-    
-                input {
-                    flex-grow: 1;
-                    border-radius: 3px 0 0 3px;
-                }
-    
-                .input-button {
-                    width: 35px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: var(--bg-intense-color);
-                    color: var(--text-intense-color);
-                    margin-bottom: 15px;
-                    border: none;
-                    border-radius: 0 3px 3px 0;
-                    filter: invert(0.2);
-                    cursor: pointer;
-                    transition: 0.3s all;
-                    font-size: 1rem;
-    
-                    &:hover {
-                        filter: invert(0.3);
-                    }
-                }
-            }
-    
-            .title {
-                font-size: 0.9rem;
-                margin: 10px 0 10px 5px;
-                opacity: 0.7;
-                text-transform: capitalize;
-    
-                i {
-                    margin-left: 5px;
-                    color: var(--text-intense-color);
-                    cursor: pointer;
-                }
-            }
-    
+                
             #checkbox-container {
                 margin: 10px 0;
                 label {
@@ -902,37 +838,102 @@ header {
                 padding-left: 25px;
             }
     
-            #button-container {
+        }
+
+        .title {
+            font-size: 0.9rem;
+            margin: 10px 0 10px 5px;
+            opacity: 0.7;
+            text-transform: capitalize;
+
+            i {
+                margin-left: 5px;
+                color: var(--text-intense-color);
+                cursor: pointer;
+            }
+        }
+
+        .input-text {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 3px;
+            background-color: var(--bg-intense-color);
+            border: none;
+            color: var(--text-intense-color);
+            outline: none;
+            border: 1px solid transparent;
+            font-size: 1rem;
+            transition: 0.3s all;
+
+            &:focus {
+                border-color: var(--border-color);
+            }
+
+            &.red {
+                border-color: #cc0000;
+            }
+        }
+
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+
+            input {
+                flex-grow: 1;
+                border-radius: 3px 0 0 3px;
+            }
+
+            .input-button {
+                width: 35px;
                 display: flex;
+                align-items: center;
                 justify-content: center;
-                margin-top: 15px;
-    
-                button {
-                    border: none;
-                    border-radius: 3px;
-                    height: 35px;
-                    width: 200px;
-                    outline: none;
-                    background-color: var(--main-color);
+                background-color: var(--bg-intense-color);
+                color: var(--text-intense-color);
+                margin-bottom: 15px;
+                border: none;
+                border-radius: 0 3px 3px 0;
+                filter: invert(0.2);
+                cursor: pointer;
+                transition: 0.3s all;
+                font-size: 1rem;
+
+                &:hover {
+                    filter: invert(0.3);
+                }
+            }
+        }
+
+        #button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+
+            button {
+                border: none;
+                border-radius: 3px;
+                height: 35px;
+                width: 200px;
+                outline: none;
+                background-color: var(--main-color);
+                color: var(--text-dark-color);
+                cursor: pointer;
+                transition: 0.3s all;
+                font-size: 1.1rem;
+                margin: 0 5px;
+
+                &:hover {
+                    color: var(--text-dark-intense-color);
+                    filter: brightness(1.2);
+                }
+
+                &:disabled {
+                    background-color: #727272;
+                    box-shadow: none;
+                    cursor: default;
+                    cursor: not-allowed;
+                    filter: none;
                     color: var(--text-dark-color);
-                    cursor: pointer;
-                    transition: 0.3s all;
-                    font-size: 1.1rem;
-                    margin: 0 5px;
-    
-                    &:hover {
-                        color: var(--text-dark-intense-color);
-                        filter: brightness(1.2);
-                    }
-    
-                    &:disabled {
-                        background-color: #727272;
-                        box-shadow: none;
-                        cursor: default;
-                        cursor: not-allowed;
-                        filter: none;
-                        color: var(--text-dark-color);
-                    }
                 }
             }
         }

@@ -64,14 +64,29 @@ async function updateAllCredit(api){
 
 // update native token prices, and hold a cached price to avoid fetching at every api call
 async function updateTokenPrice(){
-    let prices = await (await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ Object.values(networkList).map(e => e.cgid).join(',') }`)).json();
-    prices = Object.fromEntries(prices.map(e => [e.symbol.toUpperCase(), { price: parseFloat(e.current_price), change24h: parseFloat(e.price_change_percentage_24h) } ]));
-    prices.timestamp = new Date().toISOString();
-
-    fs.writeFile(`${__dirname}/tokenPrice.json`, JSON.stringify(prices), () => {});
-
-    setTimeout(() => updateTokenPrice(), 1000 * 60 * 5); // 5 minutes
-    return true;
+    let result = true;
+    try {
+        let prices = await (await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ Object.values(networkList).map(e => e.cgid).join(',') }`)).json();
+        prices = Object.fromEntries(prices.map(e => [e.symbol.toUpperCase(), { price: parseFloat(e.current_price), change24h: parseFloat(e.price_change_percentage_24h) } ]));
+        prices.timestamp = new Date().toISOString();
+        
+        fs.writeFile(`${__dirname}/tokenPrice.json`, JSON.stringify(prices), () => {});
+    }
+    catch (error){
+        const log = JSON.parse(fs.readFileSync(`${__dirname}/log.json`));
+        log.push({
+            message: 'error updating token prices',
+            location: 'updateTokenPrice@background.js',
+            error: error,
+            timestamp: new Date().toISOString(),
+        });
+        fs.writeFile(`${__dirname}/log.json`, JSON.stringify(log), () => {});
+        result = false;
+    }
+    finally {
+        setTimeout(() => updateTokenPrice(), 1000 * 60 * 5); // 5 minutes
+        return result;
+    }
 }
 
 module.exports = { buildHistory, updateAllCredit, updateTokenPrice };

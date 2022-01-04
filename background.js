@@ -1,4 +1,4 @@
-const { oracle, networkList } = require('./utils');
+const { oracle, networkList, telegram } = require('./utils');
 const db = require('./database');
 const fetch = require('node-fetch');
 const fs = require('fs');
@@ -73,14 +73,16 @@ async function updateTokenPrice(){
         fs.writeFile(`${__dirname}/tokenPrice.json`, JSON.stringify(prices), () => {});
     }
     catch (error){
-        const log = JSON.parse(fs.readFileSync(`${__dirname}/log.json`));
-        log.push({
+        const data = {
             message: 'error updating token prices',
             location: 'updateTokenPrice@background.js',
             error: error,
             timestamp: new Date().toISOString(),
-        });
+        };
+        const log = JSON.parse(fs.readFileSync(`${__dirname}/log.json`));
+        log.push(data);
         fs.writeFile(`${__dirname}/log.json`, JSON.stringify(log), () => {});
+        telegram.alert(data);
         result = false;
     }
     finally {

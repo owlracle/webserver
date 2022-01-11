@@ -122,19 +122,30 @@ const network = (symbol => {
         document.querySelector('#nav-network').remove();
     }
 
-    if (query.ref) {
-        if (query.ref === 'bscgas'){
-            const info = document.createElement('div');
-            info.innerHTML = `<div id="owlracle-info">
-                <div id="message">
-                    <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
-                    <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$10</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
-                </div>
-                <div id="close"><i class="fas fa-times-circle"></i></div>
-            </div>`;
-            info.querySelector('#close').addEventListener('click', () => info.remove());
-            document.body.appendChild(info);
-        }
+    if (query.ref && query.ref === 'bscgas') {
+        const info = document.createElement('div');
+        info.innerHTML = `<div id="owlracle-info">
+            <div id="message">
+                <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
+                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$10</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
+            </div>
+            <div id="close"><i class="fas fa-times-circle"></i></div>
+        </div>`;
+        info.querySelector('#close').addEventListener('click', () => info.remove());
+        document.body.appendChild(info);
+    }
+
+    // show api key information directly from url
+    if (query.action && query.action === 'keys' && query.apikey){
+        api.getKey(query.apikey).then( data => {
+            api.showModal('info');
+            api.showWindowInfo(data);
+        });
+    }
+
+    // open api key creation window directly from url
+    if (query.action && query.action === 'newkey'){
+        api.showModal('create');
     }
 
     return network;

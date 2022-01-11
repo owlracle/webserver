@@ -122,17 +122,19 @@ const network = (symbol => {
         document.querySelector('#nav-network').remove();
     }
 
-    if (query.ref && query.ref === 'bscgas'){
-        const info = document.createElement('div');
-        info.innerHTML = `<div id="owlracle-info">
-            <div id="message">
-                <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
-                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$10</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
-            </div>
-            <div id="close"><i class="fas fa-times-circle"></i></div>
-        </div>`;
-        info.querySelector('#close').addEventListener('click', () => info.remove());
-        document.body.appendChild(info);
+    if (query.ref) {
+        if (query.ref === 'bscgas'){
+            const info = document.createElement('div');
+            info.innerHTML = `<div id="owlracle-info">
+                <div id="message">
+                    <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
+                    <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$10</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
+                </div>
+                <div id="close"><i class="fas fa-times-circle"></i></div>
+            </div>`;
+            info.querySelector('#close').addEventListener('click', () => info.remove());
+            document.body.appendChild(info);
+        }
     }
 
     return network;
@@ -277,15 +279,22 @@ const chart = {
         });
 
         // switch time frames
-        document.querySelectorAll('#timeframe-switcher button').forEach(b => b.addEventListener('click', async () => {
-            document.querySelectorAll('#timeframe-switcher button').forEach(e => e.classList.remove('active'));
+        const switcherButtons = document.querySelectorAll('#timeframe-switcher button');
+        switcherButtons.forEach(b => b.addEventListener('click', async () => {
+            if (this.queryHistory){
+                return;
+            }
+
+            switcherButtons.forEach(e => e.classList.remove('active'));
             const text = b.innerHTML;
             b.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
+            this.queryHistory = true;
             const history = await this.getHistory(b.id.split('tf-')[1]);
             b.classList.add('active');
             b.innerHTML = text;
             this.update(history);
             this.setCookie();
+            this.queryHistory = false;
 
             document.querySelectorAll(`#toggle-container button`).forEach(b => {
                 const series = this.series[b.id];

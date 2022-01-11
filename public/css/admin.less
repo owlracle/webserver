@@ -9,10 +9,15 @@
     min-height: calc(100vh - 251px);
 
     #side-menu {
+        display: none;
         width: 300px;
         background-color: var(--main-color);
         border-right: 1px solid var(--border-color);
         padding-top: 20px;
+
+        @media @size-600 {
+            display: block;
+        }
 
         .item {
             height: 35px;
@@ -78,6 +83,9 @@
                     display: flex;
                     align-items: center;
                     margin-top: 10px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    margin-bottom: 30px;
 
                     button {
                         height: 30px;

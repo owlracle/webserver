@@ -133,6 +133,11 @@ app.get('/links', (req, res) => {
 });
 
 
+app.get('/extension', (req, res) => {
+    res.redirect('https://chrome.google.com/webstore/detail/owlracle/gnedoldjklhjjhmcfpilokboppbceclh');
+});
+
+
 app.use(express.static(__dirname + '/public/'));
 
 app.listen(port, () => {

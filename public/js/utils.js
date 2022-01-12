@@ -13,46 +13,70 @@ class DynamicScript {
 
 // set the cookie utils object
 const cookies = {
-    set: function(key, value, {expires, path}={}) {
-        if (!expires){
-            expires = 86400000;
+    set: function (key, value, { expires, path, json } = {}) {
+        let expTime = 0;
+        if (expires) {
+            if (typeof expires === "object") {
+                expTime += (expires.seconds * 1000) || 0;
+                expTime += (expires.minutes * 1000 * 60) || 0;
+                expTime += (expires.hours * 1000 * 60 * 60) || 0;
+                expTime += (expires.days * 1000 * 60 * 60 * 24) || 0;
+            }
+            else {
+                expTime = expires;
+            }
+
+            const now = new Date();
+            expTime = now.setTime(now.getTime() + expTime);    
         }
-        if (!path){
+        if (!path) {
             path = '/';
         }
-
-        let expTime = 0;
-        if (typeof expires === "object"){
-            expTime += (expires.seconds * 1000) || 0;
-            expTime += (expires.minutes * 1000 * 60) || 0;
-            expTime += (expires.hours * 1000 * 60 * 60) || 0;
-            expTime += (expires.days * 1000 * 60 * 60 * 24) || 0;
-        }
-        else {
-            expTime = expires;
+        if (json){
+            value = JSON.stringify(value);
         }
 
-        const now = new Date();
-        expTime = now.setTime(now.getTime() + expTime);
-
-        const cookieString = `${key}=${value};expires=${new Date(expTime).toUTCString()};path=${path}`;
+        expTime = expTime > 0 ? `;expires=${new Date(expTime).toUTCString()}` : '';
+        const cookieString = `${key}=${value}${expTime};path=${path}`;
         document.cookie = cookieString;
         return cookieString;
     },
 
-    get: function(key) {
+    get: function (key, json) {
         const cookies = document.cookie.split(';').map(e => e.trim());
         const match = cookies.filter(e => e.split('=')[0] == key);
-        return match.length ? match[0].split('=')[1] : false;
+        let value = match.length ? match[0].split('=')[1] : false;
+
+        if (value && json){
+            value = JSON.parse(value);
+        }
+
+        return value;
     },
 
-    delete: function(key) {
+    delete: function (key) {
         const cookies = document.cookie.split(';').map(e => e.trim());
         const match = cookies.filter(e => e.split('=')[0] == key);
 
         document.cookie = `${key}=0;expires=${new Date().toUTCString()}`;
         return match.length > 0;
-    }
+    },
+
+    refresh: function (key, { expires, path } = {}) {
+        if (this.get(key)){
+            const optArgs = { path: '/' };
+
+            if (expires) {
+                optArgs.expires = expires;
+            }
+            if (path) {
+                optArgs.path = path;
+            }
+
+            return this.set(key, this.get(key), optArgs);
+        }
+        return false;
+    },
 };
 
 
@@ -1080,6 +1104,41 @@ class Modal {
 }
 
 
+const infoMessageModal = {
+    show: function(message) {
+        if (message){
+            this.create(message);
+            return;
+        }
+
+        fadeIn(this.container);
+    },
+
+    create: function(message) {
+        this.container = document.createElement('div');
+        this.container.innerHTML = `<div id="owlracle-info">
+            <div id="message">
+                <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
+                <span>${message}</span>
+            </div>
+            <div id="close"><i class="fas fa-times-circle"></i></div>
+        </div>`;
+        this.container.querySelector('#close').addEventListener('click', () => {
+            this.hide();
+            if (this.onClose){
+                this.onClose();
+            }
+        });
+        document.body.appendChild(this.container);
+    },
+
+    hide: function() {
+        fadeOut(this.container);
+        // this.container.classList.add('hiddden');
+    }
+}
+
+
 // request google recaptcha v3 token
 const recaptcha = {
     ready: false,
@@ -1118,4 +1177,4 @@ const recaptcha = {
 }
 
 
-export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn };
+export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn, infoMessageModal };

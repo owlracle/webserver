@@ -1,4 +1,4 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn } from './utils.min.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal } from './utils.min.js';
 
 
 // remove hidden inputs sent from server
@@ -133,6 +133,12 @@ const network = (symbol => {
         </div>`;
         info.querySelector('#close').addEventListener('click', () => info.remove());
         document.body.appendChild(info);
+    }
+
+    // show message advertising about extension. show again each week
+    if (!cookies.get('hide-extention-info')){
+        infoMessageModal.show(`We have just released a <a href="/extension" target="_blank" aria-label="telegram" rel="noopener">Chrome Extension</a>! With a click you can check your favorite chain's gas prices and history. So fun! 😄`);
+        infoMessageModal.onClose = () => cookies.set('hide-extention-info', true, { expires: { days: 7 }, json: true });
     }
 
     // show api key information directly from url

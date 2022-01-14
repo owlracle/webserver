@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const { Session, verifyRecaptcha, oracle, networkList, explorer, telegram } = require('./utils');
 const db = require('./database');
+const { from } = require('responselike');
 
 
 const corsOptions = {
@@ -16,7 +17,125 @@ const corsOptions = {
 const sampleRespone = JSON.parse(fs.readFileSync(`${__dirname}/sampleResponse.json`));
 
 module.exports = app => {
+
+    // get old blocks
+    app.get('/:network/blocks', cors(), async (req, res) => {
+        const network = networkList[req.params.network].name;
+        const fromblock = parseInt(req.query.fromblock);
+        const limit = parseInt(req.query.limit);
+        let startTime;
+
+        const getBatch = async fromblock => {
+            try{
+                let result = await oracle.getOldBLocks(network, fromblock, limit);
+                
+                if (!result) {
+                    return false;
+                }
+                if (!startTime){
+                    startTime = result[0].timestamp.slice(-1)[0];
+                }
+                else {
+                    const days = ((startTime - result[0].timestamp.slice(-1)[0]) / (3600*24)).toFixed(2);
+                    const date = new Date(result[0].timestamp.slice(-1)[0] * 1000).toISOString();
+                    console.log(`Read ${days} days in blocks. Now at ${date}`);
+                }
+
+                // first get all single instances for each time
+                let tokenPrice = Object.fromEntries(result.map(data => {
+                    const d = new Date(data.timestamp.slice(-1)[0] * 1000);
+                    const formattedDate = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
+                    return [ formattedDate, null ];
+                }));
     
+                // then make a request for each singular time
+                Object.keys(tokenPrice).forEach(e => {
+                    tokenPrice[e] = new Promise(async resolve => {
+                        try {
+                            let tokenPrice = await (await fetch(`https://api.coingecko.com/api/v3/coins/${networkList[req.params.network].cgid}/history?date=${e}&localization=false`)).json();
+                            tokenPrice = tokenPrice.market_data.current_price.usd;
+                            resolve(tokenPrice);
+                        }
+                        catch (error) {
+                            console.log(error);
+                            resolve(null);
+                        }                            
+                    });
+                });
+    
+                tokenPrice = Object.fromEntries((await Promise.all(Object.values(tokenPrice))).map((e,i) => [Object.keys(tokenPrice)[i], e]));
+    
+                result = result.map(data => {
+                    if (data.minGwei){
+                        const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
+                        // how many blocks to fetch next time
+                        const blocks = parseInt(60 / avgTime + 1);
+            
+                        if (data.minGwei.length > blocks){
+                            data.avgGas = data.avgGas.slice(-blocks);
+                            data.minGwei = data.minGwei.slice(-blocks);
+                        }
+            
+                        const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
+                               
+                        const d = new Date(data.timestamp.slice(-1)[0] * 1000);
+                        const formattedDate = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
+        
+                        const dbInfo = {
+                            network2: networkList[req.params.network].dbid,
+                            last_block: data.lastBlock,
+                            token_price: tokenPrice[formattedDate],
+                            avg_gas: avgGas,
+                            open: data.minGwei[0],
+                            close: data.minGwei.slice(-1)[0],
+                            low: Math.min(...data.minGwei),
+                            high: Math.max(...data.minGwei),
+                            timestamp: db.raw(`FROM_UNIXTIME(${data.timestamp.slice(-1)[0]})`),
+                        };
+    
+                        db.insert(`price_history`, dbInfo);
+                        
+                        return dbInfo;
+                    }
+                });
+    
+                return result;
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+        const getAllBatches = async (prevBlock, buffer) => {
+            if (!buffer){
+                buffer = [];
+            }
+            const result = await getBatch(prevBlock);
+            if (!result) {
+                return await getAllBatches(prevBlock - 1, buffer);
+            }
+
+            buffer.push(result);
+            prevBlock = result.slice(-1)[0].last_block - 1;
+
+            if (result.length > 0){
+                return await getAllBatches(prevBlock, buffer);
+            }
+            return buffer;
+
+        }
+
+        let result = await getAllBatches(fromblock);
+        
+        // merge all result in a single array
+        result = ((data, buffer) => {
+            data.forEach(e => buffer.push(...e));
+            return buffer;
+        })(result, []);
+
+        res.send(result);
+    });
+        
     // old endpoint. will still work for now
 
     app.get('/gas', cors(corsOptions), async (req, res, next) => {

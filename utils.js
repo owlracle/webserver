@@ -90,6 +90,20 @@ const oracle = {
             }};
         }
     },
+    
+    getOldBLocks: async function(network='ethereum', fromblock=0, limit=1000) {
+        try{        
+            return await (await fetch(`${this.url}/${network}/blocks?fromblock=${fromblock}&limit=${limit}`)).json();
+        }
+        catch (error){
+            return { error: {
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to fetch information from oracle.',
+                serverMessage: error,
+            }};
+        }
+    }
 };
 
 

@@ -267,15 +267,19 @@ const telegram = {
 }
 
 
-const logError = (data, sendTelegram=true) => {
+const logError = (data) => {
     try {
         data.timestamp = new Date().toISOString();
         const log = JSON.parse(fs.readFileSync(`${__dirname}/log.json`));
         log.push(data);
         fs.writeFile(`${__dirname}/log.json`, JSON.stringify(log), () => {});
 
-        if (sendTelegram){
+        if (data.telegram !== false){
             telegram.alert(data);
+        }
+
+        if (data.console !== false){
+            console.log(data);
         }
 
         return true;

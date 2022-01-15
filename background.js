@@ -35,7 +35,12 @@ async function buildHistory(network, blocks){
             });
             
             if (error){
-                console.log(error);
+                logError({
+                    message: 'error saving history to database',
+                    location: 'buildHistory@background.js',
+                    error: error,
+                });
+        
             }
         }
     }

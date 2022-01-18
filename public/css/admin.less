@@ -323,6 +323,28 @@
                     }
                 }
             }
+
+            #page-container {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+
+                .page {
+                    font-size: 1.4rem;
+                    margin: 0 15px;
+                    cursor: pointer;
+                    background-color: transparent;
+                    border: 1px solid var(--border-color);
+                    border-radius: 3px;
+                    padding: 3px 20px;
+                    transition: 0.3s all;
+
+                    &:hover {
+                        background-color: var(--main-color);
+                    }
+                }
+            }
+
         }
     }
 }

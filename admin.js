@@ -183,15 +183,18 @@ module.exports = (app, api) => {
             data.push(req.query.id);
         }
 
-        let orderBy = 'k.timeChecked DESC';
+        let orderBy = 'key_use DESC';
         const field = { credit: 'k.credit', usage: 'key_use', time: 'k.timeChecked' };
         if (req.query.field && field[req.query.field]){
             const order = req.query.order && req.query.order == 'desc' ? 'DESC' : 'ASC';
             orderBy = `${field[req.query.field]} ${order}`;
         }
 
+        const limit = 25;
+        const offset = req.query.page * limit;
+
         const usage = `SELECT count(*) FROM api_requests WHERE timestamp > now() - INTERVAL 1 DAY AND apiKey = k.id`;
-        const [rows, error] = await db.query(`SELECT k.id, k.origin, k.note, k.credit, k.wallet, (${usage}) AS key_use, k.timeChecked FROM api_keys k${filter} ORDER BY ${orderBy}`, data);
+        const [rows, error] = await db.query(`SELECT k.id, k.origin, k.note, k.credit, k.wallet, (${usage}) AS key_use, k.timeChecked FROM api_keys k${filter} ORDER BY ${orderBy} LIMIT ${limit} OFFSET ${offset}`, data);
 
         if (error) {
             res.status(500).send({

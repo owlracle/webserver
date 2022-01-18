@@ -431,11 +431,14 @@ const creditTable = {
     updateBtn: document.querySelector('#content #credit #update'),
     checkBtn: document.querySelector('#content #credit #check'),
     table: document.querySelector('#content #credit #wallet-table'),
+    pageLeft: document.querySelector('#content #credit #page-container #left'),
+    pageRight: document.querySelector('#content #credit #page-container #right'),
 
     data: {
         input: '',
         order: 'desc',
-        field: 'time',
+        field: 'usage',
+        page: 0,
     },
 
     init: function() {
@@ -508,6 +511,17 @@ const creditTable = {
             this.checkBtn.click();
         });
 
+        // change page in table
+        this.pageLeft.addEventListener('click', async () => {
+            this.data.page = this.data.page <= 0 ? 0 : this.data.page - 1;
+            this.checkBtn.click();
+        });
+        this.pageRight.addEventListener('click', async () => {
+            this.data.page++;
+            this.checkBtn.click();
+        });
+
+
     },
 
     check: async function() {
@@ -517,6 +531,7 @@ const creditTable = {
         let query = {};
         query.order = this.data.order;
         query.field = this.data.field;
+        query.page = this.data.page;
 
         if (value.length){
             query[input] = value;
@@ -547,8 +562,11 @@ const creditTable = {
         this.table.innerHTML = tableHTML;
 
         this.table.querySelectorAll('.head .sort').forEach(e => e.addEventListener('click', () => {
+            // change order only if did not change field
+            if (this.data.field == e.id){
+                this.data.order = this.data.order == 'desc' ? 'asc' : 'desc';
+            }
             this.data.field = e.id;
-            this.data.order = this.data.order == 'desc' ? 'asc' : 'desc';
             this.check();
         }));
 

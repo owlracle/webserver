@@ -1162,9 +1162,9 @@ const api = {
     },
 
     // get old blocks
-    getOldData: async function(reqnetwork, fromblock, limit) {
+    getOldData: async function(reqnetwork, fromblock, toblock) {
         network = networkList[reqnetwork].name;
-        limit = limit || 1000;
+        limit = 1000;
         let startTime;
 
         const getBatch = async fromblock => {
@@ -1201,7 +1201,7 @@ const api = {
                         catch (error) {
                             console.log(`Token Price fetch error. Trying again in 60 secs... Date: ${date}`);
                             console.log(error);
-                            setTimeout(() => fetchPrice(date, resolve), 60000);
+                            setTimeout(() => fetchPrice(date, resolve), 30000);
                         }                            
                     };
 
@@ -1255,6 +1255,11 @@ const api = {
             if (!buffer){
                 buffer = [];
             }
+
+            // if (prevBlock < toblock){
+            //     return buffer;
+            // }
+
             const result = await getBatch(prevBlock);
             if (!result) {
                 return await getAllBatches(prevBlock - 1, buffer);
@@ -1277,6 +1282,8 @@ const api = {
             data.forEach(e => buffer.push(...e));
             return buffer;
         })(result, []);
+
+        console.log('DONE');
 
         return result;
     }

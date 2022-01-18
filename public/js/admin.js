@@ -514,11 +514,17 @@ const creditTable = {
         // change page in table
         this.pageLeft.addEventListener('click', async () => {
             this.data.page = this.data.page <= 0 ? 0 : this.data.page - 1;
-            this.checkBtn.click();
+            const text = this.pageLeft.innerHTML;
+            this.pageLeft.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
+            await this.check();
+            this.pageLeft.innerHTML = text;
         });
         this.pageRight.addEventListener('click', async () => {
             this.data.page++;
-            this.checkBtn.click();
+            const text = this.pageRight.innerHTML;
+            this.pageRight.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
+            await this.check();
+            this.pageRight.innerHTML = text;
         });
 
 
@@ -561,13 +567,18 @@ const creditTable = {
 
         this.table.innerHTML = tableHTML;
 
-        this.table.querySelectorAll('.head .sort').forEach(e => e.addEventListener('click', () => {
+        this.table.querySelectorAll('.head .sort').forEach(e => e.addEventListener('click', async () => {
             // change order only if did not change field
             if (this.data.field == e.id){
                 this.data.order = this.data.order == 'desc' ? 'asc' : 'desc';
             }
             this.data.field = e.id;
-            this.check();
+
+            const text = e.innerHTML;
+            e.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
+            await this.check();
+            e.innerHTML = text;
+
         }));
 
         return data;

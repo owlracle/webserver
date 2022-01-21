@@ -136,9 +136,9 @@ const network = (symbol => {
     }
 
     // show message advertising about extension. show again each week
-    if (!cookies.get('hide-extention-info')){
-        infoMessageModal.show(`We have just released a <a href="/extension" target="_blank" aria-label="telegram" rel="noopener">Chrome Extension</a>! With a click you can check your favorite chain's gas prices and history. So fun! 😄`);
-        infoMessageModal.onClose = () => cookies.set('hide-extention-info', true, { expires: { days: 7 }, json: true });
+    if (!cookies.get('hide-info')){
+        infoMessageModal.show(`Want to integrate Owlracle service in your community? You can use our <a href="/discordbot" target="_blank" aria-label="discord bot" rel="noopener">Discord</a>, <a href="/telegrambot" target="_blank" aria-label="telegram bot" rel="noopener">Telegram</a> and <a href="/twitterbot" target="_blank" aria-label="twitter bot" rel="noopener">Twitter</a> bots. Give them a try! 🦉`);
+        infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
     }
 
     // show api key information directly from url

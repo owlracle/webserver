@@ -270,17 +270,20 @@ const telegram = {
 const logError = (data) => {
     try {
         data.timestamp = new Date().toISOString();
-        const log = JSON.parse(fs.readFileSync(`${__dirname}/log.json`));
-        log.push(data);
-        fs.writeFile(`${__dirname}/log.json`, JSON.stringify(log), () => {});
 
-        if (data.telegram !== false){
+        if (data.alert !== false){
             telegram.alert(data);
+            delete data.alert;
         }
 
         if (data.console !== false){
             console.log(data);
+            delete data.console;
         }
+
+        const log = JSON.parse(fs.readFileSync(`${__dirname}/log.json`));
+        log.push(data);
+        fs.writeFile(`${__dirname}/log.json`, JSON.stringify(log), () => {});
 
         return true;
     }

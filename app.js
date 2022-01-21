@@ -160,6 +160,12 @@ app.get('/telegrambot', (req, res) => {
 });
 
 
+// twitter bot instruction tweet
+app.get('/twitterbot', (req, res) => {
+    res.redirect('https://twitter.com/owlracleAPI/status/1484412639740583936?s=20');
+});
+
+
 app.use(express.static(__dirname + '/public/'));
 
 app.listen(port, () => {

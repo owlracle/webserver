@@ -148,6 +148,12 @@ app.get('/extension', (req, res) => {
 });
 
 
+// owlracle edge extension
+app.get('/extension-edge', (req, res) => {
+    res.redirect('https://microsoftedge.microsoft.com/addons/detail/owlracle/abfaclffknadhdmfojckfkkcfakcngfd?hl=en-US');
+});
+
+
 // discord bot auth
 app.get('/discordbot', (req, res) => {
     res.redirect('https://discord.com/api/oauth2/authorize?client_id=932641033588703232&permissions=2048&scope=bot');

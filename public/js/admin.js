@@ -53,6 +53,16 @@ wallet.loadImg(document.querySelector('#donate'), network.get());
 document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network.get()));
 
 
+// add menu button
+const menuButton = document.querySelectorAll('header .col')[0];
+menuButton.insertAdjacentHTML('afterbegin', `<div id="menu-button"><i class="fa-solid fa-bars"></i></div>`);
+menuButton.addEventListener('click', () => {
+    document.querySelector('#fog.menu.hidden').classList.remove('hidden');
+});
+const fogMenu = document.querySelector('#fog.menu');
+fogMenu.addEventListener('click', () => fogMenu.classList.add('hidden'));
+
+
 const session = {
     get: function() {
         return cookies.get('session');
@@ -446,7 +456,7 @@ const creditTable = {
         this.input.addEventListener('input', () => {
             if (this.input.value.length > 0){
                 let sliced = this.input.value;
-                if (isNaN(parseInt(this.input.value))){
+                if (this.input.value.length >= 11){
                     sliced = (this.input.value.slice(0,6) + '...' + this.input.value.slice(-4)).toLowerCase();
                 }
                 this.updateBtn.innerHTML = `Update ${sliced}`;

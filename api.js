@@ -1170,7 +1170,6 @@ const api = {
         const getBatch = async fromblock => {
             try{
                 let result = await oracle.getOldBLocks(network, fromblock, limit);
-                
                 if (!result || !result.length) {
                     return false;
                 }
@@ -1184,7 +1183,7 @@ const api = {
                 }
 
                 // first get all single instances for each time
-                let tokenPrice = Object.fromEntries(result.map(data => {
+                let tokenPrice = Object.fromEntries(result.filter(e => e.timestamp).map(data => {
                     const d = new Date(data.timestamp.slice(-1)[0] * 1000);
                     const formattedDate = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
                     return [ formattedDate, null ];

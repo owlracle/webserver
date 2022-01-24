@@ -33,6 +33,19 @@
     @chain-color: #5c5c5c;
 }
 
+.ht {
+    @chain-color: #01943f;
+}
+
+.one {
+    @chain-color: #00d8af;
+}
+
+.celo {
+    @chain-color: #35cf7f;
+}
+
+
 @import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@1,700&family=Roboto&display=swap');
 
 body {
@@ -543,6 +556,24 @@ header {
                 border-color: @chain-color;
             }
 
+            &.one {
+                .one();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
+            &.celo {
+                .celo();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
+            &.ht {
+                .ht();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
             .name {
                 display: none;
 
@@ -684,6 +715,39 @@ header {
         &.eth {
             #title, #colored {
                 .eth();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.one {
+            #title, #colored {
+                .one();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.celo {
+            #title, #colored {
+                .celo();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.ht {
+            #title, #colored {
+                .ht();
                 background-color: @chain-color;
 
                 #copy {

@@ -116,6 +116,9 @@ const networkList = {
     avax: { name: 'avax', token: 'AVAX', cgid: 'avalanche-2', dbid: 5 },
     cro: { name: 'cronos', token: 'CRO', cgid: 'crypto-com-chain', dbid: 6 },
     movr: { name: 'moonriver', token: 'MOVR', cgid: 'moonriver', dbid: 7 },
+    one: { name: 'harmony', token: 'ONE', cgid: 'harmony', dbid: 8 },
+    ht: { name: 'heco', token: 'HT', cgid: 'huobi-token', dbid: 9 },
+    celo: { name: 'celo', token: 'CELO', cgid: 'celo', dbid: 10 },
 };
 
 
@@ -129,6 +132,9 @@ const explorer = {
         avax: `https://api.snowtrace.io`,
         movr: `https://api-moonriver.moonscan.io`,
         cro: `https://api.cronoscan.com`,
+        one: `https://explorer.harmony.one`,
+        ht: `https://hecoinfo.com`,
+        celo: `https://explorer.celo.org`,
     },
 
     getBlockNumber: async function(timestamp, network) {

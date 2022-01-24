@@ -72,6 +72,9 @@ app.get('/ftm', indexRoute);
 app.get('/eth', indexRoute);
 app.get('/movr', indexRoute);
 app.get('/cro', indexRoute);
+app.get('/ht', indexRoute);
+app.get('/celo', indexRoute);
+app.get('/one', indexRoute);
 
 function indexRoute(req, res) {
     const network = req.url.split('/')[1];

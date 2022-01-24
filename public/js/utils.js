@@ -313,6 +313,15 @@ const network = {
         cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', explorer: {
             icon: 'https://cronoscan.com/images/favicon.ico', href: 'https://cronoscan.com/', name: 'Cronoscan', apiAvailable: true,
         } },
+        one: { symbol: 'one', name: 'Harmony', token: 'ONE', explorer: {
+            icon: 'https://explorer.harmony.one/favicon.ico', href: 'https://explorer.harmony.one', name: 'Harmony Explorer', apiAvailable: false,
+        } },
+        ht: { symbol: 'ht', name: 'Heco', token: 'HT', explorer: {
+            icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
+        } },
+        celo: { symbol: 'celo', name: 'Celo', token: 'CELO', explorer: {
+            icon: 'https://avatars.githubusercontent.com/u/37552875?s=200&v=4', href: 'https://explorer.celo.org', name: 'Celo Explorer', apiAvailable: false,
+        } },
     },
     
     get: function(name) {

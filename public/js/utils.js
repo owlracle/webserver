@@ -295,20 +295,17 @@ const network = {
         eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
             icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
         } },
-        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
-            icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
-        } },
-        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
-            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
-        } },
         ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
             icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
         } },
         bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
             icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
         } },
-        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', explorer: {
-            icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
+        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
+            icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
+        } },
+        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
+            icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
         } },
         cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', explorer: {
             icon: 'https://cronoscan.com/images/favicon.ico', href: 'https://cronoscan.com/', name: 'Cronoscan', apiAvailable: true,
@@ -322,11 +319,14 @@ const network = {
         celo: { symbol: 'celo', name: 'Celo', token: 'CELO', explorer: {
             icon: 'https://avatars.githubusercontent.com/u/37552875?s=200&v=4', href: 'https://explorer.celo.org', name: 'Celo Explorer', apiAvailable: false,
         } },
+        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', explorer: {
+            icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
+        } },
     },
     
     get: function(name) {
         if (!name){
-            name = cookies.get('network') || 'bsc';
+            name = cookies.get('network') || 'eth';
         }
 
         return this.list[name];

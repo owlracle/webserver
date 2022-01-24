@@ -58,7 +58,7 @@ const network = (symbol => {
     // no network set, redirect to last network
     if (symbol == ''){
         const queryString = Object.keys(query).length ? '?'+ Object.entries(query).map(([k,v]) => `${k}=${v}`).join('&') : '';
-        window.location.href = '/' + (cookies.get('network') || 'bsc') + queryString;
+        window.location.href = '/' + (cookies.get('network') || 'eth') + queryString;
         return;
     }
     

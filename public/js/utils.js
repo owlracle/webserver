@@ -311,7 +311,7 @@ const network = {
             icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
         } },
         cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', explorer: {
-            icon: 'https://cronos.crypto.org/explorer/images/favicon-32x32-1d2f176ba4e0bc1155947d52652a35c8.png', href: 'https://cronos.crypto.org/explorer/', name: 'Cronos Explorer', apiAvailable: false,
+            icon: 'https://cronoscan.com/images/favicon.ico', href: 'https://cronoscan.com/', name: 'Cronoscan', apiAvailable: true,
         } },
     },
     

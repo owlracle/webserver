@@ -20,6 +20,8 @@
         "ftm": "FTMSCAN_API_KEY",
         "poly": "POLYGONSCAN_API_KEY",
         "eth": "ETHERSCAN_API_KEY",
-        "avax": "SNOWTRACE_API_KEY"
+        "avax": "SNOWTRACE_API_KEY",
+        "movr": "MOONSCAN_API_KEY",
+        "cro": "CRONOSCAN_API_KEY"
     }
 }

@@ -128,6 +128,7 @@ const explorer = {
         ftm: `https://api.ftmscan.com`,
         avax: `https://api.snowtrace.io`,
         movr: `https://api-moonriver.moonscan.io`,
+        cro: `https://api.cronoscan.com`,
     },
 
     getBlockNumber: async function(timestamp, network) {

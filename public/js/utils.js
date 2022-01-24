@@ -1036,8 +1036,8 @@ class Tooltip {
 
 class Modal {
     constructor(text, options = {}) {
-        if (document.querySelector('#fog')){
-            document.querySelector('#fog').remove();
+        if (document.querySelector('#fog.modal')){
+            document.querySelector('#fog.modal').remove();
         }
 
         const fog = document.createElement('div');

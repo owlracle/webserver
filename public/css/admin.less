@@ -355,14 +355,14 @@ header {
 }
 
 #fog {
-    @media @size-600 {
-        position: relative;
-    }
-
+    
     &.menu {
-        z-index: 3;
         justify-content: flex-start;
         align-items: flex-start;
+        
+        @media @size-600 {
+            position: relative;
+        }
 
         &.hidden {
             display: none;

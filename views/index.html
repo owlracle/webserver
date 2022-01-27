@@ -39,7 +39,6 @@
     {{> header}}
 
     <div id="frame">
-        <div id="left-space" class="ad vertical hidden"></div>
         <div id="content">
             <div id="toggle-bg"><i class="fas fa-fan"></i></div>
             <div id="title">
@@ -85,8 +84,20 @@
                 </div>
             </div>
 
-            <div class="ad horizontal hidden"></div>
-    
+            <div class="section">
+                <div class="col">
+                    <h2>Integrate Owlracle to your app using our API</h2>
+                    <span>Deliver the best value to your users with an API built by devs, for devs.</span>
+                    <button class="button-main">Read our docs</button>
+                </div>
+                <div class="col">
+                    <video autoplay muted loop>
+                        <source src="img/coding.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+
             <p>If you are a software developer, and want to integrate your application with our gas price oracle, you can use our endpoints.</p>
     
             <h2 id="endpoint-gas">Gas price estimation</h2>
@@ -119,7 +130,7 @@
     
             <p>You can use the button below or the one <a href="#search">in the header</a> of this page to create, edit, and get information about your API keys. You can also use it to update your credit recharges in real-time.</p>
     
-            <div id="apikey-container"><button id="manage-apikey"><i class="fas fa-key"></i>Manage API keys</button></div>
+            <div id="apikey-container"><button id="manage-apikey" class="button-main"><i class="fas fa-key"></i>Manage API keys</button></div>
             
             <p>Please keep in mind that you should use your API key in your server's code, never in the front-end code, mainly because of these two reasons:
     
@@ -186,8 +197,7 @@
                 missing, or you wish to see here, reach us on our <a href="https://twitter.com/owlracleapi" target="_blank" rel="noopener">Twitter</a> page or <a
                 href="https://t.me/owlracle" target="_blank" rel="noopener">Telegram</a> group.</p>
         </div>
-        <div id="right-space" class="ad vertical hidden"></div>
-        </div>
+    </div>
 
     {{> footer}}
 

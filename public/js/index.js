@@ -179,7 +179,7 @@ const chart = {
     ready: false,
     timeframe: 60,
     page: 1,
-    candles: 1000,
+    candles: 200,
     lastCandle: (new Date().getTime() / 1000).toFixed(0),
     allRead: false,
     network: network.symbol,

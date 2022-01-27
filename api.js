@@ -204,7 +204,7 @@ module.exports = app => {
             timeframe = Object.keys(listTimeframes).includes(timeframe) ? listTimeframes[timeframe] : 
                 (Object.values(listTimeframes).map(e => e.toString()).includes(timeframe) ? timeframe : 30);
         
-            candles = Math.max(Math.min(candles || 1000, 1000), 1);
+            candles = Math.max(Math.min(candles || 100, 1000), 1);
             const offset = (parseInt(page) - 1) * candles || 0;
 
             const data = [

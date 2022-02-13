@@ -724,17 +724,58 @@ const gasTimer = {
             this.onUpdate(data);
         }
         return data;    
+    },
+
+    addBaseFeeCard: function() {
+        if (!document.querySelector('#base-fee-container')){
+            document.querySelector('#gas-container').insertAdjacentHTML('beforebegin', `
+                <div id="base-fee-container">
+                    <div class="gas">
+                        <div class="title">🔥Base Fee <i class="far fa-question-circle"></i></div>
+                        <div class="body"></div>
+                    </div>
+                </div>
+                <p id="after-base-label">Max priority fee (Miner Tip):<sup><i class="far fa-question-circle"></i></sup></p>
+            `);
+            new Tooltip(document.querySelector('#base-fee-container i'), 'This is the minimum value to be paid. It is defined by the network.');
+            new Tooltip(document.querySelector('#after-base-label i'), 'Tip paid to the miners to prioritize your transaction.');
+
+            document.querySelectorAll('#gas-container .gas .body').forEach(e => e.insertAdjacentHTML('beforeend', '<div class="eip"></div>'));
+
+            const faqList = faq.getList();
+            faqList.unshift(
+                ['What is the Base fee value I see in the top of the page?', 'Base fee is a value determined by the network itself. It is the lower value you should pay to have your transaction mined. It changes form time to time, and Owlracle outputs the average value of the last blocks. This value is burned. Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.'],
+                ['What is the priority fee?', 'These are the values you should pay to incentivize miners to process your transactions. The higher the value, faster they will be mined. Higher values means more costly transactions though. That is where Owlracle can help you giving accurate estimates so you can pay no more than what is needed. Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.'],
+                ['What is the "Max fee" value I see on my metamask wallet?', 'Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.']
+            )
+            console.log(faqList);
+            faq.setList(faqList);
+        }
     }
 };
 gasTimer.init(30000, 100);
 
 gasTimer.onUpdate = function(data){
-    const gas = data.speeds.map(s => s.gasPrice.toFixed(s.gasPrice == parseInt(s.gasPrice) ? 0 : 2));
+    let gas = data.speeds.map(s => s.gasPrice);
+    
+    if (data.baseFee){
+        gas = gas.map(s => s - data.baseFee);
+        this.addBaseFeeCard();
+
+        const baseFee = data.baseFee.toFixed(data.baseFee == parseInt(data.baseFee) ? 0 : 2);
+        document.querySelector('#base-fee-container .body').innerHTML = `${baseFee} GWei`;
+
+        document.querySelectorAll('#gas-container .gas .eip').forEach((e,i) => {
+            e.innerHTML = `<span class="value">${data.speeds[i].gasPrice.toFixed(2)} GWei</span><span class="text">MAX fee = BASE + TIP</span>`;
+        });
+    }
+    gas = gas.map(s => s.toFixed(s == parseInt(s) ? 0 : 2));
+
     const fee = data.speeds.map(s => s.estimatedFee.toFixed(4));
 
-    document.querySelectorAll('.gas .body').forEach((e,i) => {
+    document.querySelectorAll('#gas-container .gas .body').forEach((e,i) => {
         if (data.speeds){
-            e.querySelector('.gwei').innerHTML = `${gas[i]} GWei`;
+            e.querySelector('.gwei').innerHTML = `${Math.max(0, gas[i])} GWei`;
             e.querySelector('.usd').innerHTML = `$ ${fee[i]}`;
         }
     });
@@ -868,44 +909,58 @@ new UrlBox(document.querySelector('#url-logs.url'), { href: `/logs/YOUR_API_KEY`
 
 
 // build faq
-const faq = [
-    [`What is Owlracle?`,
-    `Owlracle is an open-source gas price oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
-    [`How do you make the gas price predictions?`,
-    `This tool attempts to predict the gas price to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas price. Every speed is measured by calculating the minimum gas price paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
-    [`How do you predict the gas price fee?`,
-    `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
-    [`I like your service. When will you come to my favorite network?`,
-    `We are constantly evaluating the benefits of adding new networks to our oracle. In general, we try to priorize networks with a good amount of monthly transactions and/or trending ones. If you feel we are missing a promising network, feel free to <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a> and share your opinion.`],
-    [`I like your website, but I wish there was a more convenient tool.`,
-    `Weel, there is! You can go to Chrome Web Store and download our <a href="/extension" target="_blank" rel="noopener">extension</a>. It is super easy, one click and you get gas price/history from your favorite network.`],
-    [`I would love to get Owlracle's predictions on my community group. Do you have anything for that?`,
-    `Sure we do! You can integrate our <a href="/telegrambot" target="_blank" rel="noopener">Telegram bot</a> or <a href="discordbot" target="_blank" rel="noopener">Discord bot</a> bots directly into your groups, so your people can easily get Owlracle's predictions.`],
-    [`I saw tweets from Owlracle about gas prices. How can I get it to send me gas prices for my favorite network?`,
-    `You just have to make a tweet mentioning <a href="https://twitter.com/owlracleapi" target="_blank" rel="noopener">@owlracleapi</a>, use the hashtag #gas and the name/token of your favorite network. e.g. polygon, ftm, bsc, etc.`],
-    [`My app have thousands of users making requests to your API. The API limit seems too low.`,
-    `You should never call our API from the frond-end. Schedule your server to retrieve information at time intervals of your choice, then when your users request it, just send the cached data to them.`],
-    [`Shouldn't I be worried if users peek into my app's source-code and discover my API key?`,
-    `Do not EVER expose your API key on the front-end. If you do so, users will be able to read your source-code then make calls using your API (thus expending all your credits). Retrieve our data from your server back-end, then provide the cached data to your users when they request it.`],
-    [`My API key have been exposed. What should I do?`,
-    `You can reset your API key hash and generate a new one <a id="link-reset-key">clicking here</a>.`],
-    [`I want to make a recharge. Where can I find my API wallet?`,
-    `Your API wallet can be found in the <a onclick="document.querySelector('#manage-apikey').click()">API management window</a>. To add credits to your account, just make a <span class="token-name"></span> transfer of any amount to your API wallet. Use the management window to update your balance and keep track of your recharge history.`],
-];
-document.querySelector('#faq').innerHTML = `<ul>${faq.map(e => `<li><ul><li class="question"><i class="fas fa-angle-right"></i>${e[0]}</li><li class="answer">${e[1]}</li></ul></li>`).join('')}</ul>`;
-document.querySelectorAll('#faq .question').forEach(e => e.addEventListener('click', () => e.parentNode.classList.toggle('open')));
+const faq = {
+    list: [
+        [`What is Owlracle?`,
+        `Owlracle is an open-source gas price oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
+        [`How do you make the gas price predictions?`,
+        `This tool attempts to predict the gas price to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas price. Every speed is measured by calculating the minimum gas price paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
+        [`How do you predict the gas price fee?`,
+        `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
+        [`I like your service. When will you come to my favorite network?`,
+        `We are constantly evaluating the benefits of adding new networks to our oracle. In general, we try to priorize networks with a good amount of monthly transactions and/or trending ones. If you feel we are missing a promising network, feel free to <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a> and share your opinion.`],
+        [`I like your website, but I wish there was a more convenient tool.`,
+        `Weel, there is! You can go to Chrome Web Store and download our <a href="/extension" target="_blank" rel="noopener">extension</a>. It is super easy, one click and you get gas price/history from your favorite network.`],
+        [`I would love to get Owlracle's predictions on my community group. Do you have anything for that?`,
+        `Sure we do! You can integrate our <a href="/telegrambot" target="_blank" rel="noopener">Telegram bot</a> or <a href="discordbot" target="_blank" rel="noopener">Discord bot</a> bots directly into your groups, so your people can easily get Owlracle's predictions.`],
+        [`I saw tweets from Owlracle about gas prices. How can I get it to send me gas prices for my favorite network?`,
+        `You just have to make a tweet mentioning <a href="https://twitter.com/owlracleapi" target="_blank" rel="noopener">@owlracleapi</a>, use the hashtag #gas and the name/token of your favorite network. e.g. polygon, ftm, bsc, etc.`],
+        [`My app have thousands of users making requests to your API. The API limit seems too low.`,
+        `You should never call our API from the frond-end. Schedule your server to retrieve information at time intervals of your choice, then when your users request it, just send the cached data to them.`],
+        [`Shouldn't I be worried if users peek into my app's source-code and discover my API key?`,
+        `Do not EVER expose your API key on the front-end. If you do so, users will be able to read your source-code then make calls using your API (thus expending all your credits). Retrieve our data from your server back-end, then provide the cached data to your users when they request it.`],
+        [`My API key have been exposed. What should I do?`,
+        `You can reset your API key hash and generate a new one <a id="link-reset-key">clicking here</a>.`],
+        [`I want to make a recharge. Where can I find my API wallet?`,
+        `Your API wallet can be found in the <a onclick="document.querySelector('#manage-apikey').click()">API management window</a>. To add credits to your account, just make a <span class="token-name"></span> transfer of any amount to your API wallet. Use the management window to update your balance and keep track of your recharge history.`],
+    ],
 
-document.querySelector('#link-reset-key').addEventListener('click', () => api.showModal('edit'));
-document.querySelectorAll('#faq .token-name').forEach(e => e.innerHTML = network.token);
+    getList: function() {
+        return this.list;
+    },
 
-// smooth scrolling when clicking link
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
-    });
-});
+    setList: function(list) {
+        this.list = list;
+        this.rebuild();
+    },
 
+    rebuild: function(){
+        document.querySelector('#faq').innerHTML = `<ul>${this.list.map(e => `<li><ul><li class="question"><i class="fas fa-angle-right"></i>${e[0]}</li><li class="answer">${e[1]}</li></ul></li>`).join('')}</ul>`;
+        document.querySelectorAll('#faq .question').forEach(e => e.addEventListener('click', () => e.parentNode.classList.toggle('open')));
+        
+        document.querySelector('#link-reset-key').addEventListener('click', () => api.showModal('edit'));
+        document.querySelectorAll('#faq .token-name').forEach(e => e.innerHTML = network.token);
+        
+        // smooth scrolling when clicking link
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });        
+    }
+};
+faq.rebuild();
 
 // set footer link to api key management window
 // document.querySelector('#footer-keys').addEventListener('click', () => api.showModal());

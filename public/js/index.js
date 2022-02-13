@@ -136,10 +136,10 @@ const network = (symbol => {
     }
 
     // show message advertising about extension. show again each week
-    if (!cookies.get('hide-info')){
-        infoMessageModal.show(`Want to integrate Owlracle service in your community? You can use our <a href="/discordbot" target="_blank" aria-label="discord bot" rel="noopener">Discord</a>, <a href="/telegrambot" target="_blank" aria-label="telegram bot" rel="noopener">Telegram</a> and <a href="/twitterbot" target="_blank" aria-label="twitter bot" rel="noopener">Twitter</a> bots. Give them a try! 🦉`);
-        infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
-    }
+    // if (!cookies.get('hide-info')){
+    //     infoMessageModal.show(`Want to integrate Owlracle service in your community? You can use our <a href="/discordbot" target="_blank" aria-label="discord bot" rel="noopener">Discord</a>, <a href="/telegrambot" target="_blank" aria-label="telegram bot" rel="noopener">Telegram</a> and <a href="/twitterbot" target="_blank" aria-label="twitter bot" rel="noopener">Twitter</a> bots. Give them a try! 🦉`);
+    //     infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
+    // }
 
     // show api key information directly from url
     if (query.action && query.action === 'keys' && query.apikey){

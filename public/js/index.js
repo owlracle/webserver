@@ -137,8 +137,8 @@ const network = (symbol => {
 
     // show message advertising about extension. show again each week
     if (!cookies.get('hide-info')){
-        infoMessageModal.show(`Want to integrate Owlracle service in your community? You can use our <a href="/discordbot" target="_blank" aria-label="discord bot" rel="noopener">Discord</a>, <a href="/telegrambot" target="_blank" aria-label="telegram bot" rel="noopener">Telegram</a> and <a href="/twitterbot" target="_blank" aria-label="twitter bot" rel="noopener">Twitter</a> bots. Give them a try! 🦉`);
-        infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
+        // infoMessageModal.show(`Want to integrate Owlracle service in your community? You can use our <a href="/discordbot" target="_blank" aria-label="discord bot" rel="noopener">Discord</a>, <a href="/telegrambot" target="_blank" aria-label="telegram bot" rel="noopener">Telegram</a> and <a href="/twitterbot" target="_blank" aria-label="twitter bot" rel="noopener">Twitter</a> bots. Give them a try! 🦉`);
+        // infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
     }
 
     // show api key information directly from url
@@ -1153,6 +1153,7 @@ class EndpointTable {
         ],
         response: [
             { name: 'timestamp', description: 'An <a href="https://www.w3.org/TR/NOTE-datetime" target="_blank" rel="noopener nofollow">ISO 8601</a> compliant date for when the API returned the result.' },
+            { name: 'baseFee', description: 'Average base fee from the scanned blocks. This field is only available if the network is <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> compliant.' },
             { name: 'lastBlock', description: 'Number of the last block Owlracle scanned.' },
             { name: 'avgTime', description: 'Average time between each block confirmation.' },
             { name: 'avgTx', description: 'Average number of transactions in the blocks.' },
@@ -1164,14 +1165,15 @@ class EndpointTable {
         ],
         placeholder: {
             "timestamp": "0000-00-00T00:00:00.000Z",
+            "baseFee": 0.0,
             "lastBlock": 0,
-            "avgTime": 0,
-            "avgTx": 0,
-            "avgGas": 0,
+            "avgTime": 0.0,
+            "avgTx": 0.0,
+            "avgGas": 0.0,
             "speeds": [{
-                "acceptance": 0,
-                "gasPrice": 0,
-                "estimatedFee": 0
+                "acceptance": 0.0,
+                "gasPrice": 0.0,
+                "estimatedFee": 0.0
             }]
         },
     });

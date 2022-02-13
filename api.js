@@ -54,7 +54,7 @@ module.exports = app => {
             const version = parseInt(req.query.version) || 2;
             const blocks = req.query.blocks && version == 2 ? Math.min(Math.max(parseInt(req.query.blocks), 0), 1000) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => Math.min(Math.max(parseInt(e), 0), 100)) : defaultSpeeds;
-            
+
             if (req.query.nmin){
                 req.query.percentile = req.query.nmin;
                 const warning = 'nmin argument is deprecated and will be removed in future updates. Use percentile instead.';
@@ -85,6 +85,13 @@ module.exports = app => {
                 // avg gas and estimated gas fee price (in $)
                 const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
                 const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[network.token].price;
+
+                // report base fee if available and not opted out
+                if (data.baseFee) {
+                    // remove null
+                    resp.baseFee = data.baseFee.filter(e => e);
+                    resp.baseFee = resp.baseFee.reduce((p, c) => p + c, 0) / resp.baseFee.length;
+                }
 
                 speeds = speeds.map(speed => {
                     return {

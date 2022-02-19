@@ -160,6 +160,7 @@ module.exports = app => {
             endpoint: 'gas',
             version: parseInt(req.query.version) || 2,
             network: req.params.network,
+            source: req.query.source || 'api',
             action: {
                 data: {},
                 run: dataRun,
@@ -341,6 +342,7 @@ module.exports = app => {
             endpoint: 'history',
             version: parseInt(req.query.version) || 2,
             network: req.params.network,
+            source: req.query.source || 'api',
             action: {
                 data: {
                     timeframe: timeframe,
@@ -1002,7 +1004,7 @@ const api = {
         return true;    
     },
 
-    automate: async function({ key, origin, ip, endpoint, action, version, network }) {
+    automate: async function({ key, origin, ip, endpoint, action, version, network, source }) {
         let resp = {};
         const sqlData = {};
         let credit = 0;
@@ -1047,6 +1049,9 @@ const api = {
         sqlData.endpoint = endpoint;
         sqlData.version = version;
         sqlData.network2 = networkList[network].dbid;
+
+        const sourceId = { api: 0, extension: 1, bot: 2 };
+        sqlData.source = sourceId[source] || 0;
 
         if (ip){
             sqlData.ip = ip;

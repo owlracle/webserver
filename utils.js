@@ -124,7 +124,7 @@ const networkList = {
 
 const explorer = {
     apiKey: configFile.explorer,
-    url: {
+    url: { // here goes only networks having an api
         eth: `https://api.etherscan.io`,
         bsc: `https://api.bscscan.com`,
         poly: `https://api.polygonscan.com`,
@@ -132,9 +132,7 @@ const explorer = {
         avax: `https://api.snowtrace.io`,
         movr: `https://api-moonriver.moonscan.io`,
         cro: `https://api.cronoscan.com`,
-        one: `https://explorer.harmony.one`,
-        ht: `https://hecoinfo.com`,
-        celo: `https://explorer.celo.org`,
+        ht: `https://api.hecoinfo.com`,
     },
 
     getBlockNumber: async function(timestamp, network) {
@@ -154,7 +152,12 @@ const explorer = {
         }
 
         try {
-            const request = await fetch(`${this.url[network]}/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${this.apiKey[network]}`);
+            if (!this.apiKey[network] || !this.url[network]){
+                return { status: '0', message: 'NOTOK', result: 'No api for this network' };
+            }
+
+            const url = `${this.url[network]}/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${this.apiKey[network]}`;
+            const request = await fetch(url);
             // snowtrace sometimes return an html, so we must make sure response is json
             const block = (data => {
                 try {
@@ -184,8 +187,8 @@ const explorer = {
 
     getTx: async function(wallet, fromTime, toTime, network, internal=false){
         // console.log(wallet, from, to)
-        if (!this.url[network]){
-            return { status: "0", message: "INVALID NETWORK", result: [] };
+        if (!this.apiKey[network] || !this.url[network]){
+            return { status: "0", message: "THERE IS NO API FOR THIS NETWORK", result: [] };
         }
         const fromBlock = await this.getBlockNumber(parseInt(fromTime), network);
         const toBlock = await this.getBlockNumber(parseInt(toTime), network);

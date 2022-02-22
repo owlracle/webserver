@@ -510,6 +510,7 @@ const creditTable = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
             });
+            // console.log(data)
 
             if (data.error){
                 console.log(error);

@@ -477,6 +477,7 @@ const creditTable = {
             }
 
             this.checkBtn.setAttribute('disabled', true);
+            this.checkBtn.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
             this.table.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
 
             const data = await this.check();
@@ -487,6 +488,7 @@ const creditTable = {
             }
 
             this.checkBtn.removeAttribute('disabled');
+            this.checkBtn.innerHTML = `Check`;
         });
 
         // update api keys by wallet
@@ -498,6 +500,7 @@ const creditTable = {
             const value = this.input.value;
 
             this.updateBtn.setAttribute('disabled', true);
+            this.updateBtn.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
 
             const body = {};
             if (value.length){
@@ -518,6 +521,7 @@ const creditTable = {
             }
 
             this.updateBtn.removeAttribute('disabled');
+            this.updateBtn.innerHTML = `Update`;
 
             this.checkBtn.click();
         });

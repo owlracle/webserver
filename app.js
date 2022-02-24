@@ -21,6 +21,7 @@ app.set('views', __dirname + '/views');
 
 const api = require('./api')(app);
 require('./admin')(app, api);
+require('./alerts')(app, api);
 
 
 const args = {

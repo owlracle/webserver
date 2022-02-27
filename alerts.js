@@ -11,7 +11,17 @@ module.exports = (app, api) => {
     // add credit alert
     app.post('/alert/credit/:key', cors(corsOptions), async (req, res) => {
         const key = req.params.key;
-        const chatId = req.body.chatId;
+        const chatId = req.body.chatid;
+
+        if (!chatId){
+            res.status(400);
+            res.send({
+                status: 400,
+                error: 'Bad Request',
+                message: 'You must provide a chat id.'
+            });
+            return;
+        }
 
         if (!key.match(/^[a-f0-9]{32}$/)){
             res.status(400);
@@ -23,7 +33,7 @@ module.exports = (app, api) => {
             return;
         }
 
-        const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
     
         if (error){
             res.status(500);
@@ -51,7 +61,7 @@ module.exports = (app, api) => {
 
         const keyId = row[0].id;
         // check if there is already an alert for this key-chat pair
-        const [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ?`, [ keyId, chatId ]);
+        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ?`, [ keyId, chatId ]);
 
         if (error){
             res.status(500);
@@ -64,24 +74,122 @@ module.exports = (app, api) => {
             return;
         }
 
-        if (row.length > 0){
-            res.status(401);
+        if (rows.length > 0){
+            const alertId = rows[0].id;
+            [rows, error] = await db.update('credit_alerts', { active: 1 }, `id = ?`, [ alertId ]);
+            
             res.send({
-                status: 401,
-                error: 'Unauthorized',
-                message: 'This key-chatid pair is already registered.'
+                status: 'success',
+                message: 'credit alert enabled successfully'
             });
             return;
         }
 
-        const [rows, error] = await db.insert('credit_alerts', {
+        [rows, error] = await db.insert('credit_alerts', {
             apikey: keyId,
             chatid: chatId
         });
 
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to insert alert.',
+                serverMessage: error,
+            });
+            return;
+        }
+
         res.send({
             status: 'success',
             message: 'credit alert created successfully'
+        });
+    });
+
+    // remove credit alert
+    app.delete('/alert/credit/:key', cors(corsOptions), async (req, res) => {
+        const key = req.params.key;
+        const chatId = req.body.chatId;
+
+        if (!key.match(/^[a-f0-9]{32}$/)){
+            res.status(400);
+            res.send({
+                status: 400,
+                error: 'Bad Request',
+                message: 'The informed api key is invalid.'
+            });
+            return;
+        }
+
+        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+    
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        const rowsPromise = rows.map(row => bcrypt.compare(key, row.apiKey));
+        const row = (await Promise.all(rowsPromise)).map((e,i) => e ? rows[i] : false).filter(e => e);
+
+        if (row.length == 0){
+            res.status(401);
+            res.send({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Could not find the provided api key.'
+            });
+            return;
+        }
+
+        const keyId = row[0].id;
+        // check if there is already an alert for this key-chat pair
+        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ?`, [ keyId, chatId ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        if (rows.length == 0){
+            res.status(401);
+            res.send({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'This key-chatid pair is not registered.'
+            });
+            return;
+        }
+
+        const alertId = rows[0].id;
+        [rows, error] = await db.update('credit_alerts', { active: 0 }, `id = ?`, [ alertId ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to update alert.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        res.send({
+            status: 'success',
+            message: 'credit alert disabled'
         })
     });
 };

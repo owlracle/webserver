@@ -100,27 +100,31 @@ async function updateTokenPrice(){
 
 
 async function alertCredit() {
-    const [rows, error] = await db.query(`SELECT a.apikey, c.status, a.credit, a.chatid FROM credit_alerts c INNER JOIN api_keys a ON a.id = c.apikey`);
+    const [rows, error] = await db.query(`SELECT a.id, k.peek, a.status, k.credit, k.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.active = 1`);
     if (error){
         return;
     }
 
-    rows.forEach(e => {
-        const status = JSON.parse(e.status);
+    rows.forEach(row => {
+        const status = JSON.parse(row.status);
 
         status.expired = status.expired || false;
         status.critical = status.critical || false;
 
         // expired
-        if (!status.expired && e.credit < 0){
+        if (!status.expired && row.credit < 0){
             status.expired = true;
-            telegram.alert(`Your API ${e.apikey} run out of credits. Recharge it to keep requesting Owlracle API service.`, e.chatid);
+            telegram.alert(`Your API ...${row.peek} run out of credits. Recharge it to keep requesting Owlracle API service.`, row.chatid);
         }
         
         // critical
-        if (!status.critical && e.credit < 1){
+        if (!status.critical && row.credit < 1){
             status.critical = true;
-            telegram.alert(`Your API ${e.apikey} have less than $1 in credits. Recharge it to prevent applying request limits`, e.chatid);
+            telegram.alert(`Your API ...${row.peek} have less than $1 in credits. Recharge it to prevent applying request limits`, row.chatid);
+        }
+
+        if (row.status != JSON.stringify(status)) {
+            db.update('credit_alerts', { status: JSON.stringify(status) }, `id = ?`, [ row.id ]);
         }
     });
 

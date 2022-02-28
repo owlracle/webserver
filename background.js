@@ -1,4 +1,4 @@
-const { oracle, networkList, logError } = require('./utils');
+const { oracle, networkList, logError, telegram } = require('./utils');
 const db = require('./database');
 const fetch = require('node-fetch');
 const fs = require('fs');
@@ -98,4 +98,33 @@ async function updateTokenPrice(){
     }
 }
 
-module.exports = { buildHistory, updateAllCredit, updateTokenPrice };
+
+async function alertCredit() {
+    const [rows, error] = await db.query(`SELECT a.apikey, c.status, a.credit, a.chatid FROM credit_alerts c INNER JOIN api_keys a ON a.id = c.apikey`);
+    if (error){
+        return;
+    }
+
+    rows.forEach(e => {
+        const status = JSON.parse(e.status);
+
+        status.expired = status.expired || false;
+        status.critical = status.critical || false;
+
+        // expired
+        if (!status.expired && e.credit < 0){
+            status.expired = true;
+            telegram.alert(`Your API ${e.apikey} run out of credits. Recharge it to keep requesting Owlracle API service.`, e.chatid);
+        }
+        
+        // critical
+        if (!status.critical && e.credit < 1){
+            status.critical = true;
+            telegram.alert(`Your API ${e.apikey} have less than $1 in credits. Recharge it to prevent applying request limits`, e.chatid);
+        }
+    });
+
+    setTimeout(() => alertCredit(), 1000 * 60 * 10); // 10 minute
+}
+
+module.exports = { buildHistory, updateAllCredit, updateTokenPrice, alertCredit };

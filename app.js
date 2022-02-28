@@ -2,7 +2,7 @@ const express = require('express');
 const mustacheExpress = require('mustache-express');
 
 const { configFile, Session, verifyRecaptcha, networkList } = require('./utils');
-const { buildHistory, updateAllCredit, updateTokenPrice } = require('./background');
+const { buildHistory, updateAllCredit, updateTokenPrice, alertCredit } = require('./background');
 
 let port = 4210;
 
@@ -27,6 +27,7 @@ require('./alerts')(app, api);
 const args = {
     saveDB: true,
     updateCredit: true,
+    alerts: true,
 };
 
 // read node env
@@ -57,6 +58,10 @@ process.argv.forEach((val, index, array) => {
     if ((val == '-c' || val == '--credit')){
         args.updateCredit = false;
         console.log('Credit will not be updated');
+    }
+    if ((val == '-a' || val == '--alerts')){
+        args.alerts = false;
+        console.log('Will not check for alerts');
     }
     if ((val == '-o' || val == '--get-old') && array[index+1]){
         console.log('Getting old blocks');
@@ -190,6 +195,10 @@ updateTokenPrice().then(() => {
         }
         if (args.updateCredit){
             updateAllCredit(api);
+        }
+
+        if (args.alerts){
+            alertCredit();
         }
     }
 });

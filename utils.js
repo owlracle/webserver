@@ -257,13 +257,16 @@ const explorer = {
 const telegram = {
     url: `https://api.telegram.org/bot{{token}}/sendMessage?chat_id={{chatId}}&text=`,
 
-    alert: async function(message){
+    alert: async function(message, chatId){
         if (configFile.telegram.enabled){
             if (!this.token){
                 this.token = configFile.telegram.token;
-                this.chatId = configFile.telegram.chatId;
+
+                if (!chatId){
+                    chatId = configFile.telegram.chatId;
+                }
     
-                this.url = this.url.replace(`{{token}}`, this.token).replace(`{{chatId}}`, this.chatId);
+                this.url = this.url.replace(`{{token}}`, this.token).replace(`{{chatId}}`, chatId);
             }
             if (typeof message !== 'string'){
                 message = JSON.stringify(message);

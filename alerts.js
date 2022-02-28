@@ -192,4 +192,34 @@ module.exports = (app, api) => {
             message: 'credit alert disabled'
         })
     });
+
+    // get info about credit alerts
+    app.get('/alert/credit/:chatid', cors(corsOptions), async (req, res) => {
+        const chatId = req.params.chatid;
+
+        let [rows, error] = await db.query(`SELECT k.apikey, k.credit FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.chatid = ?`, [ chatId ]);
+    
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving alerts information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        const keys = rows.map(row => {
+            return {
+                apiKey: row.apikey,
+                credit: row.credit,
+            }
+        });
+
+        res.send({
+            status: 'success',
+            apiKeys: keys,
+        })
+    });
 };

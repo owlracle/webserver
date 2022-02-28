@@ -76,8 +76,15 @@ module.exports = (app, api) => {
         }
 
         if (rows.length > 0){
-            const alertId = rows[0].id;
-            [rows, error] = await db.update('credit_alerts', { active: 1 }, `id = ?`, [ alertId ]);
+            if (rows[0].active == "1"){
+                res.send({
+                    status: 'existing',
+                    message: 'credit alert is already active'
+                });
+                return;
+            }
+
+            [rows, error] = await db.update('credit_alerts', { active: 1 }, `id = ?`, [ rows[0].id ]);
             
             res.send({
                 status: 'success',
@@ -174,8 +181,7 @@ module.exports = (app, api) => {
             return;
         }
 
-        const alertId = rows[0].id;
-        [rows, error] = await db.update('credit_alerts', { active: 0 }, `id = ?`, [ alertId ]);
+        [rows, error] = await db.update('credit_alerts', { active: 0 }, `id = ?`, [ rows[0].id ]);
 
         if (error){
             res.status(500);
@@ -198,7 +204,7 @@ module.exports = (app, api) => {
     app.get('/alert/credit/:chatid', cors(corsOptions), async (req, res) => {
         const chatId = req.params.chatid;
 
-        let [rows, error] = await db.query(`SELECT k.apikey, k.credit FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.chatid = ?`, [ chatId ]);
+        let [rows, error] = await db.query(`SELECT k.peek, k.credit FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.chatid = ?`, [ chatId ]);
     
         if (error){
             res.status(500);
@@ -213,7 +219,7 @@ module.exports = (app, api) => {
 
         const keys = rows.map(row => {
             return {
-                apiKey: row.apikey,
+                apiKey: row.peek,
                 credit: row.credit,
             }
         });

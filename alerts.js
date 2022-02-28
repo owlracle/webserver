@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const corsOptions = {
     origin: '*',
     optionsSuccessStatus: 200,
+    methods: 'GET, POST, DELETE',
 };
 
 module.exports = (app, api) => {

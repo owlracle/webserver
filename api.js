@@ -681,23 +681,10 @@ module.exports = app => {
             data.note = row[0].note;
         }
 
-        const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id} AND timestamp >= now() - INTERVAL 1 HOUR`;
-        const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id}`;
-        // let hourIp = 'SELECT 0';
-        // let totalIp = 'SELECT 0';
+        const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
+        const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ?`;
 
-        const queryData = [];
-
-        // if (req.header('x-real-ip')){
-        //     const ip = req.header('x-real-ip');
-        //     hourIp = `SELECT count(*) FROM api_requests WHERE ip = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
-        //     totalIp = `SELECT count(*) FROM api_requests WHERE ip = ?`;
-        //     queryData.push(ip, ip);
-        // }
-
-
-        // const [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${hourIp}) AS hourip, (${totalApi}) AS totalapi, (${totalIp}) AS totalip`, queryData);
-        [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, queryData);
+        [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, [ id, id ]);
 
         if (error){
             res.status(500);
@@ -712,10 +699,25 @@ module.exports = app => {
 
         data.usage = {
             apiKeyHour: rows[0].hourapi,
-            // ipHour: rows[0].hourip,
             apiKeyTotal: rows[0].totalapi,
-            // ipTotal: rows[0].totalip,
         };
+
+        [rows, error] = await db.query(`SELECT chatid FROM credit_alerts WHERE apikey = ?`, [ id ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        if (rows.length){
+            data.creditNotification = rows.map(row => row.chatid);
+        }
 
         res.send(data);
     });
@@ -1336,5 +1338,50 @@ const api = {
         console.log('DONE');
 
         return result;
-    }
+    },
+
+    validateKey: async function(key) {
+        const res = {};
+
+        if (!key.match(/^[a-f0-9]{32}$/)){
+            res.status = 400;
+            res.send = {
+                status: 400,
+                error: 'Bad Request',
+                message: 'The informed api key is invalid.'
+            };
+            return res;
+        }
+
+        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+    
+        if (error){
+            res.status = 500;
+            res.send = {
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            };
+            return res;
+        }
+
+        const rowsPromise = rows.map(row => bcrypt.compare(key, row.apiKey));
+        const row = (await Promise.all(rowsPromise)).map((e,i) => e ? rows[i] : false).filter(e => e);
+
+        if (row.length == 0){
+            res.status = 401;
+            res.send = {
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Could not find the provided api key.'
+            };
+            return res;
+        }
+
+        res.status = 200;
+        res.send = row[0];
+
+        return res;
+    },
 }

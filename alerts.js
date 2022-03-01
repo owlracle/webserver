@@ -17,43 +17,13 @@ module.exports = (app, api) => {
             return;
         }
 
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
+        const keyData = await api.validateKey(key);
+        if (keyData.status != 200) {
+            res.status(keyData.status).send(keyData.send);
             return;
         }
 
-        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        const rowsPromise = rows.map(row => bcrypt.compare(key, row.apiKey));
-        const row = (await Promise.all(rowsPromise)).map((e,i) => e ? rows[i] : false).filter(e => e);
-
-        if (row.length == 0){
-            res.status(401);
-            res.send({
-                status: 401,
-                error: 'Unauthorized',
-                message: 'Could not find the provided api key.'
-            });
-            return;
-        }
-
-        const keyId = row[0].id;
+        const keyId = keyData.apiKey.id;
         // check if there is already an alert for this key-chat pair
         [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ?`, [ keyId, chatId ]);
 
@@ -113,43 +83,13 @@ module.exports = (app, api) => {
         const key = req.params.key;
         const chatId = req.body.chatid || '';
 
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
+        const keyData = await api.validateKey(key);
+        if (keyData.status != 200) {
+            res.status(keyData.status).send(keyData.send);
             return;
         }
 
-        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        const rowsPromise = rows.map(row => bcrypt.compare(key, row.apiKey));
-        const row = (await Promise.all(rowsPromise)).map((e,i) => e ? rows[i] : false).filter(e => e);
-
-        if (row.length == 0){
-            res.status(401);
-            res.send({
-                status: 401,
-                error: 'Unauthorized',
-                message: 'Could not find the provided api key.'
-            });
-            return;
-        }
-
-        const keyId = row[0].id;
+        const keyId = keyData.apiKey.id;
         // check if there is already an alert for this key-chat pair
         [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ? AND active = 1`, [ keyId, chatId ]);
 
@@ -194,10 +134,22 @@ module.exports = (app, api) => {
     });
 
     // get info about credit alerts
-    app.get('/alert/credit/:chatid', async (req, res) => {
-        const chatId = req.params.chatid;
+    app.get('/alert/credit/:id', async (req, res) => {
+        let id = req.params.id;
+        const field = id.match(/^[a-f0-9]{32}$/) ? 'apikey' : 'chatid';
 
-        let [rows, error] = await db.query(`SELECT k.peek, k.credit FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.chatid = ?`, [ chatId ]);
+        // informed field is apikey hash
+        if (field == 'apikey') {
+            const keyData = await api.validateKey(id);
+            if (keyData.status != 200) {
+                res.status(keyData.status).send(keyData.send);
+                return;
+            }
+    
+            id = keyData.send.id;
+        }
+        
+        let [rows, error] = await db.query(`SELECT k.peek, k.credit, a.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.${field} = ?`, [ id ]);
     
         if (error){
             res.status(500);
@@ -213,6 +165,7 @@ module.exports = (app, api) => {
         const keys = rows.map(row => {
             return {
                 apiKey: row.peek,
+                chatId: row.chatid,
                 credit: row.credit,
             }
         });
@@ -220,6 +173,8 @@ module.exports = (app, api) => {
         res.send({
             status: 'success',
             apiKeys: keys,
-        })
+        });
+
+        return;
     });
 };

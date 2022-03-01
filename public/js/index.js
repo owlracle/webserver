@@ -748,7 +748,7 @@ const gasTimer = {
                 ['What is the priority fee?', 'These are the values you should pay to incentivize miners to process your transactions. The higher the value, faster they will be mined. Higher values means more costly transactions though. That is where Owlracle can help you giving accurate estimates so you can pay no more than what is needed. Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.'],
                 ['What is the "Max fee" value I see on my metamask wallet?', 'Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.']
             )
-            console.log(faqList);
+            // console.log(faqList);
             faq.setList(faqList);
         }
     }
@@ -757,16 +757,17 @@ gasTimer.init(30000, 100);
 
 gasTimer.onUpdate = function(data){
     let gas = data.speeds.map(s => s.gasPrice);
+    let baseFee = 0;
     
     if (data.baseFee){
-        gas = gas.map(s => s - data.baseFee);
+        // gas = gas.map(s => s - data.baseFee);
         this.addBaseFeeCard();
 
-        const baseFee = data.baseFee.toFixed(data.baseFee == parseInt(data.baseFee) ? 0 : 2);
+        baseFee = data.baseFee.toFixed(data.baseFee == parseInt(data.baseFee) ? 0 : 2);
         document.querySelector('#base-fee-container .body').innerHTML = `${baseFee} GWei`;
 
         document.querySelectorAll('#gas-container .gas .eip').forEach((e,i) => {
-            e.innerHTML = `<span class="value">${data.speeds[i].gasPrice.toFixed(2)} GWei</span><span class="text">MAX fee = BASE + TIP</span>`;
+            e.innerHTML = `<span class="value">${gas[i].toFixed(2)} GWei</span><span class="text">MAX fee = BASE + TIP</span>`;
         });
     }
     gas = gas.map(s => s.toFixed(s == parseInt(s) ? 0 : 2));
@@ -775,7 +776,7 @@ gasTimer.onUpdate = function(data){
 
     document.querySelectorAll('#gas-container .gas .body').forEach((e,i) => {
         if (data.speeds){
-            e.querySelector('.gwei').innerHTML = `${Math.max(0, gas[i])} GWei`;
+            e.querySelector('.gwei').innerHTML = `${ Math.max(0, gas[i] - baseFee).toFixed(2) } GWei`;
             e.querySelector('.usd').innerHTML = `$ ${fee[i]}`;
         }
     });

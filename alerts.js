@@ -1,18 +1,11 @@
 const db = require('./database');
-const cors = require('cors');
 const bcrypt = require('bcrypt');
-
-const corsOptions = {
-    origin: '*',
-    optionsSuccessStatus: 200,
-    methods: 'GET, POST, DELETE',
-};
 
 module.exports = (app, api) => {
     // add credit alert
-    app.post('/alert/credit/:key', cors(corsOptions), async (req, res) => {
+    app.post('/alert/credit/:key', async (req, res) => {
         const key = req.params.key;
-        const chatId = req.body.chatid;
+        const chatId = req.body.chatid || '';
 
         if (!chatId){
             res.status(400);
@@ -116,9 +109,9 @@ module.exports = (app, api) => {
     });
 
     // remove credit alert
-    app.delete('/alert/credit/:key', cors(corsOptions), async (req, res) => {
+    app.delete('/alert/credit/:key', async (req, res) => {
         const key = req.params.key;
-        const chatId = req.body.chatId;
+        const chatId = req.body.chatid || '';
 
         if (!key.match(/^[a-f0-9]{32}$/)){
             res.status(400);
@@ -158,7 +151,7 @@ module.exports = (app, api) => {
 
         const keyId = row[0].id;
         // check if there is already an alert for this key-chat pair
-        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ?`, [ keyId, chatId ]);
+        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ? AND active = 1`, [ keyId, chatId ]);
 
         if (error){
             res.status(500);
@@ -201,7 +194,7 @@ module.exports = (app, api) => {
     });
 
     // get info about credit alerts
-    app.get('/alert/credit/:chatid', cors(corsOptions), async (req, res) => {
+    app.get('/alert/credit/:chatid', async (req, res) => {
         const chatId = req.params.chatid;
 
         let [rows, error] = await db.query(`SELECT k.peek, k.credit FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.chatid = ?`, [ chatId ]);

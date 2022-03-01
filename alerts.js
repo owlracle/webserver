@@ -149,7 +149,7 @@ module.exports = (app, api) => {
             id = keyData.send.id;
         }
         
-        let [rows, error] = await db.query(`SELECT k.peek, k.credit, a.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.${field} = ?`, [ id ]);
+        let [rows, error] = await db.query(`SELECT k.peek, k.credit, a.chatid, a.active FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.${field} = ? AND a.active = 1`, [ id ]);
     
         if (error){
             res.status(500);

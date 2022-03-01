@@ -702,7 +702,7 @@ module.exports = app => {
             apiKeyTotal: rows[0].totalapi,
         };
 
-        [rows, error] = await db.query(`SELECT chatid FROM credit_alerts WHERE apikey = ?`, [ id ]);
+        [rows, error] = await db.query(`SELECT chatid FROM credit_alerts WHERE apikey = ? AND active = 1`, [ id ]);
 
         if (error){
             res.status(500);

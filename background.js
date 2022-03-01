@@ -100,8 +100,9 @@ async function updateTokenPrice(){
 
 
 async function alertCredit() {
-    const [rows, error] = await db.query(`SELECT a.id, k.peek, a.status, k.credit, k.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.active = 1`);
+    const [rows, error] = await db.query(`SELECT a.id, k.peek, a.status, k.credit, a.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.active = 1`);
     if (error){
+        console.log(error);
         return;
     }
 
@@ -114,11 +115,11 @@ async function alertCredit() {
         // expired
         if (!status.expired && row.credit < 0){
             status.expired = true;
+            status.critical = true;
             telegram.alert(`Your API ...${row.peek} run out of credits. Recharge it to keep requesting Owlracle API service.`, row.chatid);
         }
-        
         // critical
-        if (!status.critical && row.credit < 1){
+        else if (!status.critical && row.credit < 1){
             status.critical = true;
             telegram.alert(`Your API ...${row.peek} have less than $1 in credits. Recharge it to prevent applying request limits`, row.chatid);
         }

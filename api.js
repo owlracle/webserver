@@ -1118,6 +1118,7 @@ const api = {
             'apiKey',
         ];
         data.credit_recharges.values = [];
+        let rechargeAmount = 0;
     
         await Promise.all(txsn.map(async txs => {
             if (txs.status == "1"){
@@ -1157,6 +1158,7 @@ const api = {
                     if (tx.isError == "0" && tx.to.toLowerCase() == wallet.toLowerCase()){
                         // update price using tx value (it is in gwei, convert to ether) * price value at that time.
                         const value = parseInt(tx.value.slice(0,-9));
+                        rechargeAmount += (value * 0.000000001 * priceThen);
                         data.api_keys.credit = parseFloat(credit) + (value * 0.000000001 * priceThen);
 
                         // insert only if tx not duplicate in the array (internal and regular)
@@ -1189,6 +1191,22 @@ const api = {
                 fromWallet: data.credit_recharges.values.map(e => e[5]), // from
                 toWallet: wallet.toLowerCase(),
             });
+
+            // reset alert status
+            const [rows, error] = await db.query(`SELECT id, chatid FROM credit_alerts WHERE active = 1 AND apikey = ?`, [ id ]);
+
+            const chats = [];
+            if (!error) {
+                rows.forEach(row => {
+                    db.update('credit_alerts', { status: '{}' }, `id = ?`, [ row.id ]);
+
+                    if (!chats.includes(row.chatid)) {
+                        chats.push(row.chatid);
+                    }
+                });
+
+                chats.forEach(c => telegram.alert(`Your api key was recharged for $${ rechargeAmount.toFixed(6) }. Thanks!`, c));
+            }
         }
 
         return txsn;

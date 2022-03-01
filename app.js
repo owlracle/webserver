@@ -196,10 +196,11 @@ updateTokenPrice().then(() => {
         if (args.updateCredit){
             updateAllCredit(api);
         }
-
-        if (args.alerts){
-            alertCredit();
-        }
     }
 });
 
+if (configFile.production){
+    if (args.alerts){
+        alertCredit();
+    }
+}

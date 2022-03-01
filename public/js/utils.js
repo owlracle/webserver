@@ -370,7 +370,8 @@ const api = {
         <div id="button-container"><button id="create-key" disabled>Create API key</button></div>`;
                 
         tabsContent.create.querySelectorAll('#checkbox-container input').forEach(e => e.addEventListener('click', () => {
-            if (Array.from(tabsContent.create.querySelectorAll('#checkbox-container input')).filter(e => e.checked).length == 2){
+            const checkboxes = tabsContent.create.querySelectorAll('#checkbox-container input');
+            if (checkboxes[0].checked && checkboxes[1].checked){
                 tabsContent.create.querySelector('#create-key').removeAttribute('disabled');
             }
             else {
@@ -598,6 +599,7 @@ const api = {
                     <li>Make sure to save this information before closing this window.</li>
                     <li>We do not store your key and secret in plain text, so we cannot recover them in case of loss.</li>
                 </ul>
+                <p><a class="link" href="https://t.me/owlracle_gas_bot?start=credit" rel="noopener" target="_blank">Receive Telegram alerts about API credits.</a></p>
                 <div id="button-container"><button id="close">OK</button></div>
             </div>`;
             // add buttons for clipboard copy info
@@ -648,7 +650,8 @@ const api = {
         const modal = document.querySelector('#fog #api-window');
         if (data.apiKey){
             const key = data.apiKey;
-            const fields = Object.entries(data).filter(e => e[0] != 'usage').map(e => {
+            const blacklist = ['usage', 'creditNotification'];
+            const fields = Object.entries(data).filter(e => !blacklist.includes(e[0])).map(e => {
                 const label = e[0] == 'apiKey' ? 'API Key' : e[0];
 
                 let value = e[1];
@@ -672,9 +675,16 @@ const api = {
                 return `<p class="title">${label}</p>${input}`;
             }).join('');
 
+            let alertLink = '';
+            console.log(data)
+            if (!data.creditNotification) {
+                alertLink = `<a class="link" href="https://t.me/owlracle_gas_bot?start=credit" rel="noopener" target="_blank">Get notified when running out of credits!</a>`;
+            }
+
             modal.innerHTML = `<div id="content">
                 <h2>API key information</h2>
                 ${fields}
+                ${alertLink}
                 <div id="button-container">
                     <button id="credit">History</button>
                     <button id="close">Close</button>

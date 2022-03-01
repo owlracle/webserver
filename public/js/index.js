@@ -122,23 +122,14 @@ const network = (symbol => {
         document.querySelector('#nav-network').remove();
     }
 
-    if (query.ref && query.ref === 'bscgas') {
-        const info = document.createElement('div');
-        info.innerHTML = `<div id="owlracle-info">
-            <div id="message">
-                <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
-                <span>Welcome to Owlracle. Be an early owl and migrate your requests from <a href="https://bscgas.info" target="_blank" rel="noopener">Bscgas</a> and get <b>$10</b> worth of API credits for free. <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">Get in touch</a> today!</span>
-            </div>
-            <div id="close"><i class="fas fa-times-circle"></i></div>
-        </div>`;
-        info.querySelector('#close').addEventListener('click', () => info.remove());
-        document.body.appendChild(info);
+    // If got here through a ref link
+    if (query.ref && query.ref === '') {
+        // future code here
     }
-
-    // show message advertising about extension. show again each week
-    if (!cookies.get('hide-info')){
-        // infoMessageModal.show(`Want to integrate Owlracle service in your community? You can use our <a href="/discordbot" target="_blank" aria-label="discord bot" rel="noopener">Discord</a>, <a href="/telegrambot" target="_blank" aria-label="telegram bot" rel="noopener">Telegram</a> and <a href="/twitterbot" target="_blank" aria-label="twitter bot" rel="noopener">Twitter</a> bots. Give them a try! 🦉`);
-        // infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
+    // show an intro message. show again each week
+    else if (!cookies.get('hide-info')){
+        infoMessageModal.show(`Now I can deliver you <a href="https://t.me/owlracle_gas_bot?start=credit" target="_blank" aria-label="discord bot" rel="noopener">Telegram alerts</a> whenever you are low on API credits. Try it! 🦉`);
+        infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
     }
 
     // show api key information directly from url

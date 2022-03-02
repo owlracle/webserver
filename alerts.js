@@ -23,7 +23,7 @@ module.exports = (app, api) => {
             return;
         }
 
-        const keyId = keyData.apiKey.id;
+        const keyId = keyData.send.id;
         // check if there is already an alert for this key-chat pair
         [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ?`, [ keyId, chatId ]);
 
@@ -37,6 +37,8 @@ module.exports = (app, api) => {
             });
             return;
         }
+
+        // console.log(rows)
 
         if (rows.length > 0){
             if (rows[0].active == "1"){
@@ -89,7 +91,7 @@ module.exports = (app, api) => {
             return;
         }
 
-        const keyId = keyData.apiKey.id;
+        const keyId = keyData.send.id;
         // check if there is already an alert for this key-chat pair
         [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ? AND active = 1`, [ keyId, chatId ]);
 

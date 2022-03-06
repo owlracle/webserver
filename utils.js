@@ -257,22 +257,29 @@ const explorer = {
 const telegram = {
     url: `https://api.telegram.org/bot{{token}}/sendMessage?chat_id={{chatId}}&text=`,
 
-    alert: async function(message, chatId){
+    alert: async function(message, opt){
         if (configFile.telegram.enabled){
-            if (!this.token){
-                this.token = configFile.telegram.token;
+            let token = configFile.telegram.token['@owlracle_bot'];
+            let chatId = configFile.telegram.chatId;
 
-                if (!chatId){
-                    chatId = configFile.telegram.chatId;
-                }
-    
-                this.url = this.url.replace(`{{token}}`, this.token).replace(`{{chatId}}`, chatId);
+            if (opt && opt.chatId){
+                chatId = opt.chatId;
             }
+
+            if (opt && opt.bot){
+                token = configFile.telegram.token[opt.bot];
+            }
+            else if (opt && opt.token){
+                token = opt.token;
+            }
+            
+            const url = this.url.replace(`{{token}}`, token).replace(`{{chatId}}`, chatId);
+
             if (typeof message !== 'string'){
                 message = JSON.stringify(message);
             }
     
-            const resp = configFile.production ? await (await fetch(this.url + encodeURIComponent(message))).json() : true;
+            const resp = configFile.production ? await (await fetch(url + encodeURIComponent(message))).json() : true;
             return resp;
         }
         return false;

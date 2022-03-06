@@ -8,7 +8,9 @@
     "production": true,
     "telegram": {
         "enabled": false,
-        "token": "TELEGRAM_BOT_TOKEN",
+        "token": {
+            "@bot_id": "TELEGRAM_BOT_TOKEN"
+        },
         "chatId": "TELEGRAM_CHAT_ID"
     },
     "recaptcha": {

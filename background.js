@@ -116,12 +116,12 @@ async function alertCredit() {
         if (!status.expired && row.credit < 0){
             status.expired = true;
             status.critical = true;
-            telegram.alert(`Your API ...${row.peek} run out of credits. Recharge it to keep requesting Owlracle API service.`, { chatId: row.chatid, bot: '@owlracle_gas_bot' });
+            telegram.alert(`⛔ Your API 🗝️...${row.peek} run out of credits. Recharge it to keep requesting Owlracle 🦉 API service.`, { chatId: row.chatid, bot: '@owlracle_gas_bot' });
         }
         // critical
         else if (!status.critical && row.credit < 1){
             status.critical = true;
-            telegram.alert(`Your API ...${row.peek} have less than $1 in credits. Recharge it to prevent applying request limits`, { chatId: row.chatid, bot: '@owlracle_gas_bot' });
+            telegram.alert(`⚠️ Your API 🗝️...${row.peek} have less than $1 in credits 💸. Recharge it to prevent applying request limits`, { chatId: row.chatid, bot: '@owlracle_gas_bot' });
         }
 
         if (row.status != JSON.stringify(status)) {

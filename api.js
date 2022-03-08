@@ -1207,7 +1207,7 @@ const api = {
                     }
                 });
 
-                chats.forEach(c => telegram.alert(`Your api key was recharged for $${ rechargeAmount.toFixed(6) }. Thanks!`, c));
+                chats.forEach(c => telegram.alert(`✅ Your api key was recharged for $${ rechargeAmount.toFixed(6) }. Thanks!`, { chatId: c, bot: '@owlracle_gas_bot' }) );
             }
         }
 

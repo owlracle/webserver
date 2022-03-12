@@ -292,36 +292,36 @@ const price = {
 // set the corresponding network in header
 const network = {
     list: {
-        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
+        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', id: 1, explorer: {
             icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
-        } },
-        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
+        }, rpc: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',  },
+        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', id: 250, explorer: {
             icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
-        } },
-        bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
+        }, rpc: 'https://rpc.ftm.tools/',  },
+        bsc: { symbol: 'bsc', name: 'BSC', longName: 'BNB Chain', token: 'BNB', id: 56, explorer: {
             icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
-        } },
-        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
+        }, rpc: 'https://bsc-dataseed.binance.org/',  },
+        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', id: 43114, explorer: {
             icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
-        } },
-        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
+        }, rpc: 'https://api.avax.network/ext/bc/C/rpc',  },
+        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', id: 137, explorer: {
             icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
-        } },
-        cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', explorer: {
+        }, rpc: 'https://polygon-rpc.com',  },
+        cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', id: 25, explorer: {
             icon: 'https://cronoscan.com/images/favicon.ico', href: 'https://cronoscan.com/', name: 'Cronoscan', apiAvailable: true,
-        } },
-        one: { symbol: 'one', name: 'Harmony', token: 'ONE', explorer: {
+        }, rpc: 'https://evm-cronos.crypto.org',  },
+        one: { symbol: 'one', name: 'Harmony', longName: 'Harmony One', token: 'ONE', id: 166660000, explorer: {
             icon: 'https://explorer.harmony.one/favicon.ico', href: 'https://explorer.harmony.one', name: 'Harmony Explorer', apiAvailable: false,
-        } },
-        ht: { symbol: 'ht', name: 'Heco', token: 'HT', explorer: {
+        }, rpc: 'https://api.s0.t.hmny.io/',  },
+        ht: { symbol: 'ht', name: 'Heco', token: 'HT', id: 128, explorer: {
             icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
-        } },
-        celo: { symbol: 'celo', name: 'Celo', token: 'CELO', explorer: {
+        }, rpc: 'https://http-mainnet.hecochain.com',  },
+        celo: { symbol: 'celo', name: 'Celo', token: 'CELO', id: 42220, explorer: {
             icon: 'https://avatars.githubusercontent.com/u/37552875?s=200&v=4', href: 'https://explorer.celo.org', name: 'Celo Explorer', apiAvailable: false,
-        } },
-        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', explorer: {
+        }, rpc: 'https://forno.celo.org',  },
+        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
             icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
-        } },
+        }, rpc: 'https://rpc.moonriver.moonbeam.network',  },
     },
     
     get: function(name) {
@@ -330,6 +330,11 @@ const network = {
         }
 
         return this.list[name];
+    },
+
+    getById: function(id) {
+        const match = Object.values(this.list).filter(e => e.id == id);
+        return match.length ? match[0] : false;
     },
 
     set: function(name){
@@ -575,6 +580,209 @@ const api = {
         });
     },
 
+    createRechargeApiContent: async function(){
+        const tabsContent = this.tabsContent;
+
+        tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
+        <p>Connect your wallet to recharge your API key</p>
+        <div id="button-container" class="vertical"></div>`;
+       
+        const checkWalletConnection = async () => {
+            if (!web3 || !web3.injected){
+                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
+                <p>You must get Metamask to connect to your wallet</p>
+                <div id="button-container" class="vertical"><button>Get Metamask</button></div>`;
+                bind('not injected');
+                return;
+            }
+            if (!web3.connected) {
+                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
+                <p>Connect your wallet to recharge your API key</p>
+                <div id="button-container" class="vertical"><button>Connect</button></div>`;
+                bind('not connected');
+                return;
+            }
+
+            const connectedNetwork = network.getById(await web3.getNetworkId());
+            if (!connectedNetwork) {
+                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
+                <p>Network not supported</p>
+                <div id="button-container" class="vertical"><button>Switch to ${network.get().name} network</button></div>`;
+                bind('unsupported network');
+                return;
+            }
+            if (connectedNetwork.id != network.get().id) {
+                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
+                <p>Wrong network</p>
+                <div id="button-container" class="vertical">
+                    <button>Switch to ${network.get().name} network</button>
+                    <a href="/${connectedNetwork.symbol}"><button>Go to ${connectedNetwork.name} app</button></a>
+                </div>`;
+                bind('wrong network');
+                return;
+            }
+
+            tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
+            <p class="title">Connected Wallet</p>
+            <div class="input-container">
+                <input type="text" class="input-text keys" id="wallet" readonly>
+                <div class="input-button">
+                    <span id="network-icon"></span>
+                </div>
+            </div>
+            <p class="title">API key</p>
+            <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
+            <p class="title">Recharge amount</p>
+            <div class="input-container">
+                <input type="text" class="input-text keys" id="amount" placeholder="0.0000">
+                <div id="token" class="input-button">
+                    <span class="token-name"></span>
+                </div>
+            </div>
+            <p class="title" id="values">
+                <span id="usd">~$0.00</span>
+                <span>Balance: <span id="balance">0.0000</span><span class="token-name"></span></span>
+            </p>
+            <div id="button-container"><button id="recharge-key">⚡Recharge⚡</button></div>`;
+
+            const account = await web3.getAccount();
+            tabsContent.recharge.querySelector('#wallet').value = `${account.slice(0,6)}...${account.slice(-4)}`;
+            tabsContent.recharge.querySelector('#network-icon').innerHTML = `<img src='img/${network.get().symbol}.png'>`;
+            tabsContent.recharge.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.get().token);
+            tabsContent.recharge.querySelector('#values #balance').innerHTML = (await web3.getBalance()).slice(0,9);
+
+            bind('OK');
+            return;
+        }
+
+        const bind = status => {
+            const buttons = tabsContent.recharge.querySelectorAll('button');
+
+            // update usd span to reflect amount value converted to usd
+            amount.addEventListener('keyup', async () => {
+                const usd = tabsContent.recharge.querySelector('#values #usd');
+                usd.innerHTML = `~$${ (price.current.now * parseFloat(amount.value)).toFixed(2) }`;
+
+                if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                    usd.innerHTML = `~$0.00`;
+                }
+            });
+            
+            buttons.forEach((e,i) => {
+                if (!e.hasListener) {
+                    e.addEventListener('click', async () => {
+                        if (status == 'not injected'){
+                            window.open('https://metamask.io/');
+                            document.querySelector('#fog').click();
+                            return;
+                        }
+                        if (status == 'not connected') {
+                            await web3.connect();
+                            return;
+                        }
+                        if (status == 'unsupported network' || status == 'wrong network') {
+                            if (i == 0){
+                                await web3.switchNetwork(network.get());
+                            }
+                            return;
+                        }
+                        if (status == 'OK') {
+                            const account = await web3.getAccount();
+                            const key = tabsContent.recharge.querySelector('#key');
+                            const amount = tabsContent.recharge.querySelector('#amount');
+                            const apiKeyRegex = this.regex.apiKey;
+                            const button = tabsContent.recharge.querySelector('button');
+        
+                            // bind event to remove red tip when typying a corret api key
+                            key.addEventListener('keyup', () => {
+                                const value = key.value.trim().toLowerCase();
+                                if (value.match(apiKeyRegex)){
+                                    button.innerHTML = '⚡Recharge⚡';
+                                    button.removeAttribute('disabled');
+                                    key.classList.remove('red');
+                                }
+                            });
+                    
+                            // check if there is sufficient amount
+                            amount.addEventListener('keyup', async () => {
+                                const value = parseFloat(amount.value);
+                                if (value <= parseFloat(await web3.getBalance()) && value > 0){
+                                    button.innerHTML = '⚡Recharge⚡';
+                                    button.removeAttribute('disabled');
+                                    amount.classList.remove('red');
+                                }
+                                
+                                if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                                    tabsContent.recharge.querySelector('#values #usd').innerHTML = `~$0.00`;
+                                }
+                                else {
+                                    tabsContent.recharge.querySelector('#values #usd').innerHTML = `~$${ (price.current.now * value).toFixed(2) }`;
+                                }
+                            });
+                    
+                            // check if key doesnt match regex
+                            if (!key.value.match(apiKeyRegex)){
+                                button.innerHTML = 'Invalid API key';
+                                button.setAttribute('disabled', true);
+                                key.classList.add('red');
+                                return;
+                            }
+
+                            // check if there is enough balance
+                            if (parseFloat(amount.value) > parseFloat(await web3.getBalance())) {
+                                button.innerHTML = 'Insufficient balance';
+                                button.setAttribute('disabled', true);
+                                amount.classList.add('red');
+                                return;
+                            }
+
+                            // check if amount is a valid positive value
+                            if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                                button.setAttribute('disabled', true);
+                                amount.classList.add('red');
+                                return;
+                            }
+                
+                            button.setAttribute('disabled', true);
+                            button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+            
+                            const data = await web3.send({
+                                from: account,
+                                to: wallet.address, // dont bother changing this, server wont recognize your tx
+                                value: amount.value,
+                            });
+
+                            button.removeAttribute('disabled');
+                            button.innerHTML = '⚡Recharge⚡';
+
+                            if (data.error) {
+                                // send a toast informing the error
+                                return;
+                            }
+
+                            // send a toast informing success
+                            console.log(data.transactionHash);
+                        }
+                    });
+                    e.hasListener = true;
+                }
+            });
+        }
+
+        // import web3 from cdn
+        await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
+        const web3 = (await import('./web3.js')).default;
+        web3.init().then(() => {
+            web3.on('connect', checkWalletConnection);
+            web3.on('networkChange', checkWalletConnection);
+            web3.on('accountChange', checkWalletConnection);
+    
+            // after web3 load
+            checkWalletConnection();
+        });
+        
+    },
+
     showWindowCreate: function(data){
         const modal = document.querySelector('#fog #api-window');
         if (data.apiKey){
@@ -790,12 +998,13 @@ const api = {
                 <div class="tab" id="info"><i class="fas fa-eye"></i><span class="text">Key Info</span></div>
                 <div class="tab" id="edit"><i class="fas fa-edit"></i><span class="text">Edit Key</span></div>
                 <div class="tab" id="create"><i class="fas fa-plus"></i><span class="text">Create Key</span></div>
+                <div class="tab" id="recharge"><i class="fa-solid fa-dollar-sign"></i><span class="text">Recharge Key</span></div>
                 <div class="tab" id="close-tab"><i class="fas fa-times"></i></div>
             </div>
             <div id='content'></div>
         </div>`;
 
-        const tabsContent = Object.fromEntries(['info', 'edit', 'create'].map(e => [e, (() => {
+        const tabsContent = Object.fromEntries(['info', 'edit', 'create', 'recharge'].map(e => [e, (() => {
             const elem = document.createElement('div');
             elem.id = 'content';
             return elem;
@@ -825,6 +1034,7 @@ const api = {
         this.createNewApiContent();
         this.createEditApiContent();
         this.createInfoApiContent();
+        this.createRechargeApiContent();
 
         const titleInfo = {
             origin: 'Informing an origin restrict the use of your API key to only the designated domain. It is highly recommended for preventing unauthorized calls using your key.',
@@ -956,10 +1166,11 @@ document.querySelector('#search #drop').addEventListener('click', async function
         <div id="create-key" class="item">Create API key</div>
         <div id="edit-key" class="item">Edit API key</div>
         <div id="info-key" class="item">API key info</div>
+        <div id="recharge-key" class="item">Recharge API key</div>
     `;
 
     dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
-    dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
+    dropdown.style.left = `${this.offsetLeft + this.clientWidth - 145}px`;
 
     dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => api.showModal(e.id.split('-')[0])));
     

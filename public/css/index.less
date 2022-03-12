@@ -911,28 +911,38 @@
             align-items: center;
             justify-content: center;
             padding: 15px 0 10px 0;
-            width: 33.33%;
             cursor: pointer;
             transition: 0.3s all;
+            flex-grow: 1;
             
             &.active {
                 background-color: var(--bg-color);
                 cursor: default;
                 text-shadow: 2px 1px 3px #cc4b13;
+
+                .text {
+                    @media @size-400 {
+                        display: block;
+                    }
+                }
+
+                i {
+                    @media @size-400 {
+                        margin-right: 10px;
+                    }    
+                }
             }
 
             i {
-                @media @size-400 {
-                    margin-right: 10px;
-                }
+                margin-right: 0px;
             }
 
             .text {
                 display: none;
+            }
 
-                @media @size-400 {
-                    display: block;
-                }
+            &:hover {
+                filter: brightness(1.15);
             }
         }
 
@@ -972,6 +982,24 @@
                 transition: 0.7s transform;
                 transform: rotate(360deg);
             }
+
+            #token {
+                width: auto;
+
+                .token-name {
+                    margin: 0 5px;
+                }
+            }
+
+            #network-icon {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                
+                img {
+                    width: 25px;
+                }
+            }
         }
 
         .tip {
@@ -989,6 +1017,21 @@
             text-align: center;
             display: block;
             margin-bottom: 15px;
+        }
+
+        #values {
+            margin-top: -10px;
+            margin-right: 5px;
+            display: flex;
+            justify-content: space-between;
+
+            #balance {
+                margin-right: 5px;
+            }
+            
+            #usd {
+                margin-left: 5px;
+            }
         }
     }
 

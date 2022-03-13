@@ -586,16 +586,24 @@ const api = {
         tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
         <p>Connect your wallet to recharge your API key</p>
         <div id="button-container" class="vertical"></div>`;
+
+        let updatingUI = false;
        
         const checkWalletConnection = async () => {
-            if (!web3 || !web3.injected){
+            if (updatingUI) {
+                return;
+            }
+
+            updatingUI = true;
+
+            if (!this.web3 || !this.web3.injected){
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>You must get Metamask to connect to your wallet</p>
                 <div id="button-container" class="vertical"><button>Get Metamask</button></div>`;
                 bind('not injected');
                 return;
             }
-            if (!web3.connected) {
+            if (!this.web3.connected) {
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>Connect your wallet to recharge your API key</p>
                 <div id="button-container" class="vertical"><button>Connect</button></div>`;
@@ -603,7 +611,7 @@ const api = {
                 return;
             }
 
-            const connectedNetwork = network.getById(await web3.getNetworkId());
+            const connectedNetwork = network.getById(await this.web3.getNetworkId());
             if (!connectedNetwork) {
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>Network not supported</p>
@@ -645,13 +653,14 @@ const api = {
             </p>
             <div id="button-container"><button id="recharge-key">⚡Recharge⚡</button></div>`;
 
-            const account = await web3.getAccount();
+            const account = await this.web3.getAccount();
             tabsContent.recharge.querySelector('#wallet').value = `${account.slice(0,6)}...${account.slice(-4)}`;
             tabsContent.recharge.querySelector('#network-icon').innerHTML = `<img src='img/${network.get().symbol}.png'>`;
             tabsContent.recharge.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.get().token);
-            tabsContent.recharge.querySelector('#values #balance').innerHTML = (await web3.getBalance()).slice(0,9);
+            await this.refreshBalance();
 
             bind('OK');
+            updatingUI = false;
             return;
         }
 
@@ -659,14 +668,17 @@ const api = {
             const buttons = tabsContent.recharge.querySelectorAll('button');
 
             // update usd span to reflect amount value converted to usd
-            amount.addEventListener('keyup', async () => {
-                const usd = tabsContent.recharge.querySelector('#values #usd');
-                usd.innerHTML = `~$${ (price.current.now * parseFloat(amount.value)).toFixed(2) }`;
-
-                if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
-                    usd.innerHTML = `~$0.00`;
-                }
-            });
+            if (status == 'OK') {
+                const amount = tabsContent.recharge.querySelector('#amount');
+                amount.addEventListener('keyup', async () => {
+                    const usd = tabsContent.recharge.querySelector('#values #usd');
+                    usd.innerHTML = `~$${ (price.current.now * parseFloat(amount.value)).toFixed(2) }`;
+    
+                    if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                        usd.innerHTML = `~$0.00`;
+                    }
+                });
+            }
             
             buttons.forEach((e,i) => {
                 if (!e.hasListener) {
@@ -677,17 +689,17 @@ const api = {
                             return;
                         }
                         if (status == 'not connected') {
-                            await web3.connect();
+                            await this.web3.connect();
                             return;
                         }
                         if (status == 'unsupported network' || status == 'wrong network') {
                             if (i == 0){
-                                await web3.switchNetwork(network.get());
+                                await this.web3.switchNetwork(network.get());
                             }
                             return;
                         }
                         if (status == 'OK') {
-                            const account = await web3.getAccount();
+                            const account = await this.web3.getAccount();
                             const key = tabsContent.recharge.querySelector('#key');
                             const amount = tabsContent.recharge.querySelector('#amount');
                             const apiKeyRegex = this.regex.apiKey;
@@ -697,7 +709,6 @@ const api = {
                             key.addEventListener('keyup', () => {
                                 const value = key.value.trim().toLowerCase();
                                 if (value.match(apiKeyRegex)){
-                                    button.innerHTML = '⚡Recharge⚡';
                                     button.removeAttribute('disabled');
                                     key.classList.remove('red');
                                 }
@@ -706,8 +717,7 @@ const api = {
                             // check if there is sufficient amount
                             amount.addEventListener('keyup', async () => {
                                 const value = parseFloat(amount.value);
-                                if (value <= parseFloat(await web3.getBalance()) && value > 0){
-                                    button.innerHTML = '⚡Recharge⚡';
+                                if (value <= parseFloat(await this.web3.getBalance()) && value > 0){
                                     button.removeAttribute('disabled');
                                     amount.classList.remove('red');
                                 }
@@ -722,22 +732,23 @@ const api = {
                     
                             // check if key doesnt match regex
                             if (!key.value.match(apiKeyRegex)){
-                                button.innerHTML = 'Invalid API key';
+                                new Toast(`❌ Invalid API key`, { timeOut: 3000, position: 'center' });
                                 button.setAttribute('disabled', true);
                                 key.classList.add('red');
                                 return;
                             }
 
                             // check if there is enough balance
-                            if (parseFloat(amount.value) > parseFloat(await web3.getBalance())) {
-                                button.innerHTML = 'Insufficient balance';
+                            if (parseFloat(amount.value) > parseFloat(await this.web3.getBalance())) {
+                                new Toast(`💸 Insufficient balance`, { timeOut: 3000, position: 'center' });
                                 button.setAttribute('disabled', true);
                                 amount.classList.add('red');
                                 return;
                             }
-
+                            
                             // check if amount is a valid positive value
                             if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                                new Toast(`💰 Invalid amount value`, { timeOut: 3000, position: 'center' });
                                 button.setAttribute('disabled', true);
                                 amount.classList.add('red');
                                 return;
@@ -745,23 +756,36 @@ const api = {
                 
                             button.setAttribute('disabled', true);
                             button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+
+                            let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting confirmation...</span>`, { timeOut: 0, position: 'center' });
+                            let toastAccept;
             
-                            const data = await web3.send({
+                            await new Promise(resolve => this.web3.send({
                                 from: account,
                                 to: wallet.address, // dont bother changing this, server wont recognize your tx
                                 value: amount.value,
-                            });
-
+                            })
+                            .on('error', error => {
+                                new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
+                                toastConfirm.fade(1000);
+                                if (toastAccept) {
+                                    toastAccept.fade(1000);
+                                }
+                                resolve(error);
+                            })
+                            .on('transactionHash', hash => {
+                                toastConfirm.fade(1000);
+                                toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for pending   transaction...</span>`, { timeOut: 0, position: 'center' });
+                            })
+                            .on('receipt', receipt => {
+                                toastAccept.fade(1000);
+                                new Toast(`Transaction Confirmed. <a href="${ network.get().explorer.href }/tx/${ receipt.transactionHash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+                                resolve(receipt);
+                            }));
+                            
+                            this.refreshBalance(false);
                             button.removeAttribute('disabled');
                             button.innerHTML = '⚡Recharge⚡';
-
-                            if (data.error) {
-                                // send a toast informing the error
-                                return;
-                            }
-
-                            // send a toast informing success
-                            console.log(data.transactionHash);
                         }
                     });
                     e.hasListener = true;
@@ -771,16 +795,26 @@ const api = {
 
         // import web3 from cdn
         await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
-        const web3 = (await import('./web3.js')).default;
-        web3.init().then(() => {
-            web3.on('connect', checkWalletConnection);
-            web3.on('networkChange', checkWalletConnection);
-            web3.on('accountChange', checkWalletConnection);
+        this.web3 = (await import('./web3.min.js')).default;
+        this.web3.init().then(() => {
+            this.web3.on('connect', checkWalletConnection);
+            this.web3.on('networkChange', checkWalletConnection);
+            this.web3.on('accountChange', checkWalletConnection);
     
             // after web3 load
             checkWalletConnection();
         });
         
+    },
+
+    refreshBalance: async function(loop=true) {
+        const balanceDOM = this.tabsContent.recharge.querySelector('#values #balance');
+        if (balanceDOM) {
+            balanceDOM.innerHTML = (await this.web3.getBalance()).slice(0,9);
+            if (loop) {
+                setTimeout(() => this.refreshBalance(), 5000);
+            }
+        }
     },
 
     showWindowCreate: function(data){
@@ -927,7 +961,7 @@ const api = {
                     const data = await api.getKey(key);
 
                     // if even after await you are still on the same window
-                    if (modal && modal.querySelector('#input-credit')){
+                    if (modal && modal.querySelector('#input-credit') && key == modal.querySelector('.input-text').value){
                         modal.querySelector('#input-credit').value = `$${parseFloat(data.credit).toFixed(6)}`;
                         setTimeout(() => refreshCredit(key), 5000);
                     }
@@ -1263,7 +1297,13 @@ class Tooltip {
     }
 }
 
-
+// Options:
+// id: put an id to the modal window
+// large: modal window will have higher width
+// fog.close: clicking the fog will remove the modal. default true
+// fog.dark: fog will be black
+// fog.invisible: fog will be invisible
+// buttonClose: id of the button that will close the modal
 class Modal {
     constructor(text, options = {}) {
         if (document.querySelector('#fog.modal')){
@@ -1282,8 +1322,8 @@ class Modal {
             this.domObject.classList.add('large');
         }
 
-        this.fogClose = options.fog && options.fog.close || true;
-        if (!this.fogClose){
+        this.fogClose = options.fog ? (options.fog.close || false) : true;
+        if (this.fogClose){
             fog.addEventListener('click', () => fog.remove());
             fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
         }
@@ -1330,6 +1370,49 @@ class Modal {
 
     close() {
         this.domObject.parentNode.remove();
+    }
+}
+
+class Toast {
+    constructor(text, { timeOut, position='right' }={}) {
+        let container = document.querySelector('#toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.append(container);
+        }
+
+        this.element = document.createElement('div');
+        this.element.classList.add('toast');
+        this.element.innerHTML = text;
+        
+        this.timeOut = timeOut;
+        
+        if (position == 'center') {
+            container.classList.add('center');
+        }
+
+        container.prepend(this.element);
+
+        if (this.timeOut > 0) {
+            this.fade();
+        }
+        return this;
+    }
+
+    fade(timeOut) {
+        if (!timeOut) {
+            timeOut = this.timeOut;
+        }
+        setTimeout(() => this.element.classList.add('fade'), timeOut - 1000);
+        setTimeout(() => this.element.remove(), timeOut);
+        setTimeout(() => {
+            this.element.remove();
+
+            if (!document.querySelector('#toast-container .toast') && document.querySelector('#toast-container')) {
+                document.querySelector('#toast-container').remove();
+            }
+        }, timeOut);
     }
 }
 

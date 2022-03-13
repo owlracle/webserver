@@ -156,7 +156,7 @@ export default {
         },
     },
 
-    send: async function({ from, to, value }) {
+    send: function({ from, to, value }) {
         const message = 'Waiting for tx...';
         console.log(message);
 
@@ -164,20 +164,11 @@ export default {
             this.events.status(message);
         }
 
-        try {
-            const sendTx = await this.instance.eth.sendTransaction({
-                to: to,
-                from: from, 
-                value: this.instance.utils.toWei(Number(value).toString(), "ether"),
-            });
-
-            return sendTx;
-        }
-        catch (error) {
-            console.log('Error sending tx:');
-            console.log(error);
-            return { error: true, response: error };
-        }
+        return this.instance.eth.sendTransaction({
+            to: to,
+            from: from, 
+            value: this.instance.utils.toWei(Number(value).toString(), "ether"),
+        });
     },
 
     // waitConfirmation: async function(hash, interval = 1000) {

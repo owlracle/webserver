@@ -1,4 +1,4 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal } from './utils.min.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, Modal } from './utils.min.js';
 
 
 // remove hidden inputs sent from server
@@ -127,9 +127,21 @@ const network = (symbol => {
         // future code here
     }
     // show an intro message. show again each week
-    else if (!cookies.get('hide-info')){
-        infoMessageModal.show(`Now I can deliver you <a href="https://t.me/owlracle_gas_bot?start=credit" target="_blank" aria-label="discord bot" rel="noopener">Telegram alerts</a> whenever you are low on API credits. Try it! 🦉`);
-        infoMessageModal.onClose = () => cookies.set('hide-info', true, { expires: { days: 7 }, json: true });
+    else if (!cookies.get('hide-info-1')){
+        const message = infoMessageModal.show(`From now on I will handle all your API key recharges through Metamask! <a>Learn more</a>. 🦉`);
+        infoMessageModal.onClose = () => cookies.set('hide-info-1', true, { expires: { days: 7 }, json: true });
+
+        message.querySelector('a').addEventListener('click', () => {
+            new Modal(`
+                <h1>Metamask integration</h1>
+                <p>We are very excited to announce that from now on, every API recharge will be made using <a href="https://metamask.io/" target="_blank" rel="noopener">Metamask extension</a>. We believe this change will make easier for users to make recharges, and also make our app more in line with other Web3 services.</p>
+                <p>When creating API keys, or accessing your keys' information, the <b>wallet</b> field will no longer be shown on those windows.</p>
+                <p>Whenever you want to make an API recharge, you can access the new key tab <a href="?action=recharge">Recharge key</a>. In this tab, Owlracle will guide you through connecting your Metamask wallet with the website, and making the recharge transaction.</p>
+                <p>Once the transaction is confirmed, your API credit will be automatically updated. Should you find any issue while recharging, don't hesitate to contact us through any of <a href="/links">our channels</a>.</p>
+                <p>The old method will still be usable for 30 days. After 22-04-17, any tokens sent to the old API wallets will not increase your API credits. However, you can still <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a> to ask us to send your tokens back though.</p>
+                <p>As always, we are eager to hear your thoughts.</p>
+            `, { large: true });
+        });
     }
 
     // show api key information directly from url
@@ -143,6 +155,11 @@ const network = (symbol => {
     // open api key creation window directly from url
     if (query.action && query.action === 'newkey'){
         api.showModal('create');
+    }
+
+    // open api key recharge window directly from url
+    if (query.action && query.action === 'recharge'){
+        api.showModal('recharge');
     }
 
     return network;

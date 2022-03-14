@@ -1,5 +1,6 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, Modal } from './utils.min.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, Modal, startHeaderApiSearch } from './utils.min.js';
 
+startHeaderApiSearch();
 
 // remove hidden inputs sent from server
 const templateVar = {};

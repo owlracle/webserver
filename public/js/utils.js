@@ -1173,61 +1173,62 @@ const api = {
 };
 
 
-// search api key button
-
-document.querySelector('#search #api-info').addEventListener('click', async () => {
-    const glyph = document.querySelector('#search #api-info i');
-    glyph.classList.remove('fa-search');
-    glyph.classList.add('fa-spin', 'fa-cog');
-
-    const input = document.querySelector('#search input');
-    input.setAttribute('disabled', true);
-
-    const key = input.value.trim().toLowerCase();
-    if (key.match(api.regex.apiKey)){
-        const data = await api.getKey(key);
-        api.showModal();
-        api.showWindowInfo(data);
-
-    }
-    glyph.classList.remove('fa-spin', 'fa-cog');    
-    glyph.classList.add('fa-search');
-    input.removeAttribute('disabled');
-    input.value = '';
-});
-
-document.querySelector('#search input').addEventListener('keyup', e => {
-    if (e.key == 'Enter'){
-        document.querySelector('#search #api-info').click();
-    }
-});
-
-document.querySelector('#search #drop').addEventListener('click', async function() {
-    const dropdown = document.createElement('div');
-    dropdown.id = 'dropdown';
-
-    dropdown.innerHTML = `
-        <div id="create-key" class="item">Create API key</div>
-        <div id="edit-key" class="item">Edit API key</div>
-        <div id="info-key" class="item">API key info</div>
-        <div id="recharge-key" class="item">Recharge API key</div>
-    `;
-
-    dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
-    dropdown.style.left = `${this.offsetLeft + this.clientWidth - 145}px`;
-
-    dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => api.showModal(e.id.split('-')[0])));
+const startHeaderApiSearch = () => {
+    // search api key button
+    document.querySelector('#search #api-info').addEventListener('click', async () => {
+        const glyph = document.querySelector('#search #api-info i');
+        glyph.classList.remove('fa-search');
+        glyph.classList.add('fa-spin', 'fa-cog');
     
-    const fog = document.createElement('div');
-    fog.id = 'fog';
-    fog.classList.add('invisible');
-
-
-    document.body.appendChild(fog);
-    fog.appendChild(dropdown);
-
-    fog.addEventListener('click', () => fog.remove());
-});
+        const input = document.querySelector('#search input');
+        input.setAttribute('disabled', true);
+    
+        const key = input.value.trim().toLowerCase();
+        if (key.match(api.regex.apiKey)){
+            const data = await api.getKey(key);
+            api.showModal();
+            api.showWindowInfo(data);
+    
+        }
+        glyph.classList.remove('fa-spin', 'fa-cog');    
+        glyph.classList.add('fa-search');
+        input.removeAttribute('disabled');
+        input.value = '';
+    });
+    
+    document.querySelector('#search input').addEventListener('keyup', e => {
+        if (e.key == 'Enter'){
+            document.querySelector('#search #api-info').click();
+        }
+    });
+    
+    document.querySelector('#search #drop').addEventListener('click', async function() {
+        const dropdown = document.createElement('div');
+        dropdown.id = 'dropdown';
+    
+        dropdown.innerHTML = `
+            <div id="create-key" class="item">Create API key</div>
+            <div id="edit-key" class="item">Edit API key</div>
+            <div id="info-key" class="item">API key info</div>
+            <div id="recharge-key" class="item">Recharge API key</div>
+        `;
+    
+        dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
+        dropdown.style.left = `${this.offsetLeft + this.clientWidth - 145}px`;
+    
+        dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => api.showModal(e.id.split('-')[0])));
+        
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+        fog.classList.add('invisible');
+    
+    
+        document.body.appendChild(fog);
+        fog.appendChild(dropdown);
+    
+        fog.addEventListener('click', () => fog.remove());
+    });
+};
 
 
 // tooltip class
@@ -1500,4 +1501,4 @@ const recaptcha = {
 }
 
 
-export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn, infoMessageModal };
+export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn, infoMessageModal, startHeaderApiSearch };

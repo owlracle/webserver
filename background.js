@@ -66,7 +66,7 @@ async function updateAllCredit(api){
     if (!error){
         // wait before every api update so we dont overload the explorers
         for (let i=0 ; i < rows.length ; i++){
-            await api.updateCredit(rows[i]);
+            await api.updateCreditLegacy(rows[i]);
         }
     }
 

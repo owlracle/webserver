@@ -239,7 +239,7 @@ module.exports = (app, api) => {
         // wait before every api update so we dont overload the explorers
         const resp = {};
         for (let i=0 ; i < rows.length ; i++){
-            resp[rows[i].id] = await api.updateCredit(rows[i]);
+            resp[rows[i].id] = await api.updateCreditLegacy(rows[i]);
         }
 
         res.send({ message: 'success', keys: resp });

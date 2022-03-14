@@ -185,11 +185,43 @@ const explorer = {
         // {"status":"1","message":"OK-Missing/Invalid API Key, rate limit of 1/5sec applied","result":"946206"}
     },
 
-    getTx: async function(wallet, fromTime, toTime, network, internal=false){
+    getTx: async function({ wallet, fromTime, toTime, network, internal=false, transactionHash }){
         // console.log(wallet, from, to)
         if (!this.apiKey[network] || !this.url[network]){
             return { status: "0", message: "THERE IS NO API FOR THIS NETWORK", result: [] };
         }
+
+        if (transactionHash) {
+            try {
+                const url = `${ this.url[network] }/api?module=proxy&action=eth_getTransactionByHash&txhash=${ transactionHash }&apikey=${ this.apiKey[network] }`;
+                const request = await fetch(url);
+                const txs = (data => {
+                    try {
+                        return JSON.parse(data);
+                    }
+                    catch (error) {
+                        return { status: '0', message: 'NOTOK', result: 'Explorer returned non JSON response' };
+                    }
+                })(await request.text());
+    
+                if (txs.status == '0' && txs.result == 'Explorer returned non JSON response'){
+                    await new Promise(resolve => setTimeout(() => resolve(true), 500));
+                    return await this.getTx({
+                        transactionHash: transactionHash,
+                        network: network,
+                    });
+                }
+    
+                return txs;
+            }
+            catch (error) {
+                console.log(error);
+                return error;
+            }
+
+            // {"jsonrpc":"2.0","id":1,"result":{"blockHash":"0x00016d8f000003d162312a4bca23b4fb01760509dac7030481dbe4b8abba81cf","blockNumber":"0x200d45a","from":"0x7f5d7e00d82dfeb7e83a0d4285cb21b31feab2b4","gas":"0x5208","gasPrice":"0x9cb0b8cfc0","hash":"0x1a841fb6c066d5477766424a49d840f2ea6cfb29ae2e1aedf17e0119eb441831","input":"0x","nonce":"0x439","to":"0x809aef7f5d8d1dc63b9b453bf2ebaa6fccf2a912","transactionIndex":"0x4","value":"0x11e473e8a7f4a78","type":"0x0","v":"0x217","r":"0xe91ff13a6a564a6f39e9c4c94b8f6caeb085d007c3b4d996e0621ddd328644da","s":"0x4121e4b27c50a53fef982a4ffcc32a026aa9f1357a2038dfc0d7c53fa9123018"}}
+        }
+
         const fromBlock = await this.getBlockNumber(parseInt(fromTime), network);
         const toBlock = await this.getBlockNumber(parseInt(toTime), network);
 
@@ -207,7 +239,7 @@ const explorer = {
 
             if (txs.status == '0' && txs.result == 'Explorer returned non JSON response'){
                 await new Promise(resolve => setTimeout(() => resolve(true), 500));
-                return await this.getTx(wallet, fromTime, toTime, network);
+                return await this.getTx({ wallet: wallet, fromTime: fromTime, toTime: toTime, network: network });
             }
 
             return txs;

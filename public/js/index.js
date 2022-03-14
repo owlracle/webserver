@@ -135,7 +135,7 @@ const network = (symbol => {
         message.querySelector('a').addEventListener('click', () => {
             new Modal(`
                 <h1>Metamask integration</h1>
-                <p>We are very excited to announce that from now on, every API recharge will be made using <a href="https://metamask.io/" target="_blank" rel="noopener">Metamask extension</a>. We believe this change will make easier for users to make recharges, and also make our app more in line with other Web3 services.</p>
+                <p>We are very excited to announce that from now on, every API recharge will be made using <a href="https://metamask.io/" target="_blank" rel="noopener">Metamask</a> extension. We believe this change will make easier for users to make recharges, and also make our app more in line with other Web3 services.</p>
                 <p>When creating API keys, or accessing your keys' information, the <b>wallet</b> field will no longer be shown on those windows.</p>
                 <p>Whenever you want to make an API recharge, you can access the new key tab <a href="?action=recharge">Recharge key</a>. In this tab, Owlracle will guide you through connecting your Metamask wallet with the website, and making the recharge transaction.</p>
                 <p>Once the transaction is confirmed, your API credit will be automatically updated. Should you find any issue while recharging, don't hesitate to contact us through any of <a href="/links">our channels</a>.</p>
@@ -941,8 +941,8 @@ const faq = {
         `Do not EVER expose your API key on the front-end. If you do so, users will be able to read your source-code then make calls using your API (thus expending all your credits). Retrieve our data from your server back-end, then provide the cached data to your users when they request it.`],
         [`My API key have been exposed. What should I do?`,
         `You can reset your API key hash and generate a new one <a id="link-reset-key">clicking here</a>.`],
-        [`I want to make a recharge. Where can I find my API wallet?`,
-        `Your API wallet can be found in the <a onclick="document.querySelector('#manage-apikey').click()">API management window</a>. To add credits to your account, just make a <span class="token-name"></span> transfer of any amount to your API wallet. Use the management window to update your balance and keep track of your recharge history.`],
+        [`I am reaching API rate limit. How can I make a recharge and keep using Owlracle?`,
+        `On the header there is a <i>Search API key</i> box. You could click on the arrow down and choose <i>Recharge API key</i> option. From there you will be asked to connect your Metamask wallet. Then you can transfer any amount of tokens to recharge your key.`],
     ],
 
     getList: function() {

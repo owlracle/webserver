@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const fs = require('fs');
 
-const { Session, verifyRecaptcha, oracle, networkList, explorer, telegram } = require('./utils');
+const { Session, verifyRecaptcha, oracle, networkList, explorer, telegram, configFile } = require('./utils');
 const db = require('./database');
 
 const corsOptions = {
@@ -399,13 +399,13 @@ module.exports = app => {
         
         try {
             // create new wallet for deposits
-            const wallet = await (await fetch('https://api.blockcypher.com/v1/eth/main/addrs', { method: 'POST' })).json();
+            // const wallet = await (await fetch('https://api.blockcypher.com/v1/eth/main/addrs', { method: 'POST' })).json();
             
             const data = {
                 apiKey: hash[0],
                 secret: hash[1],
-                wallet: `0x${wallet.address}`,
-                private: wallet.private,
+                // wallet: `0x${wallet.address}`,
+                // private: wallet.private,
                 peek: key.slice(-4),
             };
         
@@ -429,14 +429,14 @@ module.exports = app => {
                     message: 'Error while trying to insert new api key to database',
                     serverMessage: error,
                 });
+                return;
             }
-            else {
-                res.send({
-                    apiKey: key,
-                    secret: secret,
-                    wallet: data.wallet,
-                });
-            }
+
+            res.send({
+                apiKey: key,
+                secret: secret,
+                // wallet: data.wallet,
+            });
         }
         catch (error) {
             res.status(500);
@@ -790,44 +790,17 @@ module.exports = app => {
     // update credit
     app.put('/credit/:key', async (req, res) => {
         const key = req.params.key;
-    
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
+        const tx = req.body.transactionHash;
+        const network = req.body.network;
+        const row = await api.validateKey(key);
+
+        if (row.status != 200) {
+            res.status(row.status).send(row.send);
+            return;
         }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else {
-                const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
-        
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find your api key.'
-                    });
-                }
-                else {
-                    const txs = await api.updateCredit(row[0]);
-                    res.send(txs);
-                }
-            }
-        }
+
+        const txs = await (tx ? api.updateCredit(row.send, tx, network) : api.updateCreditLegacy(row.send));
+        res.send(txs);
     });
 
 
@@ -1085,7 +1058,8 @@ const api = {
         return rows;
     },
 
-    updateCredit: async function({id, wallet, timeChecked, credit}){
+    // the old update credit. will stay active for a while
+    updateCreditLegacy: async function({ id, wallet, timeChecked, credit }){
         const now = parseInt(new Date().getTime() / 1000);
         const then = parseInt(new Date(timeChecked).getTime() / 1000 - 3600);
         const data = {};
@@ -1096,13 +1070,13 @@ const api = {
         const txsn = [
             // get normal txs
             ...await Promise.all(Object.keys(networkList).map(async network => {
-                const tx = await explorer.getTx(wallet, then, now, network);
+                const tx = await explorer.getTx({ wallet: wallet, fromTime: then, toTime: now, network: network });
                 tx.network2 = networkList[network].dbid;
                 return tx;
             })),
             // get internal txs
             ...await Promise.all(Object.keys(networkList).map(async network => {
-                const tx = await explorer.getTx(wallet, then, now, network, true);
+                const tx = await explorer.getTx({ wallet: wallet, fromTime: then, toTime: now, network: network, internal: true });
                 tx.network2 = networkList[network].dbid;
                 return tx;
             }))
@@ -1212,6 +1186,146 @@ const api = {
         }
 
         return txsn;
+    },
+
+    updateCredit: async function({ id, credit }, transactionHash, network){
+        const data = {};
+        data.api_keys = { credit: credit };
+        data.api_keys.timeChecked = new Date();
+        const wallet = configFile.wallet;
+
+        let tx = await explorer.getTx({
+            transactionHash: transactionHash,
+            network: network,
+        });
+
+        if (!tx.result || !tx.result.hash){
+            return { error: {
+                status: 404,
+                error: 'Not Found',
+                message: 'The informed transaction could not be found.',
+                serverMessage: error,
+            }};
+        }
+
+        data.credit_recharges = {};
+        data.credit_recharges.fields = [
+            'network2',
+            'tx',
+            'value',
+            'price',
+            'fromWallet',
+            'apiKey',
+        ];
+        data.credit_recharges.values = [];
+    
+        tx = tx.result;
+        // check for existing txs
+        const sql = `SELECT tx FROM credit_recharges WHERE tx = ?`;
+        const [rows, error] = await db.query(sql, [ tx.hash ]);
+
+        if (error){
+            return { error: {
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving transaction from database.',
+                serverMessage: error,
+            }};
+        }
+
+        if (rows.length > 0) {
+            return { error: {
+                status: 405,
+                error: 'Not allowed',
+                message: 'Transaction already in the database.',
+                serverMessage: error,
+            }};
+        }
+
+        const priceThen = await (async () => {
+            // get closest block available on history. get token_price from it
+            const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
+            const [rows, error] = await db.query(sql, [ tx.blockNumber, networkList[network].dbid, tx.blockNumber ]);
+    
+            if (error){
+                return { error: {
+                    status: 500,
+                    error: 'Internal Server Error',
+                    message: 'Error while retrieving price history information from database.',
+                    serverMessage: error,
+                }};
+            }
+
+            return parseFloat(rows[0].token_price);
+        })();
+
+        if (priceThen.error){
+            return priceThen;
+        }
+        
+        if (tx.to.toLowerCase() != wallet.toLowerCase()){
+            return { error: {
+                status: 403,
+                error: 'Forbidden',
+                message: 'The informed transaction interact with an unknown wallet address.',
+                serverMessage: error,
+            }};
+        }
+
+        // update price using tx value (it is in gwei, convert to ether) * price value at that time.
+        const value = parseInt(parseInt(tx.value).toString().slice(0,-9));
+        const tokenAmount = value * 0.000000001;
+        const usdAmount = tokenAmount * priceThen;
+        data.api_keys.credit = parseFloat(credit) + usdAmount;
+
+        data.credit_recharges.values.push([
+            networkList[network].dbid,
+            tx.hash,
+            value,
+            priceThen,
+            tx.from,
+            id
+        ]);
+        
+        db.update('api_keys', data.api_keys, `id = ?`, [id]);
+        if (data.credit_recharges.values.length){
+            db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
+            telegram.alert({
+                message: 'Credit recharge',
+                token: networkList[network].token,
+                hash: tx.hash,
+                usdAmount: usdAmount,
+                tokenAmount: tokenAmount,
+                fromWallet: tx.from,
+                toWallet: wallet,
+            });
+
+            // reset alert status
+            const [rows, error] = await db.query(`SELECT id, chatid FROM credit_alerts WHERE active = 1 AND apikey = ?`, [ id ]);
+
+            const chats = [];
+            if (!error) {
+                rows.forEach(row => {
+                    db.update('credit_alerts', { status: '{}' }, `id = ?`, [ row.id ]);
+
+                    if (!chats.includes(row.chatid)) {
+                        chats.push(row.chatid);
+                    }
+                });
+
+                chats.forEach(c => telegram.alert(`✅ Your api key was recharged for $${ usdAmount.toFixed(6) }. Thanks!`, { chatId: c, bot: '@owlracle_gas_bot' }) );
+            }
+        }
+
+        return {
+            status: 200,
+            message: 'Recharge success',
+            amount: {
+                token: tokenAmount,
+                usd: usdAmount,
+            },
+            tx: tx
+        };
     },
 
     // get old blocks

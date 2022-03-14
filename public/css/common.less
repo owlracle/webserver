@@ -880,6 +880,12 @@ header {
             ul {
                 padding-left: 25px;
             }
+
+            a {
+                color: #2689cc;
+                text-decoration: none;
+                cursor: pointer;    
+            }
     
         }
 
@@ -1065,16 +1071,23 @@ header {
         box-shadow: 0 0 5px black;
         margin-bottom: 5px;
         opacity: 1;
-        transition: 1s opacity;
+        transition: 1s all;
         font-size: 1.2rem;
         max-width: 25%;
         
         &.fade {
             opacity: 0;
+            margin: 0;
+            padding: 0;
+            font-size: 0;
         }
 
         a {
             color: #2689cc;
+        }
+
+        .green {
+            color: #58b880;
         }
     }
 }

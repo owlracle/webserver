@@ -590,9 +590,9 @@ const api = {
         let updatingUI = false;
        
         const checkWalletConnection = async () => {
-            if (updatingUI) {
-                return;
-            }
+            // if (updatingUI) {
+            //     return;
+            // }
 
             updatingUI = true;
 
@@ -748,7 +748,7 @@ const api = {
                             
                             // check if amount is a valid positive value
                             if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
-                                new Toast(`💰 Invalid amount value`, { timeOut: 3000, position: 'center' });
+                                new Toast(`💰 Invalid token value`, { timeOut: 3000, position: 'center' });
                                 button.setAttribute('disabled', true);
                                 amount.classList.add('red');
                                 return;
@@ -757,7 +757,7 @@ const api = {
                             button.setAttribute('disabled', true);
                             button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
 
-                            let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting confirmation...</span>`, { timeOut: 0, position: 'center' });
+                            let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
                             let toastAccept;
             
                             await new Promise(resolve => this.web3.send({
@@ -775,11 +775,21 @@ const api = {
                             })
                             .on('transactionHash', hash => {
                                 toastConfirm.fade(1000);
-                                toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for pending   transaction...</span>`, { timeOut: 0, position: 'center' });
+                                toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction...</span>`, { timeOut: 0, position: 'center' });
                             })
-                            .on('receipt', receipt => {
+                            .on('receipt', async receipt => {
                                 toastAccept.fade(1000);
                                 new Toast(`Transaction Confirmed. <a href="${ network.get().explorer.href }/tx/${ receipt.transactionHash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+
+                                const data = await this.updateCredit({
+                                    apiKey: key.value,
+                                    transactionHash: receipt.transactionHash
+                                });
+
+                                if (data.status == 200) {
+                                    new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>. Thanks!`, { timeOut: 10000, position: 'center' });
+                                }
+
                                 resolve(receipt);
                             }));
                             
@@ -830,11 +840,6 @@ const api = {
                 <p class="title">API Secret</p>
                 <div class="input-container">
                     <input type="text" class="input-text keys" value="${data.secret}" readonly>
-                    <div class="input-button"><i class="far fa-copy"></i></div>
-                </div>
-                <p class="title">Wallet</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" value="${data.wallet}" readonly>
                     <div class="input-button"><i class="far fa-copy"></i></div>
                 </div>
                 <ul>
@@ -906,9 +911,10 @@ const api = {
 
                 let input = `<input type="text" class="input-text keys" id="input-${label}" value="${value}" readonly>`;
                 if (e[0] == 'wallet'){
-                    input = `<div class="input-container">${input}<div id="copy" class="input-button" title="Copy"><i class="far fa-copy"></i></div></div>`;
+                    return '';
+                    // input = `<div class="input-container">${input}<div id="copy" class="input-button" title="Copy"><i class="far fa-copy"></i></div></div>`;
                 }
-                else if (e[0] == 'credit'){
+                if (e[0] == 'credit'){
                     input = `<div class="input-container">${input}<div id="update" class="input-button" title="Update"><i class="fas fa-sync-alt"></i></div></div>`;
                 }
                 else if (e[0] == 'origin'){
@@ -933,10 +939,10 @@ const api = {
                 </div>
             </div>`;
 
-            modal.querySelector('#copy').addEventListener('click', function(){
-                const parent = this.closest('.input-container');
-                api.copyText(parent);
-            });
+            // modal.querySelector('#copy').addEventListener('click', function(){
+            //     const parent = this.closest('.input-container');
+            //     api.copyText(parent);
+            // });
             
             modal.querySelector('#update').addEventListener('click', function(){
                 this.classList.add('clicked');
@@ -957,7 +963,7 @@ const api = {
             async function refreshCredit(key){
                 const modal = document.querySelector('#fog #api-window');
                 if (modal && modal.querySelector('#input-credit')){
-                    await api.updateCredit(key);
+                    await api.updateCredit({ apiKey: key });
                     const data = await api.getKey(key);
 
                     // if even after await you are still on the same window
@@ -1106,10 +1112,14 @@ const api = {
         });
     },
 
-    updateCredit: async function(key){
-        return await this.request(`/credit/${key}`, {
+    updateCredit: async function({ apiKey, transactionHash=false }){
+        return await this.request(`/credit/${apiKey}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transactionHash: transactionHash,
+                network: network.get().symbol
+            }),
         });
     },
 
@@ -1420,8 +1430,7 @@ class Toast {
 const infoMessageModal = {
     show: function(message) {
         if (message){
-            this.create(message);
-            return;
+            return this.create(message);
         }
 
         fadeIn(this.container);
@@ -1443,6 +1452,7 @@ const infoMessageModal = {
             }
         });
         document.body.appendChild(this.container);
+        return this.container;
     },
 
     hide: function() {

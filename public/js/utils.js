@@ -787,7 +787,11 @@ const api = {
                                 });
 
                                 if (data.status == 200) {
-                                    new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>. Thanks!`, { timeOut: 10000, position: 'center' });
+                                    let bonus = '';
+                                    if (data.bonus) {
+                                        bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
+                                    }
+                                    new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
                                 }
 
                                 resolve(receipt);

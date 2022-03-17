@@ -1276,7 +1276,8 @@ const api = {
         const value = parseInt(parseInt(tx.value).toString().slice(0,-9));
         const tokenAmount = value * 0.000000001;
         const usdAmount = tokenAmount * priceThen;
-        data.api_keys.credit = parseFloat(credit) + usdAmount;
+        const bonus = usdAmount; // double amount for limited time
+        data.api_keys.credit = parseFloat(credit) + usdAmount + bonus;
 
         data.credit_recharges.values.push([
             networkList[network].dbid,
@@ -1317,7 +1318,7 @@ const api = {
             }
         }
 
-        return {
+        const resp = {
             status: 200,
             message: 'Recharge success',
             amount: {
@@ -1326,6 +1327,12 @@ const api = {
             },
             tx: tx
         };
+
+        if (bonus > 0) {
+            resp.bonus = bonus;
+        }
+
+        return resp;
     },
 
     // get old blocks

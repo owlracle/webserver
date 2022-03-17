@@ -295,15 +295,15 @@ const network = {
         eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', id: 1, explorer: {
             icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
         }, rpc: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',  },
-        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', id: 250, explorer: {
-            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
-        }, rpc: 'https://rpc.ftm.tools/',  },
-        bsc: { symbol: 'bsc', name: 'BSC', longName: 'BNB Chain', token: 'BNB', id: 56, explorer: {
-            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
-        }, rpc: 'https://bsc-dataseed.binance.org/',  },
         avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', id: 43114, explorer: {
             icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
         }, rpc: 'https://api.avax.network/ext/bc/C/rpc',  },
+        bsc: { symbol: 'bsc', name: 'BSC', longName: 'BNB Chain', token: 'BNB', id: 56, explorer: {
+            icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
+        }, rpc: 'https://bsc-dataseed.binance.org/',  },
+        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', id: 250, explorer: {
+            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
+        }, rpc: 'https://rpc.ftm.tools/',  },
         poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', id: 137, explorer: {
             icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
         }, rpc: 'https://polygon-rpc.com',  },

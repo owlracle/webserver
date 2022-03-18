@@ -156,7 +156,7 @@ export default {
         },
     },
 
-    send: function({ from, to, value }) {
+    send: function({ from, to, value, gasPrice }) {
         const message = 'Waiting for tx...';
         console.log(message);
 
@@ -164,11 +164,17 @@ export default {
             this.events.status(message);
         }
 
-        return this.instance.eth.sendTransaction({
+        const args = {
             to: to,
             from: from, 
             value: this.instance.utils.toWei(Number(value).toString(), "ether"),
-        });
+        };
+
+        if (gasPrice ) {
+            args.gasPrice = gasPrice;
+        }
+
+        return this.instance.eth.sendTransaction(args);
     },
 
     // waitConfirmation: async function(hash, interval = 1000) {

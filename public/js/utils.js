@@ -651,6 +651,16 @@ const api = {
                 <span id="usd">~$0.00</span>
                 <span>Balance: <span id="balance">0.0000</span><span class="token-name"></span></span>
             </p>
+            <div id="gasprice">
+                <div id="title">
+                    <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
+                    <psna>Gas Price</span>
+                </div>
+                <div id="body">
+                    <i class="fas fa-spin fa-cog"></i>
+                    <span>Let me handle this </span>
+                </div>
+            </div>
             <div id="button-container"><button id="recharge-key">⚡Recharge⚡</button></div>`;
 
             const account = await this.web3.getAccount();
@@ -658,6 +668,12 @@ const api = {
             tabsContent.recharge.querySelector('#network-icon').innerHTML = `<img src='img/${network.get().symbol}.png'>`;
             tabsContent.recharge.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.get().token);
             await this.refreshBalance();
+
+            // get gas price recommended by owlracle
+            // let gas = window.gasPrice.speeds[2].gasPrice;
+            // gas = this.instance.utils.toWei(gas.toFixed(0).toString(), "gwei");
+
+            // after fetching, put three cards for the user to choose from
 
             bind('OK');
             updatingUI = false;
@@ -704,7 +720,8 @@ const api = {
                             const amount = tabsContent.recharge.querySelector('#amount');
                             const apiKeyRegex = this.regex.apiKey;
                             const button = tabsContent.recharge.querySelector('button');
-        
+                            const gasPrice = tabsContent.recharge.querySelector('.radio');
+
                             // bind event to remove red tip when typying a corret api key
                             key.addEventListener('keyup', () => {
                                 const value = key.value.trim().toLowerCase();
@@ -764,6 +781,7 @@ const api = {
                                 from: account,
                                 to: wallet.address, // dont bother changing this, server wont recognize your tx
                                 value: amount.value,
+                                gasPrice: gasPrice.value,
                             })
                             .on('error', error => {
                                 new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });

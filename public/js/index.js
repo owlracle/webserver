@@ -765,6 +765,7 @@ const gasTimer = {
 gasTimer.init(30000, 100);
 
 gasTimer.onUpdate = function(data){
+    window.gasPrice = data;
     let gas = data.speeds.map(s => s.gasPrice);
     let baseFee = 0;
     

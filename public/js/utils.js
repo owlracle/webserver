@@ -590,52 +590,86 @@ const api = {
         let updatingUI = false;
        
         const checkWalletConnection = async () => {
-            // if (updatingUI) {
-            //     return;
-            // }
+            if (updatingUI) {
+                return;
+            }
 
             updatingUI = true;
 
+            // not injected
             if (!this.web3 || !this.web3.injected){
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>You must get Metamask to connect to your wallet</p>
                 <div id="button-container" class="vertical"><button>Get Metamask</button></div>`;
-                bind('not injected');
+
+                const button = tabsContent.recharge.querySelector('button');
+                button.addEventListener('click', () => {
+                    window.open('https://metamask.io/');
+                    document.querySelector('#fog').click();
+                })
+                updatingUI = false;
                 return;
             }
+
+            // not connected
             if (!this.web3.connected) {
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>Connect your wallet to recharge your API key</p>
                 <div id="button-container" class="vertical"><button>Connect</button></div>`;
-                bind('not connected');
+
+                const button = tabsContent.recharge.querySelector('button');
+                button.addEventListener('click', async () => {
+                    await this.web3.connect();
+                });
+
+                updatingUI = false;
                 return;
             }
 
+            // unsupported network
             const connectedNetwork = network.getById(await this.web3.getNetworkId());
             if (!connectedNetwork) {
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>Network not supported</p>
-                <div id="button-container" class="vertical"><button>Switch to ${network.get().name} network</button></div>`;
-                bind('unsupported network');
+                <div id="button-container" class="vertical"><button>Switch to ${ network.get().name } network</button></div>`;
+
+                const button = tabsContent.recharge.querySelector('button');
+                button.addEventListener('click', async () => {
+                    await this.web3.switchNetwork(network.get());
+                });
+
+                updatingUI = false;
                 return;
             }
+
+            // wrong network
             if (connectedNetwork.id != network.get().id) {
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>Wrong network</p>
                 <div id="button-container" class="vertical">
-                    <button>Switch to ${network.get().name} network</button>
-                    <a href="/${connectedNetwork.symbol}"><button>Go to ${connectedNetwork.name} app</button></a>
+                    <button id="switch">Switch to ${ network.get().name } network</button>
+                    <a href="/${ connectedNetwork.symbol }"><button>Go to ${ connectedNetwork.name } app</button></a>
                 </div>`;
-                bind('wrong network');
+
+                const button = tabsContent.recharge.querySelector('#switch');
+                button.addEventListener('click', async () => {
+                    await this.web3.switchNetwork(network.get());
+                });
+
+                updatingUI = false;
                 return;
             }
+
+            // ok
+            const account = await this.web3.getAccount();
+            const accountSliced = `${ account.slice(0,6) }...${ account.slice(-4) }`;
 
             tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
             <p class="title">Connected Wallet</p>
             <div class="input-container">
-                <input type="text" class="input-text keys" id="wallet" readonly>
+                <input type="text" class="input-text keys" id="wallet" readonly value="${ accountSliced }">
                 <div class="input-button">
-                    <span id="network-icon"></span>
+                    <span id="network-icon"><img src='img/${ network.get().symbol }.png'></span>
                 </div>
             </div>
             <p class="title">API key</p>
@@ -644,186 +678,187 @@ const api = {
             <div class="input-container">
                 <input type="text" class="input-text keys" id="amount" placeholder="0.0000">
                 <div id="token" class="input-button">
-                    <span class="token-name"></span>
+                    <span class="token-name">${ network.get().token }</span>
                 </div>
             </div>
             <p class="title" id="values">
                 <span id="usd">~$0.00</span>
-                <span>Balance: <span id="balance">0.0000</span><span class="token-name"></span></span>
+                <span>Balance: <span id="balance">0.0000</span><span class="token-name">${ network.get().token }</span></span>
             </p>
             <div id="gasprice">
                 <div id="title">
                     <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
-                    <psna>Gas Price</span>
+                    <psna>Recommended Gas Price</span>
                 </div>
                 <div id="body">
-                    <i class="fas fa-spin fa-cog"></i>
+                    <div class="spin"><i class="fas fa-spin fa-cog"></i></div>
                     <span>Let me handle this </span>
                 </div>
             </div>
-            <div id="button-container"><button id="recharge-key">⚡Recharge⚡</button></div>`;
+            <div id="button-container"><button id="recharge-key" disabled>⚡Recharge⚡</button></div>`;
 
-            const account = await this.web3.getAccount();
-            tabsContent.recharge.querySelector('#wallet').value = `${account.slice(0,6)}...${account.slice(-4)}`;
-            tabsContent.recharge.querySelector('#network-icon').innerHTML = `<img src='img/${network.get().symbol}.png'>`;
-            tabsContent.recharge.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.get().token);
-            await this.refreshBalance();
+            const key = tabsContent.recharge.querySelector('#key');
+            const apiKeyRegex = this.regex.apiKey;
+            const button = tabsContent.recharge.querySelector('button');
+            const amount = tabsContent.recharge.querySelector('#amount');
+
+            // refresh TOKEN balance automatically
+            const refreshBalance = async (loop=true) => {
+                const balanceDOM = this.tabsContent.recharge.querySelector('#values #balance');
+                if (balanceDOM) {
+                    balanceDOM.innerHTML = (await this.web3.getBalance()).slice(0,9);
+                    if (loop) {
+                        setTimeout(() => refreshBalance(), 5000);
+                    }
+                }
+            };
+            await refreshBalance();
+
+            // event for when typing on the value input
+            const inputAmount = async () => {
+                const value = parseFloat(amount.value);
+                const usd = tabsContent.recharge.querySelector('#values #usd');
+                usd.innerHTML = `~$${ (price.current.now * value).toFixed(2) }`;
+
+                // check fi valid
+                if (isNaN(value) || value <= 0) {
+                    usd.innerHTML = `~$0.00`;
+                }
+
+                // check if there is sufficient amount
+                if (value <= parseFloat(await this.web3.getBalance()) && value > 0){
+                    button.removeAttribute('disabled');
+                    amount.classList.remove('red');
+                }
+            }
+            // update usd span to reflect amount value converted to usd
+            amount.addEventListener('keyup', inputAmount);
+
+            // click the TOKEN button
+            tabsContent.recharge.querySelector('#token .token-name').addEventListener('click', () => {
+                amount.value = tabsContent.recharge.querySelector('#values #balance').innerHTML;
+                inputAmount();
+            });
 
             // get gas price recommended by owlracle
-            // let gas = window.gasPrice.speeds[2].gasPrice;
-            // gas = this.instance.utils.toWei(gas.toFixed(0).toString(), "gwei");
+            const gasPrice = await new Promise( resolve => {
+                const wait = () => {
+                    if (window.gasPrice) {
+                        resolve(window.gasPrice);
+                        return;
+                    }
+                    setTimeout(() => { wait() }, 250);
+                };
+                wait();
+            });
+            // get slow, standard, fas gas price to array
+            const gasArray = gasPrice.speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
 
             // after fetching, put three cards for the user to choose from
+            const gasPriceContainer = tabsContent.recharge.querySelector('#gasprice #body');
+            let gasSelected = parseInt(gasArray[2] * 1000000000);
+            gasPriceContainer.innerHTML = gasArray.map((e,i) => {
+                const speeds = [ '🛴 Slow', '🚗 Standard', '✈️ Fast'];
+                tabsContent.recharge.querySelector('#recharge-key').removeAttribute('disabled');
+                return `<div class="card ${ i == 2 ? 'selected' : '' }"><span>${speeds[i]}</span><span class="value">${e.toFixed(1)} GWei</span></div>`;
+            }).join('');
 
-            bind('OK');
+            // event for selecting the gas cards
+            const cards = gasPriceContainer.querySelectorAll('.card');
+            cards.forEach((e,i) => e.addEventListener('click', () => {
+                cards.forEach(e => e.classList.remove('selected'));
+                e.classList.add('selected');
+                gasSelected = parseInt(gasArray[i] * 1000000000);
+            }));
+
+            // bind event to remove red tip when typying a corret api key
+            key.addEventListener('keyup', () => {
+                const value = key.value.trim().toLowerCase();
+                if (value.match(apiKeyRegex)){
+                    button.removeAttribute('disabled');
+                    key.classList.remove('red');
+                }
+            });
+        
+            button.addEventListener('click', async () => {
+                // check if key doesnt match regex
+                if (!key.value.match(apiKeyRegex)){
+                    new Toast(`❌ Invalid API key`, { timeOut: 3000, position: 'center' });
+                    button.setAttribute('disabled', true);
+                    key.classList.add('red');
+                    return;
+                }
+    
+                // check if there is enough balance
+                if (parseFloat(amount.value) > parseFloat(await this.web3.getBalance())) {
+                    new Toast(`💸 Insufficient balance`, { timeOut: 3000, position: 'center' });
+                    button.setAttribute('disabled', true);
+                    amount.classList.add('red');
+                    return;
+                }
+                
+                // check if amount is a valid positive value
+                if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                    new Toast(`💰 Invalid token value`, { timeOut: 3000, position: 'center' });
+                    button.setAttribute('disabled', true);
+                    amount.classList.add('red');
+                    return;
+                }
+    
+                // start actions to send token
+                button.setAttribute('disabled', true);
+                button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+    
+                let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
+                let toastAccept;
+    
+                await new Promise(resolve => this.web3.send({
+                    from: account,
+                    to: wallet.address, // dont bother changing this, server wont recognize your tx
+                    value: amount.value,
+                    gasPrice: gasSelected,
+                })
+                .on('error', error => {
+                    new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
+                    toastConfirm.fade(1000);
+                    if (toastAccept) {
+                        toastAccept.fade(1000);
+                    }
+                    resolve(error);
+                })
+                .on('transactionHash', hash => {
+                    toastConfirm.fade(1000);
+                    toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction... Please do not reload this window.</span>`, { timeOut: 0, position: 'center' });
+                })
+                .on('receipt', async receipt => {
+                    toastAccept.fade(1000);
+                    new Toast(`Transaction Confirmed. <a href="${ network.get().explorer.href }/tx/${ receipt.transactionHash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+    
+                    const data = await this.updateCredit({
+                        apiKey: key.value,
+                        transactionHash: receipt.transactionHash
+                    });
+    
+                    if (data.status == 200) {
+                        let bonus = '';
+                        if (data.bonus) {
+                            bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
+                        }
+                        new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
+                    }
+    
+                    resolve(receipt);
+                }));
+                
+                refreshBalance(false);
+                button.removeAttribute('disabled');
+                button.innerHTML = '⚡Recharge⚡';
+            });
+
             updatingUI = false;
             return;
         }
 
-        const bind = status => {
-            const buttons = tabsContent.recharge.querySelectorAll('button');
-
-            // update usd span to reflect amount value converted to usd
-            if (status == 'OK') {
-                const amount = tabsContent.recharge.querySelector('#amount');
-                amount.addEventListener('keyup', async () => {
-                    const usd = tabsContent.recharge.querySelector('#values #usd');
-                    usd.innerHTML = `~$${ (price.current.now * parseFloat(amount.value)).toFixed(2) }`;
-    
-                    if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
-                        usd.innerHTML = `~$0.00`;
-                    }
-                });
-            }
-            
-            buttons.forEach((e,i) => {
-                if (!e.hasListener) {
-                    e.addEventListener('click', async () => {
-                        if (status == 'not injected'){
-                            window.open('https://metamask.io/');
-                            document.querySelector('#fog').click();
-                            return;
-                        }
-                        if (status == 'not connected') {
-                            await this.web3.connect();
-                            return;
-                        }
-                        if (status == 'unsupported network' || status == 'wrong network') {
-                            if (i == 0){
-                                await this.web3.switchNetwork(network.get());
-                            }
-                            return;
-                        }
-                        if (status == 'OK') {
-                            const account = await this.web3.getAccount();
-                            const key = tabsContent.recharge.querySelector('#key');
-                            const amount = tabsContent.recharge.querySelector('#amount');
-                            const apiKeyRegex = this.regex.apiKey;
-                            const button = tabsContent.recharge.querySelector('button');
-                            const gasPrice = tabsContent.recharge.querySelector('.radio');
-
-                            // bind event to remove red tip when typying a corret api key
-                            key.addEventListener('keyup', () => {
-                                const value = key.value.trim().toLowerCase();
-                                if (value.match(apiKeyRegex)){
-                                    button.removeAttribute('disabled');
-                                    key.classList.remove('red');
-                                }
-                            });
-                    
-                            // check if there is sufficient amount
-                            amount.addEventListener('keyup', async () => {
-                                const value = parseFloat(amount.value);
-                                if (value <= parseFloat(await this.web3.getBalance()) && value > 0){
-                                    button.removeAttribute('disabled');
-                                    amount.classList.remove('red');
-                                }
-                                
-                                if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
-                                    tabsContent.recharge.querySelector('#values #usd').innerHTML = `~$0.00`;
-                                }
-                                else {
-                                    tabsContent.recharge.querySelector('#values #usd').innerHTML = `~$${ (price.current.now * value).toFixed(2) }`;
-                                }
-                            });
-                    
-                            // check if key doesnt match regex
-                            if (!key.value.match(apiKeyRegex)){
-                                new Toast(`❌ Invalid API key`, { timeOut: 3000, position: 'center' });
-                                button.setAttribute('disabled', true);
-                                key.classList.add('red');
-                                return;
-                            }
-
-                            // check if there is enough balance
-                            if (parseFloat(amount.value) > parseFloat(await this.web3.getBalance())) {
-                                new Toast(`💸 Insufficient balance`, { timeOut: 3000, position: 'center' });
-                                button.setAttribute('disabled', true);
-                                amount.classList.add('red');
-                                return;
-                            }
-                            
-                            // check if amount is a valid positive value
-                            if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
-                                new Toast(`💰 Invalid token value`, { timeOut: 3000, position: 'center' });
-                                button.setAttribute('disabled', true);
-                                amount.classList.add('red');
-                                return;
-                            }
-                
-                            button.setAttribute('disabled', true);
-                            button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-
-                            let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
-                            let toastAccept;
-            
-                            await new Promise(resolve => this.web3.send({
-                                from: account,
-                                to: wallet.address, // dont bother changing this, server wont recognize your tx
-                                value: amount.value,
-                                gasPrice: gasPrice.value,
-                            })
-                            .on('error', error => {
-                                new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
-                                toastConfirm.fade(1000);
-                                if (toastAccept) {
-                                    toastAccept.fade(1000);
-                                }
-                                resolve(error);
-                            })
-                            .on('transactionHash', hash => {
-                                toastConfirm.fade(1000);
-                                toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction...</span>`, { timeOut: 0, position: 'center' });
-                            })
-                            .on('receipt', async receipt => {
-                                toastAccept.fade(1000);
-                                new Toast(`Transaction Confirmed. <a href="${ network.get().explorer.href }/tx/${ receipt.transactionHash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
-
-                                const data = await this.updateCredit({
-                                    apiKey: key.value,
-                                    transactionHash: receipt.transactionHash
-                                });
-
-                                if (data.status == 200) {
-                                    let bonus = '';
-                                    if (data.bonus) {
-                                        bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
-                                    }
-                                    new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
-                                }
-
-                                resolve(receipt);
-                            }));
-                            
-                            this.refreshBalance(false);
-                            button.removeAttribute('disabled');
-                            button.innerHTML = '⚡Recharge⚡';
-                        }
-                    });
-                    e.hasListener = true;
-                }
-            });
-        }
 
         // import web3 from cdn
         await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
@@ -836,17 +871,6 @@ const api = {
             // after web3 load
             checkWalletConnection();
         });
-        
-    },
-
-    refreshBalance: async function(loop=true) {
-        const balanceDOM = this.tabsContent.recharge.querySelector('#values #balance');
-        if (balanceDOM) {
-            balanceDOM.innerHTML = (await this.web3.getBalance()).slice(0,9);
-            if (loop) {
-                setTimeout(() => this.refreshBalance(), 5000);
-            }
-        }
     },
 
     showWindowCreate: function(data){

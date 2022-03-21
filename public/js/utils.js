@@ -740,24 +740,47 @@ const api = {
                 inputAmount();
             });
 
-            // get gas price recommended by owlracle
-            const gasPrice = await new Promise( resolve => {
-                const wait = () => {
-                    if (window.gasPrice) {
-                        resolve(window.gasPrice);
-                        return;
-                    }
-                    setTimeout(() => { wait() }, 250);
-                };
-                wait();
-            });
-            // get slow, standard, fas gas price to array
-            const gasArray = gasPrice.speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
+            const gas = {
+                init: async function() {
+                    // selected index
+                    this.selected = 2;
+                    await this.update();
+                },
 
+                // get the calculated selected gas price (not the index)
+                getSelected: function() {
+                    return parseInt(this.list[this.selected] * 1000000000);
+                },
+
+                // update gas price on the list, dom and call timeout
+                update: async function() {
+                    if (tabsContent.recharge){
+                        setTimeout(() => this.update(), 10000);
+                    }
+                    this.list = (await this.get()).speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
+                    
+                    tabsContent.recharge.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} GWei` );
+                },
+
+                // get gas price from window var
+                get: async function() {
+                    return new Promise( resolve => {
+                        const wait = () => {
+                            if (window.gasPrice) {
+                                resolve(window.gasPrice);
+                                return;
+                            }
+                            setTimeout(() => { wait() }, 250);
+                        };
+                        wait();
+                    });
+                },
+            };
+            await gas.init();
+            
             // after fetching, put three cards for the user to choose from
             const gasPriceContainer = tabsContent.recharge.querySelector('#gasprice #body');
-            let gasSelected = parseInt(gasArray[2] * 1000000000);
-            gasPriceContainer.innerHTML = gasArray.map((e,i) => {
+            gasPriceContainer.innerHTML = gas.list.map((e,i) => {
                 const speeds = [ '🛴 Slow', '🚗 Standard', '✈️ Fast'];
                 tabsContent.recharge.querySelector('#recharge-key').removeAttribute('disabled');
                 return `<div class="card ${ i == 2 ? 'selected' : '' }"><span>${speeds[i]}</span><span class="value">${e.toFixed(1)} GWei</span></div>`;
@@ -768,7 +791,7 @@ const api = {
             cards.forEach((e,i) => e.addEventListener('click', () => {
                 cards.forEach(e => e.classList.remove('selected'));
                 e.classList.add('selected');
-                gasSelected = parseInt(gasArray[i] * 1000000000);
+                gas.selected = i;
             }));
 
             // bind event to remove red tip when typying a corret api key
@@ -816,7 +839,7 @@ const api = {
                     from: account,
                     to: wallet.address, // dont bother changing this, server wont recognize your tx
                     value: amount.value,
-                    gasPrice: gasSelected,
+                    gasPrice: gas.getSelected(),
                 })
                 .on('error', error => {
                     new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });

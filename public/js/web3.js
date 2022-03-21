@@ -177,34 +177,89 @@ export default {
         return this.instance.eth.sendTransaction(args);
     },
 
-    // waitConfirmation: async function(hash, interval = 1000) {
-    //     console.log(`Checking tx ${hash}...`);
-    //     this.statusChangeCallback(`Waiting for tx confirmation...`);
+    waitConfirmation: async function(hash, { interval = 1000, verbose = false }={}) {
+        if (verbose) console.log(`Checking tx ${hash}...`);
 
-    //     try {
-    //         const confirm = await this.instance.eth.getTransaction(hash);
-    //         if (!confirm) {
-    //             const message = 'Could not find Tx. Maybe it was cancelled or speed up.';
-    //             console.log(message);
-    //             return { error: true, response: message };
-    //         }
+        const tx = {};
+        tx.hash = hash;
+        // startBlock gives infor about where start to look if tx expired.
+        tx.startBlock = await this.instance.eth.getBlockNumber();
 
-    //         // not ready yet
-    //         if (!confirm.blockNumber){
-    //             return await new Promise(resolve => setTimeout(async () => {
-    //                 const wait = await this.waitConfirmation(hash, interval);
-    //                 resolve(wait);
-    //             }, interval));
-    //         }
+        const getTx = async () => {
+            try {
+                const confirm = await this.instance.eth.getTransaction(hash);
+                // tx expired
+                if (!confirm) {
+                    if (verbose) console.log('Tx expired. Searching for replacement tx...');
+                    // find the replacemente tx
+                    const newTx = await this.findReplacementTx(tx);
+                    if (newTx.status == 'success') {
+                        if (verbose) console.log('Found replacemente tx');
+                        return { status: newTx.cancel ? 'cancelled' : 'replaced', tx: newTx.tx };
+                    }
+                    return { error: true, status: 'fail', response: 'Could not find Tx' };
+                }
+    
+                // console.log(confirm)
+    
+                // not ready yet
+                if (!confirm.blockNumber){
+                    if (!tx.nonce) {
+                        tx.nonce = confirm.nonce;
+                        tx.from = confirm.from.toLowerCase();
+                    }
+    
+                    return await new Promise(resolve => setTimeout(async () => {
+                        const wait = await getTx();
+                        resolve(wait);
+                    }, interval));
+                }
+    
+                if (verbose) {
+                    console.log('Tx confirmed:');
+                    console.log(confirm);
+                }
+                return { status: 'confirmed', tx: confirm };
+            }
+            catch (error) {
+                if (verbose) {
+                    console.log('Tx error:');
+                    console.log(error);
+                }
+                return { error: true, status: 'error', response: error };
+            }        
+        };
+        return await getTx();
+    },
 
-    //         console.log('Tx confirmed:');
-    //         console.log(confirm);
-    //         return confirm;
-    //     }
-    //     catch (error) {
-    //         console.log('Tx error:');
-    //         console.log(error);
-    //         return { error: true, response: error };
-    //     }        
-    // }
+    findReplacementTx: async function(tx) {
+        // block now
+        const thisBlock = await this.instance.eth.getBlockNumber();
+        let n = tx.startBlock;
+        // max blocks to look after the nowblock. to avoid infinite loop
+        const maxScanLength = 20;
+        while (n - thisBlock < maxScanLength) {
+            // console.log(`Scanning block ${n}`);
+            const block = await this.instance.eth.getBlock(n, true);
+            // if block not ready keep looping without increasing n
+            if (block){
+                // ignore blocks with no txs
+                if (block.transactions){
+                    // console.log(block.transactions.map(e => [e.blockNumber, e.from, e.nonce]));
+                    // get tx with same from and nonce field
+                    const match = block.transactions.filter(t => t.from.toLowerCase() == tx.from && t.nonce == tx.nonce);
+                    if (match.length) {
+                        const res = { status: 'success', tx: match[0] };
+                        // to == from: cancellation tx, else: speed up tx
+                        if (match[0].from == match[0].to) {
+                            res.cancel = true;
+                        }
+                        return res;
+                    }
+                }
+                n++;
+            }
+        }
+        return { status: 'fail', message: 'Could not find the replacement tx' };
+    },
 };

@@ -835,43 +835,62 @@ const api = {
                 let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
                 let toastAccept;
     
-                await new Promise(resolve => this.web3.send({
-                    from: account,
-                    to: wallet.address, // dont bother changing this, server wont recognize your tx
-                    value: amount.value,
-                    gasPrice: gas.getSelected(),
-                })
-                .on('error', error => {
-                    new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
-                    toastConfirm.fade(1000);
-                    if (toastAccept) {
+                let stopError = false;
+                await new Promise(resolve => {
+                    const successFlow = async (hash, { cancel=false }={}) => {
                         toastAccept.fade(1000);
-                    }
-                    resolve(error);
-                })
-                .on('transactionHash', hash => {
-                    toastConfirm.fade(1000);
-                    toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction... Please do not reload this window.</span>`, { timeOut: 0, position: 'center' });
-                })
-                .on('receipt', async receipt => {
-                    toastAccept.fade(1000);
-                    new Toast(`Transaction Confirmed. <a href="${ network.get().explorer.href }/tx/${ receipt.transactionHash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
-    
-                    const data = await this.updateCredit({
-                        apiKey: key.value,
-                        transactionHash: receipt.transactionHash
-                    });
-    
-                    if (data.status == 200) {
-                        let bonus = '';
-                        if (data.bonus) {
-                            bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
+                        new Toast(`Transaction ${ cancel ? 'Cancelled' : 'Confirmed' }. <a href="${ network.get().explorer.href }/tx/${ hash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+        
+                        if (!cancel) {
+                            const data = await this.updateCredit({
+                                apiKey: key.value,
+                                transactionHash: hash
+                            });
+            
+                            if (data.status == 200) {
+                                let bonus = '';
+                                if (data.bonus) {
+                                    bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
+                                }
+                                new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
+                            }
                         }
-                        new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
-                    }
+                    };
+
+                    this.web3.send({
+                        from: account,
+                        to: wallet.address, // dont bother changing this, server wont recognize your tx
+                        value: amount.value,
+                        gasPrice: gas.getSelected(),
+                    })
+                    .on('error', error => {
+                        if (!stopError) {
+                            new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
+                            toastConfirm.fade(1000);
+                            if (toastAccept) {
+                                toastAccept.fade(1000);
+                            }
+                            resolve(error);
+                        }
+                    })
+                    .on('transactionHash', async hash => {
+                        // console.log(hash)
+                        toastConfirm.fade(1000);
+                        toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction... Please do not reload this window.</span>`, { timeOut: 0, position: 'center' });
     
-                    resolve(receipt);
-                }));
+                        const confirm = await this.web3.waitConfirmation(hash);
+                        if (!confirm.error && (confirm.status == 'replaced' || confirm.status == 'cancelled')) {
+                            console.log(`Found ${ confirm.status } tx: ${ confirm.tx.hash }`);
+                            successFlow(confirm.tx.hash, { cancel: confirm.status == 'cancelled' });
+                            stopError = true;
+                            resolve(confirm.tx);
+                        }
+                    })
+                    .on('receipt', async receipt => {
+                        successFlow(receipt.transactionHash);
+                        resolve(receipt);
+                    });
+                });
                 
                 refreshBalance(false);
                 button.removeAttribute('disabled');

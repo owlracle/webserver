@@ -1,4 +1,4 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, Modal, startHeaderApiSearch } from './utils.min.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, Modal, startHeaderApiSearch, Toast } from './utils.min.js';
 
 startHeaderApiSearch();
 
@@ -1361,4 +1361,42 @@ class EndpointTable {
     });
 
     document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
+})();
+
+
+// deal with a pending recharge
+(async () => {
+    if (cookies.get('pending-tx-recharge')) {
+        const toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> You have a pending recharge... I will check this for you... 🦉</span>`, { timeOut: 0, position: 'center' });
+
+        // import web3 from cdn
+        await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
+        const web3 = (await import('./web3.min.js')).default;
+        await web3.init();
+
+        const { hash, apikey } = cookies.get('pending-tx-recharge', true);
+        const confirm = await web3.instance.eth.getTransaction(hash);
+        toastAccept.fade(0);
+        cookies.delete('pending-tx-recharge');
+
+        if (!confirm) {
+            new Toast(`Sorry! I could not verify your recharge. Go to our <a href="https://t.me/owlracle" target="_blank" aria-label="telegram group" rel="noopener">Telegram</a> and inform the tx hash so I can make things right for you.`, { timeOut: 10000, position: 'center' });
+            return;
+        }
+
+        new Toast(`Transaction found. <a href="${ Network.get().explorer.href }/tx/${ hash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+
+        const data = await api.updateCredit({
+            apiKey: apikey,
+            transactionHash: hash,
+        });
+
+        if (data.status == 200) {
+            let bonus = '';
+            if (data.bonus) {
+                bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
+            }
+            new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
+        }
+    }
 })();

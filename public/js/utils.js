@@ -840,6 +840,9 @@ const api = {
                     const successFlow = async (hash, { cancel=false }={}) => {
                         toastAccept.fade(1000);
                         new Toast(`Transaction ${ cancel ? 'Cancelled' : 'Confirmed' }. <a href="${ network.get().explorer.href }/tx/${ hash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+
+                        // since we already tracked the tx, we remove the cookie
+                        cookies.delete('pending-tx-recharge');
         
                         if (!cancel) {
                             const data = await this.updateCredit({
@@ -876,7 +879,16 @@ const api = {
                     .on('transactionHash', async hash => {
                         // console.log(hash)
                         toastConfirm.fade(1000);
-                        toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction... Please do not reload this window.</span>`, { timeOut: 0, position: 'center' });
+                        toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction...</span>`, { timeOut: 0, position: 'center' });
+
+                        // set cookie to tx so we can track even when page reload
+                        cookies.set('pending-tx-recharge', {
+                            hash: hash,
+                            apikey: key,
+                        }, {
+                            expires: { hours: 1 },
+                            json: true,
+                        });
     
                         const confirm = await this.web3.waitConfirmation(hash);
                         if (!confirm.error && (confirm.status == 'replaced' || confirm.status == 'cancelled')) {
@@ -1589,4 +1601,4 @@ const recaptcha = {
 }
 
 
-export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn, infoMessageModal, startHeaderApiSearch };
+export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn, infoMessageModal, startHeaderApiSearch, Toast };

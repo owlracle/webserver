@@ -1117,8 +1117,9 @@ const api = {
 
                 return Promise.all(txs.result.map(async tx => {
                     // get closest block available on history. get token_price from it
+                    const blockNumber = parseInt(tx.blockNumber);
                     const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
-                    const [rows, error] = await db.query(sql, [ tx.blockNumber, txs.network2, tx.blockNumber ]);
+                    const [rows, error] = await db.query(sql, [ blockNumber, txs.network2, blockNumber ]);
             
                     if (error){
                         return { error: {
@@ -1243,9 +1244,10 @@ const api = {
         }
 
         const priceThen = await (async () => {
+            const blockNumber = parseInt(tx.blockNumber);
             // get closest block available on history. get token_price from it
             const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
-            const [rows, error] = await db.query(sql, [ tx.blockNumber, networkList[network].dbid, tx.blockNumber ]);
+            const [rows, error] = await db.query(sql, [ blockNumber, networkList[network].dbid, blockNumber ]);
     
             if (error){
                 return { error: {

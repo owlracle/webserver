@@ -806,7 +806,7 @@ const api = {
             button.addEventListener('click', async () => {
                 // check if key doesnt match regex
                 if (!key.value.match(apiKeyRegex)){
-                    new Toast(`❌ Invalid API key`, { timeOut: 3000, position: 'center' });
+                    new Toast(`🔑 Invalid API key`, { timeOut: 3000, position: 'center' });
                     button.setAttribute('disabled', true);
                     key.classList.add('red');
                     return;
@@ -827,10 +827,22 @@ const api = {
                     amount.classList.add('red');
                     return;
                 }
-    
-                // start actions to send token
+
+                // check if api key is valid
                 button.setAttribute('disabled', true);
                 button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+                const validKey = await (async () => {
+                    const data = await api.getKey(key.value);
+                    return !data.error;
+                })();
+                if (!validKey) {
+                    new Toast(`🔑 API key not found`, { timeOut: 3000, position: 'center' });
+                    key.classList.add('red');
+                    button.innerHTML = '⚡Recharge⚡';
+                    return;
+                }
+    
+                // start actions to send token
     
                 let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
                 let toastAccept;

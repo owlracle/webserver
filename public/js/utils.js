@@ -857,10 +857,12 @@ const api = {
                         cookies.delete('pending-tx-recharge');
         
                         if (!cancel) {
+                            let toastUpdate = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Updating your API credit...</span>`, { timeOut: 0, position: 'center' });
                             const data = await this.updateCredit({
                                 apiKey: key.value,
                                 transactionHash: hash
                             });
+                            toastUpdate.fade(1000);
             
                             if (data.status == 200) {
                                 let bonus = '';
@@ -868,8 +870,15 @@ const api = {
                                     bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
                                 }
                                 new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
+
+                                return true;
                             }
+
+                            new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://t.me/owlracle" target="_blank" aria-label="telegram group" rel="noopener">Telegram group</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
+                            return false;
                         }
+
+                        return true;
                     };
 
                     this.web3.send({
@@ -905,13 +914,13 @@ const api = {
                         const confirm = await this.web3.waitConfirmation(hash);
                         if (!confirm.error && (confirm.status == 'replaced' || confirm.status == 'cancelled')) {
                             console.log(`Found ${ confirm.status } tx: ${ confirm.tx.hash }`);
-                            successFlow(confirm.tx.hash, { cancel: confirm.status == 'cancelled' });
+                            await successFlow(confirm.tx.hash, { cancel: confirm.status == 'cancelled' });
                             stopError = true;
                             resolve(confirm.tx);
                         }
                     })
                     .on('receipt', async receipt => {
-                        successFlow(receipt.transactionHash);
+                        await successFlow(receipt.transactionHash);
                         resolve(receipt);
                     });
                 });

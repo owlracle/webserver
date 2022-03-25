@@ -1386,10 +1386,12 @@ class EndpointTable {
 
         new Toast(`Transaction found. <a href="${ Network.get().explorer.href }/tx/${ hash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
 
+        let toastUpdate = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Updating your API credit...</span>`, { timeOut: 0, position: 'center' });
         const data = await api.updateCredit({
             apiKey: apikey,
             transactionHash: hash,
         });
+        toastUpdate.fade(1000);
 
         if (data.status == 200) {
             let bonus = '';
@@ -1397,6 +1399,10 @@ class EndpointTable {
                 bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
             }
             new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
+            return;
         }
+
+        new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://t.me/owlracle" target="_blank" aria-label="telegram group" rel="noopener">Telegram group</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
+        return;
     }
 })();

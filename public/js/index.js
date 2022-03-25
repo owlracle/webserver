@@ -1375,11 +1375,11 @@ class EndpointTable {
         await web3.init();
 
         const { hash, apikey } = cookies.get('pending-tx-recharge', true);
-        const confirm = await web3.instance.eth.getTransaction(hash);
+        const confirm = await web3.waitConfirmation(hash);
         toastAccept.fade(0);
         cookies.delete('pending-tx-recharge');
 
-        if (!confirm) {
+        if (confirm.error) {
             new Toast(`Sorry! I could not verify your recharge. Go to our <a href="https://t.me/owlracle" target="_blank" aria-label="telegram group" rel="noopener">Telegram</a> and inform the tx hash so I can make things right for you.`, { timeOut: 10000, position: 'center' });
             return;
         }

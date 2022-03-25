@@ -884,7 +884,7 @@ const api = {
                         // set cookie to tx so we can track even when page reload
                         cookies.set('pending-tx-recharge', {
                             hash: hash,
-                            apikey: key,
+                            apikey: key.value,
                         }, {
                             expires: { hours: 1 },
                             json: true,

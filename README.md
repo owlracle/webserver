@@ -47,7 +47,7 @@ Inspired by works like [ethgasstation](https://ethgasstation.info/), I have deci
 
 ---
 
-Support our project! We accept any token donation on <img src="https://owlracle.info/img/bsc.png" height="20"> **BSC**, <img src="https://owlracle.info/img/poly.png" height="20"> **Polygon**, <img src="https://owlracle.info/img/ftm.png" height="20"> **Fantom**, <img src="https://owlracle.info/img/eth.png" height="20"> **Ethereum**, <img src="https://owlracle.info/img/avax.png" height="20"> **Avalanche**, <img src="https://owlracle.info/img/movr.png" height="20"> **Moonriver**, and <img src="https://owlracle.info/img/cro.png" height="20"> **Cronos** networks.
+Support our project! We accept any token donation on any EVM networks, like <img src="https://owlracle.info/img/bsc.png" height="20"> **BSC**, <img src="https://owlracle.info/img/poly.png" height="20"> **Polygon**, <img src="https://owlracle.info/img/ftm.png" height="20"> **Fantom**, <img src="https://owlracle.info/img/eth.png" height="20"> **Ethereum**, <img src="https://owlracle.info/img/avax.png" height="20"> **Avalanche**, <img src="https://owlracle.info/img/movr.png" height="20"> and so on.
 
 <a href="https://user-images.githubusercontent.com/19828711/139945432-f6b07860-c986-4221-a291-10370f24ea5a.png">
 <h3 align=center><img src="https://img.shields.io/badge/Wallet-0xA6E126a5bA7aE209A92b16fcf464E502f27fb658-blue"></h3>

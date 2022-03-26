@@ -1,5 +1,5 @@
 const mysql = require('mysql2');
-const fetch = require('node-fetch');
+const fs = require('fs');
 
 const { configFile, telegram } = require('./utils');
 
@@ -9,7 +9,7 @@ const db = {
     query: async function(sql, data) {
         [sql, data] = this.formatRaw(sql, data);
         // console.log(sql, data);
-        // console.log(this.connection.format(sql, data));
+        // console.log(this.format(sql, data));
         return new Promise(resolve => this.connection.execute(sql, data, (error, rows) => {
             // console.log(error)
             if (error && error.fatal){
@@ -26,7 +26,7 @@ const db = {
                 setTimeout(async () => resolve(await this.query(sql, data)), 1000);
             }
             else{
-                resolve([rows, error])
+                resolve([rows, error]);
             }
         }));
     },
@@ -44,6 +44,8 @@ const db = {
         }
         else {
             let sql = `INSERT INTO ${table} (${fields.join(',')}) VALUES (${values.map(() => '?').join(',')})`;
+            this.saveUpdate(sql, values);
+            // console.log(this.format(sql, values));
             return this.query(sql, values);
         }
     },
@@ -59,8 +61,24 @@ const db = {
             data.push(...whereData);
         }
         const sql = `UPDATE ${table} SET ${fielsdSql} ${where}`;
-        // console.log(this.connection.format(sql, data));
+        // console.log(this.format(sql, data));
+        this.saveUpdate(sql, data);
         return this.query(sql, data);
+    },
+
+    saveUpdate: function(sql, data) {
+        if (!configFile.mysql.saveUpdates) {
+            return;
+        }
+
+        const path = `${__dirname}/mysqlUpdate.json`;
+        const file = fs.existsSync(path) ?
+            JSON.parse(fs.readFileSync(path)) : [];
+
+        const query = this.format(sql, data);
+        file.push(query);
+
+        fs.writeFileSync(path, JSON.stringify(file));
     },
 
     raw: function(str){
@@ -96,7 +114,7 @@ const db = {
 
     connect: function(){
         if (!this.working){
-            this.connection = mysql.createPool(configFile.mysql);
+            this.connection = mysql.createPool(configFile.mysql.connection);
     
             this.connection.getConnection( (err, conn) => {
                 if (!this.working){

@@ -295,12 +295,12 @@ const network = {
         eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', id: 1, explorer: {
             icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
         }, rpc: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',  },
-        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', id: 43114, explorer: {
-            icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
-        }, rpc: 'https://api.avax.network/ext/bc/C/rpc',  },
         bsc: { symbol: 'bsc', name: 'BSC', longName: 'BNB Chain', token: 'BNB', id: 56, explorer: {
             icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
         }, rpc: 'https://bsc-dataseed.binance.org/',  },
+        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', id: 43114, explorer: {
+            icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
+        }, rpc: 'https://api.avax.network/ext/bc/C/rpc',  },
         ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', id: 250, explorer: {
             icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
         }, rpc: 'https://rpc.ftm.tools/',  },
@@ -313,12 +313,12 @@ const network = {
         one: { symbol: 'one', name: 'Harmony', longName: 'Harmony One', token: 'ONE', id: 166660000, explorer: {
             icon: 'https://explorer.harmony.one/favicon.ico', href: 'https://explorer.harmony.one', name: 'Harmony Explorer', apiAvailable: false,
         }, rpc: 'https://api.s0.t.hmny.io/',  },
-        ht: { symbol: 'ht', name: 'Heco', token: 'HT', id: 128, explorer: {
-            icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
-        }, rpc: 'https://http-mainnet.hecochain.com',  },
         celo: { symbol: 'celo', name: 'Celo', token: 'CELO', id: 42220, explorer: {
             icon: 'https://avatars.githubusercontent.com/u/37552875?s=200&v=4', href: 'https://explorer.celo.org', name: 'Celo Explorer', apiAvailable: false,
         }, rpc: 'https://forno.celo.org',  },
+        ht: { symbol: 'ht', name: 'Heco', token: 'HT', id: 128, explorer: {
+            icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
+        }, rpc: 'https://http-mainnet.hecochain.com',  },
         movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
             icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
         }, rpc: 'https://rpc.moonriver.moonbeam.network',  },

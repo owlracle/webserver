@@ -35,7 +35,7 @@ module.exports = (app, api) => {
         }
 
         const password = req.body.password;
-        if (password == configFile.mysql.password) {
+        if (password == configFile.mysql.connection.password) {
             const session = new Session(1000 * 3600); // 1 hour session
             res.send({
                 message: 'Logged in',

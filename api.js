@@ -224,27 +224,26 @@ module.exports = app => {
                 offset,
             ];
 
-            if (!from || !to){
-                // discover lower and upper timestamp limits to improve search performance
-                const sql = `SELECT MIN(UNIX_TIMESTAMP(timestamp)) AS 'min', MAX(UNIX_TIMESTAMP(timestamp)) AS 'max' FROM price_history WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?;`;
-                const [rows, error] = await db.query(sql, data);
+            // if (!from || !to){
+            //     // discover lower and upper timestamp limits to improve search performance
+            //     const sql = `SELECT MIN(UNIX_TIMESTAMP(timestamp)) AS 'min', MAX(UNIX_TIMESTAMP(timestamp)) AS 'max' FROM price_history WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?;`;
+            //     const [rows, error] = await db.query(sql, data);
 
-                if (error){
-                    return { error: {
-                        status: 500,
-                        error: 'Internal Server Error',
-                        message: 'Error while retrieving price history information from database.',
-                        serverMessage: error,
-                    }};
-                }
+            //     if (error){
+            //         return { error: {
+            //             status: 500,
+            //             error: 'Internal Server Error',
+            //             message: 'Error while retrieving price history information from database.',
+            //             serverMessage: error,
+            //         }};
+            //     }
 
-                data[1] = rows.slice(-1)[0].min; // from
-                data[2] = rows[0].max; // to
-                data.pop();
-            }
+            //     data[1] = rows.slice(-1)[0].min; // from
+            //     data[2] = rows[0].max; // to
+            //     data.pop();
+            // }
 
-            const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(*) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ?`;
-            // console.log(sql)
+            const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(*) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
             
             const [rows, error] = await db.query(sql, data);
         

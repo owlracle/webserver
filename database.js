@@ -44,7 +44,7 @@ const db = {
         }
         else {
             let sql = `INSERT INTO ${table} (${fields.join(',')}) VALUES (${values.map(() => '?').join(',')})`;
-            this.saveUpdate(sql, values);
+            this.saveUpdate(table, sql, values);
             // console.log(this.format(sql, values));
             return this.query(sql, values);
         }
@@ -62,11 +62,11 @@ const db = {
         }
         const sql = `UPDATE ${table} SET ${fielsdSql} ${where}`;
         // console.log(this.format(sql, data));
-        this.saveUpdate(sql, data);
+        this.saveUpdate(table, sql, data);
         return this.query(sql, data);
     },
 
-    saveUpdate: function(sql, data) {
+    saveUpdate: function(table, sql, data) {
         if (!configFile.mysql.saveUpdates) {
             return;
         }
@@ -76,7 +76,11 @@ const db = {
             JSON.parse(fs.readFileSync(path)) : [];
 
         const query = this.format(sql, data);
-        file.push(query);
+        file.push({
+            timestamp: new Date(),
+            table: table,
+            query: query,
+        });
 
         fs.writeFileSync(path, JSON.stringify(file));
     },

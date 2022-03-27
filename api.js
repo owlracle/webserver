@@ -314,7 +314,7 @@ module.exports = app => {
                     fromTime = toTime - timeframe * 60;
                 }
 
-                return candleArray;
+                return candleArray; 
             }
 
             const t = new Date().getTime();

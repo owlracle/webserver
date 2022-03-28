@@ -146,6 +146,34 @@ app.get('/links', (req, res) => {
 });
 
 
+// when you want to replicate database. can comment when not using
+app.post('/dbsync', async (req, res) => {
+    const connection = JSON.parse(req.body.connection);
+    const query = req.body.query;
+
+    const check = Object.entries(connection)
+    .map(([k,v]) => configFile.mysql.connection[k] == v)
+    .filter(e => e);
+
+    if (check.length < 3) {
+        res.status(401).send({
+            status: 401,
+            error: 'Unauthorized',
+            message: 'Credentials does not match the local database'
+        })
+        return;
+    }
+
+    db.query(query, []);
+
+    res.send({
+        status: 200,
+        message: 'success',
+        sql: query,
+    });
+});
+
+
 // ############################
 // --- direct links session ---
 // ############################
@@ -204,3 +232,12 @@ if (configFile.production){
         alertCredit();
     }
 }
+
+if (configFile.mysql.replicate.enabled) {
+    const replicate = () => {
+        db.replicate();
+        setTimeout(() => replicate(), 1000);
+    }
+    replicate();
+}
+

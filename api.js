@@ -289,7 +289,7 @@ module.exports = app => {
             }
 
             const t = new Date().getTime();
-            const rows = await getCandlesLegacy();
+            const rows = await getCandles();
             console.log(new Date().getTime() - t);
             return rows.error ? rows : 
             rows.map(row => {

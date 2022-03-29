@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
 const fs = require('fs');
+const fetch = require('node-fetch');
 
 const { configFile, telegram } = require('./utils');
 
@@ -83,6 +84,33 @@ const db = {
         });
 
         fs.writeFileSync(path, JSON.stringify(file));
+    },
+
+    replicate: function() {
+        const path = `${__dirname}/mysqlUpdate.json`;
+        if (!configFile.mysql.replicate.enabled || !fs.existsSync(path)) {
+            return;
+        }
+
+        const file = JSON.parse(fs.readFileSync(path));
+        if (!file.length) {
+            return;
+        }
+
+        const query = file.shift();
+
+        fs.writeFileSync(path, JSON.stringify(file));
+
+        fetch(configFile.mysql.replicate.url, {
+            method: 'POST',
+            body: new URLSearchParams({
+                query: query.query,
+                connection: JSON.stringify(configFile.mysql.connection),
+            }).toString(),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(res => {
+            // console.log(res)
+        });
     },
 
     raw: function(str){

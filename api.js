@@ -212,51 +212,87 @@ module.exports = app => {
             timeframe = Object.keys(listTimeframes).includes(timeframe) ? listTimeframes[timeframe] : 
                 (Object.values(listTimeframes).map(e => e.toString()).includes(timeframe) ? timeframe : 30);
         
-            candles = Math.max(Math.min(candles || 100, 1000), 1);
-            const offset = (parseInt(page) - 1) * candles || 0;
+            const limit = Math.max(Math.min(candles || 100, 1000), 1);
+            const offset = (parseInt(page) - 1) * limit || 0;
 
-            const data = [
-                networkList[network].dbid,
-                from || 0,
-                to || new Date().getTime() / 1000,
-                timeframe * 60,
-                candles,
-                offset,
-            ];
+            const getCandlesLegacy = async () => {
+                const data = [
+                    networkList[network].dbid,
+                    from || 0,
+                    to || new Date().getTime() / 1000,
+                    timeframe * 60,
+                    limit,
+                    offset,
+                ];
 
-            // if (!from || !to){
-            //     // discover lower and upper timestamp limits to improve search performance
-            //     const sql = `SELECT MIN(UNIX_TIMESTAMP(timestamp)) AS 'min', MAX(UNIX_TIMESTAMP(timestamp)) AS 'max' FROM price_history WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?;`;
-            //     const [rows, error] = await db.query(sql, data);
+                const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(*) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
 
-            //     if (error){
-            //         return { error: {
-            //             status: 500,
-            //             error: 'Internal Server Error',
-            //             message: 'Error while retrieving price history information from database.',
-            //             serverMessage: error,
-            //         }};
-            //     }
+                const [rows, error] = await db.query(sql, data);
 
-            //     data[1] = rows.slice(-1)[0].min; // from
-            //     data[2] = rows[0].max; // to
-            //     data.pop();
-            // }
-
-            const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(*) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
-            
-            const [rows, error] = await db.query(sql, data);
-        
-            if (error){
-                return { error: {
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while retrieving price history information from database.',
-                    serverMessage: error,
-                }};
+                if (error){
+                    return { error: {
+                        status: 500,
+                        error: 'Internal Server Error',
+                        message: 'Error while retrieving price history information from database.',
+                        serverMessage: error,
+                    }};
+                }
+                
+                return rows;
             }
+
+            const getCandles = async () => {
+                let toTime = to || new Date().getTime() / 1000;
+                toTime -= timeframe * 60 * offset;
     
-            return rows.map(row => {
+                let fromTime = toTime - timeframe * 60;
+                const candleArray = [];
+    
+                while( candleArray.length < limit ) {    
+                    const data = [
+                        networkList[network].dbid,
+                        new Date(fromTime * 1000).toISOString().replace(/T/,' ').replace('Z',''),
+                        new Date(toTime * 1000).toISOString().replace(/T/,' ').replace('Z',''),
+                    ];
+        
+                    const sql = `SELECT * FROM price_history WHERE network2 = ? AND timestamp BETWEEN ? AND ?`;
+                    const [rows, error] = await db.query(sql, data);
+    
+                    if (error){
+                        return { error: {
+                            status: 500,
+                            error: 'Internal Server Error',
+                            message: 'Error while retrieving price history information from database.',
+                            serverMessage: error,
+                        }};
+                    }    
+        
+                    // aggregate candle value
+                    if (rows.length) {
+                        candleArray.push({
+                            open: rows.map(e => e.open).join(','),
+                            close: rows.map(e => e.close).join(','),
+                            low: rows.map(e => e.low).join(','),
+                            high: rows.map(e => e.high).join(','),
+                            tokenprice: rows.map(e => e.tokenprice).join(','),
+                            avg_gas: rows.map(e => e.avg_gas).join(','),
+                            timestamp: rows.slice(-1)[0].timestamp,
+                            samples: rows.length,
+                        });
+                    }
+    
+                    toTime = fromTime;
+                    fromTime = toTime - timeframe * 60;
+                }
+
+                return candleArray;
+            }
+
+            const t = new Date().getTime();
+            const rows = await getCandles();
+            console.log(new Date().getTime() - t);
+            return rows.error ? rows : 
+            rows.map(row => {
                 const open = row.open.split(',').map(e => parseFloat(e));
                 const close = row.close.split(',').map(e => parseFloat(e));
                 const low = row.low.split(',').map(e => parseFloat(e));

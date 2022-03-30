@@ -215,6 +215,14 @@ module.exports = app => {
             const limit = Math.max(Math.min(candles || 100, 1000), 1);
             const offset = (parseInt(page) - 1) * limit || 0;
 
+            const errorObj = error => ({ error: {
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving price history information from database.',
+                serverMessage: error,
+            }});
+
+            // this is the old slow method
             const getCandlesLegacy = async () => {
                 const data = [
                     networkList[network].dbid,
@@ -229,68 +237,89 @@ module.exports = app => {
 
                 const [rows, error] = await db.query(sql, data);
 
-                if (error){
-                    return { error: {
-                        status: 500,
-                        error: 'Internal Server Error',
-                        message: 'Error while retrieving price history information from database.',
-                        serverMessage: error,
-                    }};
-                }
+                if (error) return errorObj(error);
                 
                 return rows;
             }
 
+            // new fast and shining method. It makes a very simple query, then process thing on the server
             const getCandles = async () => {
                 let toTime = to || new Date().getTime() / 1000;
                 toTime -= timeframe * 60 * offset;
     
                 let fromTime = toTime - timeframe * 60;
                 const candleArray = [];
+                let breakCounter = 0;
     
-                while( candleArray.length < limit ) {    
-                    const data = [
+                // this while fetch one candle per iteration
+                while( candleArray.length < limit ) {   
+                    // check how many samples there are
+                    let sql = `SELECT id FROM price_history WHERE network2 = ? AND timestamp BETWEEN ? AND ? ORDER BY timestamp DESC`;
+                    let data = [ 
                         networkList[network].dbid,
-                        new Date(fromTime * 1000).toISOString().replace(/T/,' ').replace('Z',''),
-                        new Date(toTime * 1000).toISOString().replace(/T/,' ').replace('Z',''),
+                        new Date(fromTime * 1000).toISOString().replace('T',' ').replace('Z',''),
+                        new Date(toTime * 1000).toISOString().replace('T',' ').replace('Z',''),
                     ];
-        
-                    const sql = `SELECT * FROM price_history WHERE network2 = ? AND timestamp BETWEEN ? AND ?`;
-                    const [rows, error] = await db.query(sql, data);
-    
-                    if (error){
-                        return { error: {
-                            status: 500,
-                            error: 'Internal Server Error',
-                            message: 'Error while retrieving price history information from database.',
-                            serverMessage: error,
-                        }};
-                    }    
-        
-                    // aggregate candle value
+                    // console.log(data)
+                    // console.log(db.format(sql, data))
+                    let [rows, error] = await db.query(sql, data);
+
+                    if (error) return errorObj(error);
+
                     if (rows.length) {
+                        // get ids from samples
+                        const ids = (a => {
+                            const maxSamples = 100;
+                            // if there are more than maxSamples samples, we limit how many sample we get. Do we really need more than 100 samples for a single candle?
+                            // samples are evenly spread out
+                            if (a.length > maxSamples) {
+                                const temp = [];
+                                const ratio = a.length / maxSamples;
+                                for (let i=0 ; i < 100 ; i++){
+                                    const index = Math.floor(i * ratio);
+                                    temp.push(a[index]);
+                                }
+                                return temp;
+                            }
+                            return a;
+                        })(rows.map(e => e.id));
+    
+                        sql = `SELECT open, close, low, high, token_price, avg_gas, timestamp FROM price_history WHERE id IN (${ ids.map(() => '?').join(',') }) ORDER BY timestamp DESC`;
+                        [rows, error] = await db.query(sql, [ ...ids ]);
+        
+                        if (error) return errorObj(error);
+            
+                        // aggregate candle value
                         candleArray.push({
                             open: rows.map(e => e.open).join(','),
                             close: rows.map(e => e.close).join(','),
                             low: rows.map(e => e.low).join(','),
                             high: rows.map(e => e.high).join(','),
-                            tokenprice: rows.map(e => e.tokenprice).join(','),
+                            tokenprice: rows.map(e => e.token_price).join(','),
                             avg_gas: rows.map(e => e.avg_gas).join(','),
                             timestamp: rows.slice(-1)[0].timestamp,
                             samples: rows.length,
                         });
                     }
-    
+                    // breakCounter will make the while break if offset is high, and there is nothing more to fetch
+                    else {
+                        breakCounter++;
+                        if (breakCounter >= 10) {
+                            break;
+                        }
+                    }
+                    
+                    // update toTime and fromTime
                     toTime = fromTime;
                     fromTime = toTime - timeframe * 60;
                 }
 
-                return candleArray;
+                return candleArray; 
             }
 
             const t = new Date().getTime();
             const rows = await getCandles();
-            console.log(new Date().getTime() - t);
+            console.log(`T: ${ new Date().getTime() - t }`);
             return rows.error ? rows : 
             rows.map(row => {
                 const open = row.open.split(',').map(e => parseFloat(e));

@@ -317,9 +317,9 @@ module.exports = app => {
                 return candleArray; 
             }
 
-            const t = new Date().getTime();
+            // const t = new Date().getTime();
             const rows = await getCandles();
-            console.log(`T: ${ new Date().getTime() - t }`);
+            // console.log(`T: ${ new Date().getTime() - t }`);
             return rows.error ? rows : 
             rows.map(row => {
                 const open = row.open.split(',').map(e => parseFloat(e));

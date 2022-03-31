@@ -316,6 +316,7 @@ const chart = {
             b.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
             this.queryHistory = true;
             const history = await this.getHistory(b.id.split('tf-')[1]);
+            // console.log(history)
             b.classList.add('active');
             b.innerHTML = text;
             this.update(history);

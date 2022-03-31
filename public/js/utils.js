@@ -322,6 +322,9 @@ const network = {
         movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
             icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
         }, rpc: 'https://rpc.moonriver.moonbeam.network',  },
+        fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
+            icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
+        }, rpc: 'https://rpc.fuse.io',  },
     },
     
     get: function(name) {

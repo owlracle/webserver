@@ -241,32 +241,18 @@ async function fadeOut(elem, time=300){
     });
 }
 
-// fetch bnb price from binance and update the pages's ticker
+// fetch token price from coingecko and update the pages's ticker
 const price = {
     current: 0,
     element: document.querySelector('#price'),
-    token: 'BNB',
+    token: 'ETH',
 
     get: async function() {
-        let price;
-        let price24h;
-
-        try {
-            const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
-            const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
-    
-            price = (await (await fetch(url)).json()).price;
-            price24h = (await (await fetch(url24)).json()).priceChangePercent;
-        }
-        catch (error) {
-            const data = await (await fetch(`/tokenprice/${this.token}`)).json();
-            [ price, price24h ] = [ data.price, data.change24h ];
-        }
-        finally {
-            return {
-                now: parseFloat(price).toFixed(2),
-                changePercent: parseFloat(price24h).toFixed(2), 
-            }
+        const data = await (await fetch(`/tokenprice/${this.token}`)).json();
+        const [ price, price24h ] = [ data.price, data.change24h ];
+        return {
+            now: parseFloat(price).toFixed(2),
+            changePercent: parseFloat(price24h).toFixed(2), 
         }
     },
 
@@ -322,6 +308,9 @@ const network = {
         movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
             icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
         }, rpc: 'https://rpc.moonriver.moonbeam.network',  },
+        fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
+            icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
+        }, rpc: 'https://rpc.fuse.io',  },
     },
     
     get: function(name) {

@@ -103,7 +103,7 @@ const network = (symbol => {
     // set the right token to price fetch according to the network
     price.token = network.token;
     price.update();
-    setInterval(() => price.update(), 10000); // update every 10s
+    setInterval(() => price.update(), 1000 * 60); // update every 1m
 
     document.querySelectorAll('.token-name').forEach(e => e.innerHTML = network.token);
     document.querySelectorAll('.chain-symbol').forEach(e => e.innerHTML = network.symbol);

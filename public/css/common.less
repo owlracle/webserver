@@ -15,6 +15,7 @@
 .ht { @chain-color: #01943f; }
 .one { @chain-color: #00d8af; }
 .celo { @chain-color: #35cf7f; }
+.fuse { @chain-color: #c2db60; }
 
 @import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@1,700&family=Roboto&display=swap');
 
@@ -509,6 +510,12 @@ header {
                 border-color: @chain-color;
             }
 
+            &.fuse {
+                .fuse();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
             .name {
                 display: none;
 
@@ -683,6 +690,17 @@ header {
         &.ht {
             #title, #colored {
                 .ht();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.fuse {
+            #title, #colored {
+                .fuse();
                 background-color: @chain-color;
 
                 #copy {

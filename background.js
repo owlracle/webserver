@@ -93,7 +93,7 @@ async function updateTokenPrice(){
         result = false;
     }
     finally {
-        setTimeout(() => updateTokenPrice(), 1000 * 60 * 5); // 5 minutes
+        setTimeout(() => updateTokenPrice(), 1000 * 60 * 1); // 1 minute
         return result;
     }
 }

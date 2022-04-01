@@ -241,32 +241,18 @@ async function fadeOut(elem, time=300){
     });
 }
 
-// fetch bnb price from binance and update the pages's ticker
+// fetch token price from coingecko and update the pages's ticker
 const price = {
     current: 0,
     element: document.querySelector('#price'),
-    token: 'BNB',
+    token: 'ETH',
 
     get: async function() {
-        let price;
-        let price24h;
-
-        try {
-            const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
-            const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
-    
-            price = (await (await fetch(url)).json()).price;
-            price24h = (await (await fetch(url24)).json()).priceChangePercent;
-        }
-        catch (error) {
-            const data = await (await fetch(`/tokenprice/${this.token}`)).json();
-            [ price, price24h ] = [ data.price, data.change24h ];
-        }
-        finally {
-            return {
-                now: parseFloat(price).toFixed(2),
-                changePercent: parseFloat(price24h).toFixed(2), 
-            }
+        const data = await (await fetch(`/tokenprice/${this.token}`)).json();
+        const [ price, price24h ] = [ data.price, data.change24h ];
+        return {
+            now: parseFloat(price).toFixed(2),
+            changePercent: parseFloat(price24h).toFixed(2), 
         }
     },
 
@@ -322,6 +308,9 @@ const network = {
         movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
             icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
         }, rpc: 'https://rpc.moonriver.moonbeam.network',  },
+        fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
+            icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
+        }, rpc: 'https://rpc.fuse.io',  },
     },
     
     get: function(name) {
@@ -631,7 +620,7 @@ const api = {
             if (!connectedNetwork) {
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>Network not supported</p>
-                <div id="button-container" class="vertical"><button>Switch to ${ network.get().name } network</button></div>`;
+                <div id="button-container" class="vertical"><button><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button></div>`;
 
                 const button = tabsContent.recharge.querySelector('button');
                 button.addEventListener('click', async () => {
@@ -647,8 +636,8 @@ const api = {
                 tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
                 <p>Wrong network</p>
                 <div id="button-container" class="vertical">
-                    <button id="switch">Switch to ${ network.get().name } network</button>
-                    <a href="/${ connectedNetwork.symbol }"><button>Go to ${ connectedNetwork.name } app</button></a>
+                    <button id="switch"><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button>
+                    <a href="/${ connectedNetwork.symbol }"><button><img src="img/${ connectedNetwork.symbol }.png">Go to ${ connectedNetwork.name } app</button></a>
                 </div>`;
 
                 const button = tabsContent.recharge.querySelector('#switch');
@@ -935,16 +924,18 @@ const api = {
         }
 
 
-        // import web3 from cdn
-        await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
-        this.web3 = (await import('./web3.min.js')).default;
-        this.web3.init().then(() => {
-            this.web3.on('connect', checkWalletConnection);
-            this.web3.on('networkChange', checkWalletConnection);
-            this.web3.on('accountChange', checkWalletConnection);
-    
-            // after web3 load
-            checkWalletConnection();
+        document.querySelector('#fog #recharge.tab').addEventListener('click', async () => {
+            // import web3 from cdn
+            await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
+            this.web3 = (await import('./web3.min.js')).default;
+            this.web3.init().then(() => {
+                this.web3.on('connect', checkWalletConnection);
+                this.web3.on('networkChange', checkWalletConnection);
+                this.web3.on('accountChange', checkWalletConnection);
+        
+                // after web3 load
+                checkWalletConnection();
+            });
         });
     },
 
@@ -1157,15 +1148,15 @@ const api = {
         fog.innerHTML = `<div id='api-window' class="modal">
             <div id='tab-container'>
                 <div class="tab" id="info"><i class="fas fa-eye"></i><span class="text">Key Info</span></div>
-                <div class="tab" id="edit"><i class="fas fa-edit"></i><span class="text">Edit Key</span></div>
                 <div class="tab" id="create"><i class="fas fa-plus"></i><span class="text">Create Key</span></div>
+                <div class="tab" id="edit"><i class="fas fa-edit"></i><span class="text">Edit Key</span></div>
                 <div class="tab" id="recharge"><i class="fa-solid fa-dollar-sign"></i><span class="text">Recharge Key</span></div>
                 <div class="tab" id="close-tab"><i class="fas fa-times"></i></div>
             </div>
             <div id='content'></div>
         </div>`;
 
-        const tabsContent = Object.fromEntries(['info', 'edit', 'create', 'recharge'].map(e => [e, (() => {
+        const tabsContent = Object.fromEntries(['info', 'create', 'edit', 'recharge'].map(e => [e, (() => {
             const elem = document.createElement('div');
             elem.id = 'content';
             return elem;
@@ -1175,15 +1166,15 @@ const api = {
         fog.querySelectorAll('.tab').forEach(e => e.addEventListener('click', () => {
             if (e.id == 'close-tab'){
                 fog.click();
+                return;
             }
-            else{
-                if (!e.classList.contains('active')){
-                    fog.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
-                    e.classList.add('active');
-                }
-                const content = fog.querySelector(`#content`);
-                content.replaceWith(tabsContent[e.id]);
+
+            if (!e.classList.contains('active')){
+                fog.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
+                e.classList.add('active');
             }
+            const content = fog.querySelector(`#content`);
+            content.replaceWith(tabsContent[e.id]);
         }));
 
         fog.addEventListener('click', () => fog.remove());
@@ -1328,9 +1319,9 @@ const startHeaderApiSearch = () => {
         dropdown.id = 'dropdown';
     
         dropdown.innerHTML = `
+            <div id="info-key" class="item">API key info</div>
             <div id="create-key" class="item">Create API key</div>
             <div id="edit-key" class="item">Edit API key</div>
-            <div id="info-key" class="item">API key info</div>
             <div id="recharge-key" class="item">Recharge API key</div>
         `;
     

@@ -86,7 +86,7 @@ const db = {
         fs.writeFileSync(path, JSON.stringify(file));
     },
 
-    replicate: function() {
+    replicate: async function() {
         const path = `${__dirname}/mysqlUpdate.json`;
         if (!configFile.mysql.replicate.enabled || !fs.existsSync(path)) {
             return;
@@ -101,16 +101,16 @@ const db = {
 
         fs.writeFileSync(path, JSON.stringify(file));
 
-        fetch(configFile.mysql.replicate.url, {
+        const res = await fetch(configFile.mysql.replicate.url, {
             method: 'POST',
             body: new URLSearchParams({
                 query: query.query,
                 connection: JSON.stringify(configFile.mysql.connection),
             }).toString(),
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        }).then(res => {
-            // console.log(res)
         });
+        // console.log(res)
+        return res;
     },
 
     raw: function(str){

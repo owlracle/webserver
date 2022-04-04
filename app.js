@@ -239,6 +239,6 @@ if (configFile.mysql.replicate.enabled) {
         setTimeout(async () => await replicate(), 100);
         return;
     }
-    await replicate();
+    replicate();
 }
 

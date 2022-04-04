@@ -81,6 +81,7 @@ app.get('/cro', indexRoute);
 app.get('/ht', indexRoute);
 app.get('/celo', indexRoute);
 app.get('/one', indexRoute);
+app.get('/fuse', indexRoute);
 
 function indexRoute(req, res) {
     const network = req.url.split('/')[1];
@@ -146,32 +147,44 @@ app.get('/links', (req, res) => {
 });
 
 
-// when you want to replicate database. can comment when not using
-app.post('/dbsync', async (req, res) => {
-    const connection = JSON.parse(req.body.connection);
-    const query = req.body.query;
+// // when you want to replicate database. can comment when not using
+// app.post('/dbsync', async (req, res) => {
+//     const connection = JSON.parse(req.body.connection);
+//     const query = req.body.query;
 
-    const check = Object.entries(connection)
-    .map(([k,v]) => configFile.mysql.connection[k] == v)
-    .filter(e => e);
+//     const check = Object.entries(connection)
+//     .map(([k,v]) => configFile.mysql.connection[k] == v)
+//     .filter(e => e);
 
-    if (check.length < 3) {
-        res.status(401).send({
-            status: 401,
-            error: 'Unauthorized',
-            message: 'Credentials does not match the local database'
-        })
-        return;
-    }
+//     if (check.length < 3) {
+//         res.status(401).send({
+//             status: 401,
+//             error: 'Unauthorized',
+//             message: 'Credentials does not match the local database'
+//         })
+//         return;
+//     }
 
-    db.query(query, []);
+//     db.query(query, []);
 
-    res.send({
-        status: 200,
-        message: 'success',
-        sql: query,
-    });
-});
+//     res.send({
+//         status: 200,
+//         message: 'success',
+//         sql: query,
+//     });
+// });
+
+// const cors = require('cors');
+// const corsOptions = {
+//     origin: '*',
+//     optionsSuccessStatus: 200,
+// };
+// app.get('/dbsync', cors(corsOptions), async (req, res) => {
+//     const path = `${__dirname}/mysqlUpdate.json`;
+//     const file = JSON.parse(fs.readFileSync(path));
+//     fs.writeFileSync(path, JSON.stringify([]));
+//     res.send(file);
+// });
 
 
 // ############################

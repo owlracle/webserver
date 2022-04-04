@@ -78,7 +78,7 @@ const db = {
 
         const query = this.format(sql, data);
         file.push({
-            timestamp: new Date(),
+            timestamp: new Date().getTime(),
             table: table,
             query: query,
         });

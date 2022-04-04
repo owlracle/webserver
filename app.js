@@ -234,10 +234,11 @@ if (configFile.production){
 }
 
 if (configFile.mysql.replicate.enabled) {
-    const replicate = () => {
-        db.replicate();
-        setTimeout(() => replicate(), 1000);
+    const replicate = async () => {
+        await db.replicate();
+        setTimeout(async () => await replicate(), 100);
+        return;
     }
-    replicate();
+    await replicate();
 }
 

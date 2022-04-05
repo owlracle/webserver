@@ -70,6 +70,15 @@ module.exports = app => {
             if (data.minGwei) {
                 resp.timestamp = new Date().toISOString();
 
+                const timeDiff = new Date().getTime() / 1000 - data.lastTime;
+                if(timeDiff > 60) {
+                    telegram.alert({
+                        message: 'Oracle is lagging',
+                        network: req.params.network,
+                        timeDiff: timeDiff,
+                    });
+                }
+
                 const avgTx = data.ntx.reduce((p, c) => p + c, 0) / data.ntx.length;
                 const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
 

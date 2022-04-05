@@ -78,7 +78,7 @@ const db = {
 
         const query = this.format(sql, data);
         file.push({
-            timestamp: new Date(),
+            timestamp: new Date().getTime(),
             table: table,
             query: query,
         });
@@ -86,31 +86,31 @@ const db = {
         fs.writeFileSync(path, JSON.stringify(file));
     },
 
-    replicate: function() {
-        const path = `${__dirname}/mysqlUpdate.json`;
-        if (!configFile.mysql.replicate.enabled || !fs.existsSync(path)) {
+    replicate: async function() {
+        if (!configFile.mysql.replicate.enabled) {
             return;
         }
+        
+        const replicate = configFile.mysql.replicate;
+        console.log(`${replicate.remote}/${replicate.endpoint}`)
+        let res = await fetch(`${replicate.remote}/${replicate.endpoint}`);
+        const file = await res.json();
+        console.log(file)
 
-        const file = JSON.parse(fs.readFileSync(path));
-        if (!file.length) {
-            return;
+        while (file.length) {
+            const query = file.shift();
+    
+            res = await fetch(`${replicate.local}/${replicate.endpoint}`, {
+                method: 'POST',
+                body: new URLSearchParams({
+                    query: query.query,
+                    connection: JSON.stringify(configFile.mysql.connection),
+                }).toString(),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
         }
 
-        const query = file.shift();
-
-        fs.writeFileSync(path, JSON.stringify(file));
-
-        fetch(configFile.mysql.replicate.url, {
-            method: 'POST',
-            body: new URLSearchParams({
-                query: query.query,
-                connection: JSON.stringify(configFile.mysql.connection),
-            }).toString(),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        }).then(res => {
-            // console.log(res)
-        });
+        return;
     },
 
     raw: function(str){

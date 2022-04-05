@@ -86,13 +86,6 @@ module.exports = app => {
                 const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
                 const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[network.token].price;
 
-                // report base fee if available and not opted out
-                if (data.baseFee) {
-                    // remove null
-                    resp.baseFee = data.baseFee.filter(e => e);
-                    resp.baseFee = resp.baseFee.reduce((p, c) => p + c, 0) / resp.baseFee.length;
-                }
-
                 speeds = speeds.map(speed => {
                     return {
                         acceptance: sortedGwei.filter(e => e <= speed).length / sortedGwei.length,
@@ -116,6 +109,13 @@ module.exports = app => {
                     resp.avgTx = avgTx;
                     resp.avgGas = avgGas;
                     resp.speeds = speeds;
+
+                    // report base fee if available and not opted out
+                    if (data.baseFee) {
+                        // remove null
+                        resp.baseFee = data.baseFee.filter(e => e);
+                        resp.baseFee = resp.baseFee.reduce((p, c) => p + c, 0) / resp.baseFee.length;
+                    }
                 }
             }
     

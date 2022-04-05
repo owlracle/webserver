@@ -6,7 +6,12 @@
             "database": "DB_DATABASE",
             "password": "DB_PASSWORD"
         },
-        "saveUpdates": false
+        "replicate": {
+            "enabled": false,
+            "saveUpdates": false,
+            "writeLocal": false,
+            "sourceURL": "OLD_DB_URL"
+        }
     },
     "production": true,
     "telegram": {

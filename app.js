@@ -3,6 +3,7 @@ const mustacheExpress = require('mustache-express');
 
 const { configFile, Session, verifyRecaptcha, networkList } = require('./utils');
 const { buildHistory, updateAllCredit, updateTokenPrice, alertCredit } = require('./background');
+const { replicate } = require('./db_replicate/replicate');
 
 let port = 4210;
 
@@ -148,46 +149,7 @@ app.get('/links', (req, res) => {
 
 
 // when you want to replicate database. can comment when not using
-if (configFile.mysql.saveUpdates) {
-    app.post('/dbsync', async (req, res) => {
-        const connection = JSON.parse(req.body.connection);
-        const query = req.body.query;
-
-        const check = Object.entries(connection)
-        .map(([k,v]) => configFile.mysql.connection[k] == v)
-        .filter(e => e);
-
-        if (check.length < 3) {
-            res.status(401).send({
-                status: 401,
-                error: 'Unauthorized',
-                message: 'Credentials does not match the local database'
-            })
-            return;
-        }
-
-        db.query(query, []);
-
-        res.send({
-            status: 200,
-            message: 'success',
-            sql: query,
-        });
-    });
-
-    const fs = require('fs');
-    const cors = require('cors');
-    const corsOptions = {
-        origin: '*',
-        optionsSuccessStatus: 200,
-    };
-    app.get('/dbsync', cors(corsOptions), async (req, res) => {
-        const path = `${__dirname}/mysqlUpdate.json`;
-        const file = JSON.parse(fs.readFileSync(path));
-        fs.writeFileSync(path, JSON.stringify([]));
-        res.send(file);
-    });
-}
+replicate.createWorker(app);
 
 
 // ############################
@@ -248,13 +210,3 @@ if (configFile.production){
         alertCredit();
     }
 }
-
-if (configFile.mysql.replicate.enabled) {
-    const replicate = async () => {
-        await db.replicate();
-        setTimeout(async () => await replicate(), 100);
-        return;
-    }
-    replicate();
-}
-

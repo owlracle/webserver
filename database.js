@@ -1,8 +1,6 @@
 const mysql = require('mysql2');
-const fs = require('fs');
-const fetch = require('node-fetch');
-
 const { configFile, telegram } = require('./utils');
+const { replicate } = require('./db_replicate/replicate');
 
 const db = {
     working: false,
@@ -45,7 +43,7 @@ const db = {
         }
         else {
             let sql = `INSERT INTO ${table} (${fields.join(',')}) VALUES (${values.map(() => '?').join(',')})`;
-            this.saveUpdate(table, sql, values);
+            replicate.saveUpdate(table, sql, values);
             // console.log(this.format(sql, values));
             return this.query(sql, values);
         }
@@ -63,54 +61,8 @@ const db = {
         }
         const sql = `UPDATE ${table} SET ${fielsdSql} ${where}`;
         // console.log(this.format(sql, data));
-        this.saveUpdate(table, sql, data);
+        replicate.saveUpdate(table, sql, values);
         return this.query(sql, data);
-    },
-
-    saveUpdate: function(table, sql, data) {
-        if (!configFile.mysql.saveUpdates) {
-            return;
-        }
-
-        const path = `${__dirname}/mysqlUpdate.json`;
-        const file = fs.existsSync(path) ?
-            JSON.parse(fs.readFileSync(path)) : [];
-
-        const query = this.format(sql, data);
-        file.push({
-            timestamp: new Date().getTime(),
-            table: table,
-            query: query,
-        });
-
-        fs.writeFileSync(path, JSON.stringify(file));
-    },
-
-    replicate: async function() {
-        if (!configFile.mysql.replicate.enabled) {
-            return;
-        }
-        
-        const replicate = configFile.mysql.replicate;
-        console.log(`${replicate.remote}/${replicate.endpoint}`)
-        let res = await fetch(`${replicate.remote}/${replicate.endpoint}`);
-        const file = await res.json();
-        console.log(file)
-
-        while (file.length) {
-            const query = file.shift();
-    
-            res = await fetch(`${replicate.local}/${replicate.endpoint}`, {
-                method: 'POST',
-                body: new URLSearchParams({
-                    query: query.query,
-                    connection: JSON.stringify(configFile.mysql.connection),
-                }).toString(),
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
-        }
-
-        return;
     },
 
     raw: function(str){

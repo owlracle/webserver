@@ -70,14 +70,7 @@ module.exports = app => {
             if (data.minGwei) {
                 resp.timestamp = new Date().toISOString();
 
-                const timeDiff = new Date().getTime() / 1000 - data.lastTime;
-                if(timeDiff > 60) {
-                    telegram.alert({
-                        message: 'Oracle is lagging',
-                        network: req.params.network,
-                        timeDiff: timeDiff,
-                    });
-                }
+                api.checkLag(req.params.network, data.lastTime);
 
                 const avgTx = data.ntx.reduce((p, c) => p + c, 0) / data.ntx.length;
                 const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
@@ -901,6 +894,7 @@ const api = {
     USAGE_LIMIT: 100,
     GUEST_LIMIT: 10,
     REQUEST_COST: 0.00005,
+    lagAlert: {},
 
     getUsage: async function(keyId, ip) {
         const usage = { ip: 0, apiKey: 0 };
@@ -1580,4 +1574,28 @@ const api = {
 
         return res;
     },
+
+    // create alert if lag if greater than 5 minutes
+    checkLag(network, lastTime) {
+        const timeLimit = 300; // 5 minutes
+        const warmupTime = 3600; // 1 hour
+        
+        const nowTime = new Date().getTime() / 1000;
+        const lastAlert = this.lagAlert[network] || 0;
+
+        // it is between warmups
+        if (nowTime - lastAlert < warmupTime) {
+            return;
+        }
+
+        const timeDiff = nowTime - lastTime;
+        if (timeDiff > timeLimit) {
+            this.lagAlert[network] = nowTime;
+            telegram.alert({
+                message: 'Oracle is lagging',
+                network: network,
+                timeDiff: timeDiff,
+            });
+        }
+    }
 }

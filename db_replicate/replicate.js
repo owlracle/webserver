@@ -1,10 +1,11 @@
 const fs = require('fs');
 const cors = require('cors');
+const fetch = require('node-fetch');
 const { configFile } = require('../utils');
 const db = require('../database');
 
 
-const replicate = {
+const replicateDB = {
     fileName: 'mysqlUpdate.json',
     endpoint: 'dbsync',
 
@@ -34,13 +35,19 @@ const replicate = {
             return;
         }
         
-        let res = await fetch(`${config.sourceURL}/${this.endpoint}`);
-        const file = await res.json();
-        
-        while (file.length) {
-            console.log(file)
-            const query = file.shift().query;
-            db.query(query, []);
+        try {
+            let res = await fetch(`${config.sourceURL}/${this.endpoint}`);
+            const file = await res.json();
+            
+            while (file.length) {
+                console.log(file)
+                const query = file.shift().query;
+                db.query(query, []);
+            }
+        }
+        catch (error) {
+            console.log(`Could not reach ${`${config.sourceURL}/${this.endpoint}`}`);
+            // console.log(error);
         }
 
         return;
@@ -80,4 +87,4 @@ const replicate = {
     },
 };
 
-module.exports = replicate;
+module.exports = { replicateDB };

@@ -61,7 +61,7 @@ const db = {
         }
         const sql = `UPDATE ${table} SET ${fielsdSql} ${where}`;
         // console.log(this.format(sql, data));
-        replicateDB.saveUpdate(table, sql, values);
+        replicateDB.saveUpdate(table, sql, data);
         return this.query(sql, data);
     },
 

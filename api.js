@@ -871,18 +871,29 @@ module.exports = app => {
 
 
     app.get('/tokenprice/:token', async (req, res) => {
-        const token = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[req.params.token.toUpperCase()];
-
-        if (!token){
-            res.status(404).send({
-                status: 404,
-                error: 'Not Found',
-                message: 'The token you are looking for could not be found.',
+        try {
+            const token = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[req.params.token.toUpperCase()];
+    
+            if (!token){
+                res.status(404).send({
+                    status: 404,
+                    error: 'Not Found',
+                    message: 'The token you are looking for could not be found.',
+                });
+                return;
+            }
+    
+            res.send(token);
+        }
+        catch (error) {
+            console.log('Error getting token price');
+            res.status(500).send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error getting token price.',
             });
             return;
-        }
-
-        res.send(token);
+    }
     });
     
 

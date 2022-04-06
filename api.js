@@ -5,7 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 
 const { Session, verifyRecaptcha, oracle, networkList, explorer, telegram, configFile } = require('./utils');
-const db = require('./database');
+const { db } = require('./database');
 
 const corsOptions = {
     origin: '*',

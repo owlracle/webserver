@@ -3,11 +3,10 @@ const mustacheExpress = require('mustache-express');
 
 const { configFile, Session, verifyRecaptcha, networkList } = require('./utils');
 const { buildHistory, updateAllCredit, updateTokenPrice, alertCredit } = require('./background');
-const { replicateDB } = require('./db_replicate/replicate');
 
 let port = 4210;
 
-const db = require('./database');
+const { db, replicateDB } = require('./database');
 db.connect();
 
 const app = express();
@@ -149,7 +148,7 @@ app.get('/links', (req, res) => {
 
 
 // when you want to replicate database. can comment when not using
-replicateDB.createWorker(app);
+replicateDB.createWorker(app, db);
 
 
 // ############################

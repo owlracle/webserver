@@ -1,5 +1,4 @@
-const db = require('./database');
-const bcrypt = require('bcrypt');
+const { db } = require('./database');
 
 module.exports = (app, api) => {
     // add credit alert

@@ -1,4 +1,4 @@
-const db = require('./database');
+const { db } = require('./database');
 const { configFile, Session, explorer, networkList } = require('./utils');
 
 module.exports = (app, api) => {

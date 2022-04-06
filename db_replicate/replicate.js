@@ -2,14 +2,13 @@ const fs = require('fs');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const { configFile } = require('../utils');
-const db = require('../database');
 
 
 const replicateDB = {
     fileName: 'mysqlUpdate.json',
     endpoint: 'dbsync',
 
-    saveUpdate: function(table, sql, data) {
+    saveUpdate: function(table, sql, data, db) {
         const config = configFile.mysql.replicate;
         if (!config.enabled || !config.saveUpdates) {
             return;
@@ -19,7 +18,7 @@ const replicateDB = {
         const file = fs.existsSync(path) ?
             JSON.parse(fs.readFileSync(path)) : [];
 
-        const query = this.format(sql, data);
+        const query = db.format(sql, data);
         file.push({
             timestamp: new Date().getTime(),
             table: table,
@@ -29,7 +28,7 @@ const replicateDB = {
         fs.writeFileSync(path, JSON.stringify(file));
     },
 
-    replicate: async function() {
+    replicate: async function(db) {
         const config = configFile.mysql.replicate;
         if (!config.enabled || !config.writeLocal) {
             return;
@@ -53,7 +52,7 @@ const replicateDB = {
         return;
     },
 
-    createWorker: function(app) {
+    createWorker: function(app, db) {
         const config = configFile.mysql.replicate;
         if (!config.enabled) {
             return;
@@ -77,7 +76,7 @@ const replicateDB = {
         // save to local db
         if (config.writeLocal) {
             const rpl = async () => {
-                await this.replicate();
+                await this.replicate(db);
                 setTimeout(async () => await rpl(), 100);
                 return;
             }

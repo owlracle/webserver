@@ -1,5 +1,5 @@
 const { oracle, networkList, logError, telegram } = require('./utils');
-const db = require('./database');
+const { db } = require('./database');
 const fetch = require('node-fetch');
 const fs = require('fs');
 

@@ -4,6 +4,10 @@ First you will need to replicate the database, mirroring every change on the **s
 
 After that, you will redirect requests through dns. After dns propagation, you will see **source** database no longer receives updates. Then you can switch off the db replication.
 
+You can use `source.sh` and `target.sh` scripts or you could follow the each step manually.
+
+Note that if useing the automated scripts method, you should still manually update the `config.json` as in the *Turn on saveUpdates* and *Load app in the target server* sections.
+
 ## Turn on saveUpdates
 
 Reload source app with `mysql.replicate.enabled` and `mysql.replicate.saveUpdates` to `true`.
@@ -16,7 +20,7 @@ Every request will now be saved.
 mysqldump owlracle_db > owlracle.sql
 ```
 
-## Zip dump file (for faster ftp transport)
+## Zip dump file (for faster file transfer)
 
 ```
 zip owlracle.sql.zip owlracle.sql
@@ -24,9 +28,11 @@ zip owlracle.sql.zip owlracle.sql
 
 ## Transfer database
 
-Download form source, then upload zip to target server.
+Copy zip file from source to target server.
 
-Use an ftp server, for time saving.
+```
+scp owlracle.sql.zip root@191.252.191.90:/home/webserver
+```
 
 ## Restore backup
 

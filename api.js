@@ -80,7 +80,7 @@ module.exports = app => {
 
                 let speeds = accept.map(speed => {
                     // get gwei corresponding to the slice of the array
-                    const poolIndex = parseInt(speed / 100 * sortedGwei.length) - 1;
+                    const poolIndex = Math.ceil(speed / 100 * sortedGwei.length) - 1;
                     return sortedGwei[poolIndex];
                 });
                 

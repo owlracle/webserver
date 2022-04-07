@@ -1226,7 +1226,7 @@ class EndpointTable {
             { name: 'avgTx', description: 'Average number of transactions in the blocks.' },
             { name: 'avgGas', description: 'Average gas limit set for transactions in the scanned blocks.' },
             { name: 'speeds', description: 'Array containing information of every speed requested in the <code class="code inline">accept</code> param.' },
-            { name: 'acceptance', description: 'Ratio of blocks accepting transactions with the suggested gas price.' },
+            { name: 'acceptance', description: 'Ratio of blocks accepting transactions with the suggested gas price. This value will always be >= the requested speed from the accept argument.' },
             { name: 'gasPrice', description: 'Suggested gas price (in GWei) to be accepted in at least the requested percentage of blocks.' },
             { name: 'estimatedFee', description: 'Estimated fee (in USD) you should pay when using the suggested gas price. This fee is calculated using the current token price and <code class="code inline">avgGas</code> value.' },
         ],

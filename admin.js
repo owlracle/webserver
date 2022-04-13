@@ -173,42 +173,92 @@ module.exports = (app, api) => {
 
     // get api credit
     app.get('/admin/credit', async (req, res) => {
-        const data = [];
-        let filter = '';
-        if (req.query.wallet) {
-            filter = ' WHERE wallet = ?';
-            data.push(req.query.wallet);
-        }
-        else if (req.query.id) {
-            filter = ' WHERE id = ?';
-            data.push(req.query.id);
-        }
 
-        let orderBy = 'key_use DESC';
-        const field = { credit: 'k.credit', usage: 'key_use', time: 'k.timeChecked' };
-        if (req.query.field && field[req.query.field]){
-            const order = req.query.order && req.query.order == 'desc' ? 'DESC' : 'ASC';
-            orderBy = `${field[req.query.field]} ${order}`;
-        }
+        // get all api key ids
+        let ids = await (async id => {
+            if (id) {
+                return [id];
+            }
 
-        const limit = 25;
-        const offset = req.query.page * limit;
+            const [rows, error] = await db.query(`SELECT id FROM api_keys`, []);
+            if (error) {
+                return {
+                    status: 500,
+                    error: 'Internal server error',
+                    message: 'Error retrieving the api key information'
+                };
+            }
 
-        const usage = `SELECT count(*) FROM api_requests WHERE timestamp > now() - INTERVAL 1 DAY AND apiKey = k.id`;
-        const [rows, error] = await db.query(`SELECT k.id, k.origin, k.note, k.credit, k.wallet, (${usage}) AS key_use, k.timeChecked FROM api_keys k${filter} ORDER BY ${orderBy} LIMIT ${limit} OFFSET ${offset}`, data);
+            return rows.map(e => e.id);
+        })(req.query.id);
+        // console.log(ids)
 
-        if (error) {
-            res.status(500).send({
-                status: 500,
-                error: 'Internal server error',
-                message: 'Error retrieving the api key information'
-            });
+        if (ids.error) {
+            res.status(500).send(ids);
             return;
         }
 
+        const results = ids.map(async id => {
+            // get usage
+            let sql = `SELECT count(*) AS key_usage FROM api_requests WHERE apiKey = ? AND timestamp > now() - INTERVAL 1 DAY`;
+            let [rows, error] = await db.query(sql, [id]);
+            // console.log(db.format(sql, [id]));
+            if (error) {
+                return {
+                    status: 500,
+                    error: 'Internal server error',
+                    message: 'Error retrieving the api key information'
+                }
+            }
+    
+            // get key info
+            const usage = rows.map(e => e.key_usage);
+            sql = `SELECT k.id, k.origin, k.note, k.credit, k.timeChecked FROM api_keys k WHERE k.id = ?`;
+            [rows, error] = await db.query(sql, [id]);
+            // console.log(db.format(sql, [id]));
+            if (error) {
+                return {
+                    status: 500,
+                    error: 'Internal server error',
+                    message: 'Error retrieving the api key information'
+                };
+            }
+
+            rows[0]['key_use'] = usage;
+
+            return rows[0];
+        });
+
+        const data = await Promise.all(results);
+
+        // check for error in any result
+        const errors = data.filter(e => e.error);
+        if (errors.length) {
+            res.status(500).send(errors);
+            return;
+        }
+
+        // sort data
+        data.sort((a,b) => {
+            let first = b;
+            let last = a;
+            const field = {
+                usage: 'key_use',
+                credit: 'credit',
+                time: 'timeChecked'
+            }
+
+            if (req.query.order == 'asc') {
+                first = a;
+                last = b;
+            }
+
+            return first[field[req.query.field]] - last[field[req.query.field]];
+        });
+
         res.send({
             message: 'success',
-            results: rows,
+            results: data,
         })
     });
 

@@ -1,6 +1,6 @@
 const mysql = require('mysql2');
 const { configFile, telegram } = require('./utils');
-const { replicateDB } = require('./db_replicate/replicate');
+// const { replicateDB } = require('./db_replicate/replicate');
 
 const db = {
     working: false,
@@ -43,7 +43,7 @@ const db = {
         }
         else {
             let sql = `INSERT INTO ${table} (${fields.join(',')}) VALUES (${values.map(() => '?').join(',')})`;
-            replicateDB.saveUpdate(table, sql, values, this);
+            // replicateDB.saveUpdate(table, sql, values, this);
             // console.log(this.format(sql, values));
             return this.query(sql, values);
         }
@@ -61,7 +61,7 @@ const db = {
         }
         const sql = `UPDATE ${table} SET ${fielsdSql} ${where}`;
         // console.log(this.format(sql, data));
-        replicateDB.saveUpdate(table, sql, data, this);
+        // replicateDB.saveUpdate(table, sql, data, this);
         return this.query(sql, data);
     },
 
@@ -113,5 +113,6 @@ const db = {
 };
 
 
-module.exports = { db, replicateDB };
+// module.exports = { db, replicateDB };
+module.exports = { db };
 

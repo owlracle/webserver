@@ -6,7 +6,8 @@ const { buildHistory, updateTokenPrice, alertCredit } = require('./background');
 
 let port = 4210;
 
-const { db, replicateDB } = require('./database');
+// const { db, replicateDB } = require('./database');
+const { db } = require('./database');
 db.connect();
 
 const app = express();
@@ -148,7 +149,7 @@ app.get('/links', (req, res) => {
 
 
 // when you want to replicate database. can comment when not using
-replicateDB.createWorker(app, db);
+// replicateDB.createWorker(app, db);
 
 
 // ############################

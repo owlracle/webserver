@@ -73,9 +73,7 @@ module.exports = app => {
                 api.checkLag(req.params.network, data.lastTime);
 
                 const avgTx = data.ntx.reduce((p, c) => p + c, 0) / data.ntx.length;
-                const avgTimestamp = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
-                const avgBlocks = (data.number.slice(-1)[0] - data.number[0]) / (data.number.length - 1);
-                const avgTime = avgTimestamp / avgBlocks;
+                const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
 
                 // sort gwei array ascending so I can pick directly by index
                 const sortedGwei = data.minGwei.sort((a, b) => parseFloat(a) - parseFloat(b));
@@ -1267,7 +1265,7 @@ const api = {
                 status: 404,
                 error: 'Not Found',
                 message: 'The informed transaction could not be found.',
-                serverMessage: error,
+                serverMessage: tx,
             }};
         }
 

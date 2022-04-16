@@ -1015,7 +1015,7 @@ const api = {
 
                 let value = e[1];
                 if (e[0] == 'credit') {
-                    value = `...`;
+                    value = `$` + parseFloat(value).toFixed(6);
                 }
                 else if (e[0] == 'creation'){
                     value = new Date(e[1]).toISOString().replace('T', ' ').split('.')[0];
@@ -1026,9 +1026,9 @@ const api = {
                     return '';
                     // input = `<div class="input-container">${input}<div id="copy" class="input-button" title="Copy"><i class="far fa-copy"></i></div></div>`;
                 }
-                if (e[0] == 'credit'){
-                    input = `<div class="input-container">${input}<div id="update" class="input-button" title="Update"><i class="fas fa-sync-alt"></i></div></div>`;
-                }
+                // if (e[0] == 'credit'){
+                //     input = `<div class="input-container">${input}<div id="update" class="input-button" title="Update"><i class="fas fa-sync-alt"></i></div></div>`;
+                // }
                 else if (e[0] == 'origin'){
                     input = `<div class="input-container">${input}<a id="open-link" class="input-button" title="Open Link" href="https://${value}" target="_blank" rel="noopener nofollow"><i class="fas fa-external-link-alt"></i></a></div>`;
                 }
@@ -1056,12 +1056,12 @@ const api = {
             //     api.copyText(parent);
             // });
             
-            modal.querySelector('#update').addEventListener('click', function(){
-                this.classList.add('clicked');
-                setTimeout(() => this.classList.remove('clicked'), 700);
-                modal.querySelector('#input-credit').value = '...';
-                refreshCredit(key);
-            });
+            // modal.querySelector('#update').addEventListener('click', function(){
+            //     this.classList.add('clicked');
+            //     setTimeout(() => this.classList.remove('clicked'), 700);
+            //     modal.querySelector('#input-credit').value = '...';
+            //     refreshCredit(key);
+            // });
             
             const historyButton = modal.querySelector('#credit');
             historyButton.addEventListener('click', async () => {
@@ -1072,20 +1072,22 @@ const api = {
                 this.showWindowCredit(key, data);
             });    
 
-            async function refreshCredit(key){
-                const modal = document.querySelector('#fog #api-window');
-                if (modal && modal.querySelector('#input-credit')){
-                    await api.updateCredit({ apiKey: key });
-                    const data = await api.getKey(key);
+            // async function refreshCredit(key){
+            //     const modal = document.querySelector('#fog #api-window');
+            //     const inputCredit = modal.querySelector('#input-credit');
+            //     if (modal && inputCredit){
+            //         await api.updateCredit({ apiKey: key });
+            //         const data = await api.getKey(key);
+            //         console.log(data)
 
-                    // if even after await you are still on the same window
-                    if (modal && modal.querySelector('#input-credit') && key == modal.querySelector('.input-text').value){
-                        modal.querySelector('#input-credit').value = `$${parseFloat(data.credit).toFixed(6)}`;
-                        setTimeout(() => refreshCredit(key), 5000);
-                    }
-                }
-            }
-            refreshCredit(key);
+            //         // if even after await you are still on the same window
+            //         if (modal && inputCredit && key == modal.querySelector('.input-text').value){
+            //             inputCredit.value = `$` + parseFloat(data.credit).toFixed(6);
+            //             setTimeout(() => refreshCredit(key), 5000);
+            //         }
+            //     }
+            // }
+            // refreshCredit(key);
         }
         else{
             modal.innerHTML = `<div id="content">

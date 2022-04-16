@@ -128,9 +128,9 @@ const network = (symbol => {
         // future code here
     }
     // show an intro message. show again each week
-    else if (!cookies.get('hide-info-2')){
-        const message = infoMessageModal.show(`⌛ Last hours to enjoy the 2x bonus to credit recharges. 🦉`);
-        infoMessageModal.onClose = () => cookies.set('hide-info-2', true, { expires: { hours: 6 }, json: true });
+    else if (!cookies.get('hide-info-1')){
+        // const message = infoMessageModal.show(`From now on I will handle all your API key recharges through Metamask! <a>Learn more</a>. 🦉`);
+        // infoMessageModal.onClose = () => cookies.set('hide-info-1', true, { expires: { days: 7 }, json: true });
 
         // message.querySelector('a').addEventListener('click', () => {
         //     new Modal(`

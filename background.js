@@ -60,18 +60,20 @@ async function buildHistory(network, blocks){
 }
 
 
+// THIS IS REMOVED FROM PRODUCTION SERVER
+// SINCE THE NEW METAMASK RECHARGE METHOD, THIS IS USELESS AND WILL BE COMPLETELY REMOVED IN THE FUTURE
 // update credit recharges and block height for all api keys
-async function updateAllCredit(api){
-    const [rows, error] = await db.query(`SELECT * FROM api_keys ORDER BY timeChecked`);
-    if (!error){
-        // wait before every api update so we dont overload the explorers
-        for (let i=0 ; i < rows.length ; i++){
-            await api.updateCreditLegacy(rows[i]);
-        }
-    }
+// async function updateAllCredit(api){
+//     const [rows, error] = await db.query(`SELECT * FROM api_keys ORDER BY timeChecked`);
+//     if (!error){
+//         // wait before every api update so we dont overload the explorers
+//         for (let i=0 ; i < rows.length ; i++){
+//             await api.updateCreditLegacy(rows[i]);
+//         }
+//     }
 
-    setTimeout(() => updateAllCredit(api), 1000 * 60 * 60); // 1 hour
-}
+//     setTimeout(() => updateAllCredit(api), 1000 * 60 * 60); // 1 hour
+// }
 
 
 // update native token prices, and hold a cached price to avoid fetching at every api call
@@ -132,4 +134,4 @@ async function alertCredit() {
     setTimeout(() => alertCredit(), 1000 * 60 * 10); // 10 minute
 }
 
-module.exports = { buildHistory, updateAllCredit, updateTokenPrice, alertCredit };
+module.exports = { buildHistory, updateTokenPrice, alertCredit };

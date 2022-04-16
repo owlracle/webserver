@@ -73,7 +73,9 @@ module.exports = app => {
                 api.checkLag(req.params.network, data.lastTime);
 
                 const avgTx = data.ntx.reduce((p, c) => p + c, 0) / data.ntx.length;
-                const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
+                const avgTimestamp = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
+                const avgBlocks = (data.number.slice(-1)[0] - data.number[0]) / (data.number.length - 1);
+                const avgTime = avgTimestamp / avgBlocks;
 
                 // sort gwei array ascending so I can pick directly by index
                 const sortedGwei = data.minGwei.sort((a, b) => parseFloat(a) - parseFloat(b));
@@ -460,59 +462,41 @@ module.exports = app => {
         const keyCryptPromise = bcrypt.hash(key, 10); 
         const secretCryptPromise = bcrypt.hash(secret, 10);
     
-        
         const hash = await Promise.all([keyCryptPromise, secretCryptPromise]);
         
-        try {
-            // create new wallet for deposits
-            // const wallet = await (await fetch('https://api.blockcypher.com/v1/eth/main/addrs', { method: 'POST' })).json();
-            
-            const data = {
-                apiKey: hash[0],
-                secret: hash[1],
-                // wallet: `0x${wallet.address}`,
-                // private: wallet.private,
-                peek: key.slice(-4),
-            };
-        
-            if (req.body.origin){
-                const origin = api.getOrigin(req.body.origin);
-                if (origin){
-                    data.origin = origin;
-                }
-            }
-            if (req.body.note){
-                data.note = req.body.note;
-            }
+        const data = {
+            apiKey: hash[0],
+            secret: hash[1],
+            peek: key.slice(-4),
+        };
     
-            const [rows, error] = await db.insert('api_keys', data);
-        
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to insert new api key to database',
-                    serverMessage: error,
-                });
-                return;
+        if (req.body.origin){
+            const origin = api.getOrigin(req.body.origin);
+            if (origin){
+                data.origin = origin;
             }
-
-            res.send({
-                apiKey: key,
-                secret: secret,
-                // wallet: data.wallet,
-            });
         }
-        catch (error) {
+        if (req.body.note){
+            data.note = req.body.note;
+        }
+
+        const [rows, error] = await db.insert('api_keys', data);
+    
+        if (error){
             res.status(500);
             res.send({
                 status: 500,
                 error: 'Internal Server Error',
-                message: 'Error creating new wallet. Try again in a few minutes.',
+                message: 'Error while trying to insert new api key to database',
                 serverMessage: error,
             });
+            return;
         }
+
+        res.send({
+            apiKey: key,
+            secret: secret,
+        });
     });
     
     
@@ -736,7 +720,6 @@ module.exports = app => {
         const data = {
             apiKey: key,
             creation: row[0].creation,
-            wallet: row[0].wallet,
             credit: row[0].credit
         };
 
@@ -865,7 +848,7 @@ module.exports = app => {
             return;
         }
 
-        const txs = await (tx ? api.updateCredit(row.send, tx, network) : api.updateCreditLegacy(row.send));
+        const txs = await api.updateCredit(row.send, tx, network);
         res.send(txs);
     });
 
@@ -1136,136 +1119,137 @@ const api = {
         return rows;
     },
 
+    // DEPRECATED. WILL BE REMOVED IN THE FUTURE
     // the old update credit. will stay active for a while
-    updateCreditLegacy: async function({ id, wallet, timeChecked, credit }){
-        const now = parseInt(new Date().getTime() / 1000);
-        const then = parseInt(new Date(timeChecked).getTime() / 1000 - 3600);
-        const data = {};
-        data.api_keys = { credit: credit };
-        data.api_keys.timeChecked = new Date();
+    // updateCreditLegacy: async function({ id, wallet, timeChecked, credit }){
+    //     const now = parseInt(new Date().getTime() / 1000);
+    //     const then = parseInt(new Date(timeChecked).getTime() / 1000 - 3600);
+    //     const data = {};
+    //     data.api_keys = { credit: credit };
+    //     data.api_keys.timeChecked = new Date();
 
-        // const txs = await oracle.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now);
-        const txsn = [
-            // get normal txs
-            ...await Promise.all(Object.keys(networkList).map(async network => {
-                const tx = await explorer.getTx({ wallet: wallet, fromTime: then, toTime: now, network: network });
-                tx.network2 = networkList[network].dbid;
-                return tx;
-            })),
-            // get internal txs
-            ...await Promise.all(Object.keys(networkList).map(async network => {
-                const tx = await explorer.getTx({ wallet: wallet, fromTime: then, toTime: now, network: network, internal: true });
-                tx.network2 = networkList[network].dbid;
-                return tx;
-            }))
-        ];
-        // if (txsn.map(e => e.result.length).reduce((p,c) => p+c, 0) > 0){
+    //     // const txs = await oracle.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now);
+    //     const txsn = [
+    //         // get normal txs
+    //         ...await Promise.all(Object.keys(networkList).map(async network => {
+    //             const tx = await explorer.getTx({ wallet: wallet, fromTime: then, toTime: now, network: network });
+    //             tx.network2 = networkList[network].dbid;
+    //             return tx;
+    //         })),
+    //         // get internal txs
+    //         ...await Promise.all(Object.keys(networkList).map(async network => {
+    //             const tx = await explorer.getTx({ wallet: wallet, fromTime: then, toTime: now, network: network, internal: true });
+    //             tx.network2 = networkList[network].dbid;
+    //             return tx;
+    //         }))
+    //     ];
+    //     // if (txsn.map(e => e.result.length).reduce((p,c) => p+c, 0) > 0){
 
-        data.credit_recharges = {};
-        data.credit_recharges.fields = [
-            'network2',
-            'tx',
-            'value',
-            'price',
-            'timestamp',
-            'fromWallet',
-            'apiKey',
-        ];
-        data.credit_recharges.values = [];
-        let rechargeAmount = 0;
+    //     data.credit_recharges = {};
+    //     data.credit_recharges.fields = [
+    //         'network2',
+    //         'tx',
+    //         'value',
+    //         'price',
+    //         'timestamp',
+    //         'fromWallet',
+    //         'apiKey',
+    //     ];
+    //     data.credit_recharges.values = [];
+    //     let rechargeAmount = 0;
     
-        await Promise.all(txsn.map(async txs => {
-            if (txs.status == "1"){
-                // check for existing txs
-                const hashes = txs.result.map(tx => tx.hash);
-                const sql = `SELECT tx FROM credit_recharges WHERE tx IN(${hashes.map(() => '?').join(',')})`;
-                const [rows, error] = await db.query(sql, hashes);
+    //     await Promise.all(txsn.map(async txs => {
+    //         if (txs.status == "1"){
+    //             // check for existing txs
+    //             const hashes = txs.result.map(tx => tx.hash);
+    //             const sql = `SELECT tx FROM credit_recharges WHERE tx IN(${hashes.map(() => '?').join(',')})`;
+    //             const [rows, error] = await db.query(sql, hashes);
 
-                if (error){
-                    return { error: {
-                        status: 500,
-                        error: 'Internal Server Error',
-                        message: 'Error while retrieving transactions from database.',
-                        serverMessage: error,
-                    }};
-                }
+    //             if (error){
+    //                 return { error: {
+    //                     status: 500,
+    //                     error: 'Internal Server Error',
+    //                     message: 'Error while retrieving transactions from database.',
+    //                     serverMessage: error,
+    //                 }};
+    //             }
 
-                // remove existing txs
-                txs.result = txs.result.filter(e => !rows.map(r => r.tx).includes(e.hash));
+    //             // remove existing txs
+    //             txs.result = txs.result.filter(e => !rows.map(r => r.tx).includes(e.hash));
 
-                return Promise.all(txs.result.map(async tx => {
-                    // get closest block available on history. get token_price from it
-                    const blockNumber = parseInt(tx.blockNumber);
-                    const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
-                    const [rows, error] = await db.query(sql, [ blockNumber, txs.network2, blockNumber ]);
+    //             return Promise.all(txs.result.map(async tx => {
+    //                 // get closest block available on history. get token_price from it
+    //                 const blockNumber = parseInt(tx.blockNumber);
+    //                 const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
+    //                 const [rows, error] = await db.query(sql, [ blockNumber, txs.network2, blockNumber ]);
             
-                    if (error){
-                        return { error: {
-                            status: 500,
-                            error: 'Internal Server Error',
-                            message: 'Error while retrieving price history information from database.',
-                            serverMessage: error,
-                        }};
-                    }
+    //                 if (error){
+    //                     return { error: {
+    //                         status: 500,
+    //                         error: 'Internal Server Error',
+    //                         message: 'Error while retrieving price history information from database.',
+    //                         serverMessage: error,
+    //                     }};
+    //                 }
     
-                    const priceThen = parseFloat(rows[0].token_price);
+    //                 const priceThen = parseFloat(rows[0].token_price);
     
-                    if (tx.isError == "0" && tx.to.toLowerCase() == wallet.toLowerCase()){
-                        // update price using tx value (it is in gwei, convert to ether) * price value at that time.
-                        const value = parseInt(tx.value.slice(0,-9));
-                        rechargeAmount += (value * 0.000000001 * priceThen);
-                        data.api_keys.credit = parseFloat(credit) + (value * 0.000000001 * priceThen);
+    //                 if (tx.isError == "0" && tx.to.toLowerCase() == wallet.toLowerCase()){
+    //                     // update price using tx value (it is in gwei, convert to ether) * price value at that time.
+    //                     const value = parseInt(tx.value.slice(0,-9));
+    //                     rechargeAmount += (value * 0.000000001 * priceThen);
+    //                     data.api_keys.credit = parseFloat(credit) + (value * 0.000000001 * priceThen);
 
-                        // insert only if tx not duplicate in the array (internal and regular)
-                        if (!data.credit_recharges.values.map(e => e[1]).includes(tx.hash)){
-                            data.credit_recharges.values.push([
-                                txs.network2,
-                                tx.hash,
-                                value,
-                                priceThen,
-                                db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
-                                tx.from,
-                                id
-                            ]);
-                        }
-                    }
-                }));
-            }
-            return false;
-        }));
+    //                     // insert only if tx not duplicate in the array (internal and regular)
+    //                     if (!data.credit_recharges.values.map(e => e[1]).includes(tx.hash)){
+    //                         data.credit_recharges.values.push([
+    //                             txs.network2,
+    //                             tx.hash,
+    //                             value,
+    //                             priceThen,
+    //                             db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
+    //                             tx.from,
+    //                             id
+    //                         ]);
+    //                     }
+    //                 }
+    //             }));
+    //         }
+    //         return false;
+    //     }));
         
-        db.update('api_keys', data.api_keys, `id = ?`, [id]);
-        if (data.credit_recharges.values.length){
-            db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
-            telegram.alert({
-                message: 'Credit recharge',
-                token: data.credit_recharges.values.map(e => Object.values(networkList).filter(n => n.dbid == e[0])[0].token), // network
-                hash: data.credit_recharges.values.map(e => e[1]), // hash
-                value: data.credit_recharges.values.map(e => e[2] * e[3] * 0.000000001), // value * tokenprice
-                amount: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
-                fromWallet: data.credit_recharges.values.map(e => e[5]), // from
-                toWallet: wallet.toLowerCase(),
-            });
+    //     db.update('api_keys', data.api_keys, `id = ?`, [id]);
+    //     if (data.credit_recharges.values.length){
+    //         db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
+    //         telegram.alert({
+    //             message: 'Credit recharge',
+    //             token: data.credit_recharges.values.map(e => Object.values(networkList).filter(n => n.dbid == e[0])[0].token), // network
+    //             hash: data.credit_recharges.values.map(e => e[1]), // hash
+    //             value: data.credit_recharges.values.map(e => e[2] * e[3] * 0.000000001), // value * tokenprice
+    //             amount: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
+    //             fromWallet: data.credit_recharges.values.map(e => e[5]), // from
+    //             toWallet: wallet.toLowerCase(),
+    //         });
 
-            // reset alert status
-            const [rows, error] = await db.query(`SELECT id, chatid FROM credit_alerts WHERE active = 1 AND apikey = ?`, [ id ]);
+    //         // reset alert status
+    //         const [rows, error] = await db.query(`SELECT id, chatid FROM credit_alerts WHERE active = 1 AND apikey = ?`, [ id ]);
 
-            const chats = [];
-            if (!error) {
-                rows.forEach(row => {
-                    db.update('credit_alerts', { status: '{}' }, `id = ?`, [ row.id ]);
+    //         const chats = [];
+    //         if (!error) {
+    //             rows.forEach(row => {
+    //                 db.update('credit_alerts', { status: '{}' }, `id = ?`, [ row.id ]);
 
-                    if (!chats.includes(row.chatid)) {
-                        chats.push(row.chatid);
-                    }
-                });
+    //                 if (!chats.includes(row.chatid)) {
+    //                     chats.push(row.chatid);
+    //                 }
+    //             });
 
-                chats.forEach(c => telegram.alert(`✅ Your api key was recharged for $${ rechargeAmount.toFixed(6) }. Thanks!`, { chatId: c, bot: '@owlracle_gas_bot' }) );
-            }
-        }
+    //             chats.forEach(c => telegram.alert(`✅ Your api key was recharged for $${ rechargeAmount.toFixed(6) }. Thanks!`, { chatId: c, bot: '@owlracle_gas_bot' }) );
+    //         }
+    //     }
 
-        return txsn;
-    },
+    //     return txsn;
+    // },
 
     updateCredit: async function({ id, credit }, transactionHash, network){
         const data = {};
@@ -1356,7 +1340,7 @@ const api = {
         const value = parseInt(parseInt(tx.value).toString().slice(0,-9));
         const tokenAmount = value * 0.000000001;
         const usdAmount = tokenAmount * priceThen;
-        const bonus = usdAmount; // double amount for limited time
+        const bonus = 0; // no bonus
         data.api_keys.credit = parseFloat(credit) + usdAmount + bonus;
 
         data.credit_recharges.values.push([

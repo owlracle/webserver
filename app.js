@@ -2,11 +2,12 @@ const express = require('express');
 const mustacheExpress = require('mustache-express');
 
 const { configFile, Session, verifyRecaptcha, networkList } = require('./utils');
-const { buildHistory, updateAllCredit, updateTokenPrice, alertCredit } = require('./background');
+const { buildHistory, updateTokenPrice, alertCredit } = require('./background');
 
 let port = 4210;
 
-const { db, replicateDB } = require('./database');
+// const { db, replicateDB } = require('./database');
+const { db } = require('./database');
 db.connect();
 
 const app = express();
@@ -26,7 +27,7 @@ require('./alerts')(app, api);
 
 const args = {
     saveDB: true,
-    updateCredit: true,
+    // updateCredit: true,
     alerts: true,
 };
 
@@ -55,10 +56,10 @@ process.argv.forEach((val, index, array) => {
         args.saveDB = false;
         console.log('History will not be saved');
     }
-    if ((val == '-c' || val == '--credit')){
-        args.updateCredit = false;
-        console.log('Credit will not be updated');
-    }
+    // if ((val == '-c' || val == '--credit')){
+    //     args.updateCredit = false;
+    //     console.log('Credit will not be updated');
+    // }
     if ((val == '-a' || val == '--alerts')){
         args.alerts = false;
         console.log('Will not check for alerts');
@@ -148,7 +149,7 @@ app.get('/links', (req, res) => {
 
 
 // when you want to replicate database. can comment when not using
-replicateDB.createWorker(app, db);
+// replicateDB.createWorker(app, db);
 
 
 // ############################
@@ -198,9 +199,9 @@ updateTokenPrice().then(() => {
         if (args.saveDB){
             Object.keys(networkList).forEach(n => buildHistory(n));
         }
-        if (args.updateCredit){
-            updateAllCredit(api);
-        }
+        // if (args.updateCredit){
+        //     updateAllCredit(api);
+        // }
     }
 });
 

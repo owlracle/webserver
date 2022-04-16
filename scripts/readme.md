@@ -68,3 +68,9 @@ mysql
 > use [db_name]
 > source [filename.sql]
 ```
+
+## Change timezone to UTC
+
+```
+sudo timedatectl set-timezone UTC
+```

@@ -75,15 +75,20 @@ const db = {
         if (pieces.length > 1){
             let join = pieces.shift();
             
-            data.forEach(d => {
-                if (d.toSqlString){
-                    join += d.toSqlString();
-                }
-                else{
-                    join += '?';
-                }
-                join += pieces.shift();
-            });
+            try {
+                data.forEach(d => {
+                    if (d.toSqlString){
+                        join += d.toSqlString();
+                    }
+                    else{
+                        join += '?';
+                    }
+                    join += pieces.shift();
+                });
+            }
+            catch(error) {
+                console.log(data)
+            }
     
             sql = join;
             data = data.filter(e => !e.toSqlString);

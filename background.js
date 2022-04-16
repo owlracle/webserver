@@ -32,7 +32,7 @@ async function buildHistory(network, blocks){
             const [rows, error] = await db.insert(`price_history`, {
                 network2: networkList[network].dbid,
                 basefee: baseFee,
-                last_block: data.lastBlock,
+                last_block: data.lastBlock || 0,
                 token_price: tokenPrice,
                 avg_gas: avgGas,
                 open: data.minGwei[0],

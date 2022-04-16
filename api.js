@@ -1589,7 +1589,7 @@ const api = {
     // create alert if lag if greater than 5 minutes
     checkLag(network, lastTime) {
         const timeLimit = 300; // 5 minutes
-        const warmupTime = 3600; // 1 hour
+        const warmupTime = 300; // 5 minutes between alerts
         
         const nowTime = new Date().getTime() / 1000;
         const lastAlert = this.lagAlert[network] || 0;

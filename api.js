@@ -1340,7 +1340,7 @@ const api = {
         const value = parseInt(parseInt(tx.value).toString().slice(0,-9));
         const tokenAmount = value * 0.000000001;
         const usdAmount = tokenAmount * priceThen;
-        const bonus = usdAmount; // double amount for limited time
+        const bonus = 0; // no bonus
         data.api_keys.credit = parseFloat(credit) + usdAmount + bonus;
 
         data.credit_recharges.values.push([

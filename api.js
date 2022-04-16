@@ -73,7 +73,9 @@ module.exports = app => {
                 api.checkLag(req.params.network, data.lastTime);
 
                 const avgTx = data.ntx.reduce((p, c) => p + c, 0) / data.ntx.length;
-                const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
+                const avgTimestamp = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
+                const avgBlocks = (data.number.slice(-1)[0] - data.number[0]) / (data.number.length - 1);
+                const avgTime = avgTimestamp / avgBlocks;
 
                 // sort gwei array ascending so I can pick directly by index
                 const sortedGwei = data.minGwei.sort((a, b) => parseFloat(a) - parseFloat(b));

@@ -2,7 +2,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const fetch = require('node-fetch');
 
-const configFile = JSON.parse(fs.readFileSync(`${__dirname}/config.json`));
+const configFile = require(`./config.json`);
 
 
 // manage session tokens

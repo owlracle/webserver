@@ -782,6 +782,14 @@ gasTimer.onUpdate = function(data){
         }
     });
 
+    // update rpc info
+    (async () => {
+        const data = await (await fetch(`/rpc/${network.symbol}`)).json();
+        const now = parseInt(new Date().getTime() / 1000);
+        setColorGradient(document.querySelector('#time-sign'), now - data.lastTime);
+    })();
+
+
     if (!this.started){ 
         document.querySelector(`#timeframe-switcher #tf-${chart.timeframe}`).click();
         document.querySelector(`#toggle-container #gas`).click();
@@ -790,6 +798,19 @@ gasTimer.onUpdate = function(data){
 
     // after a while, change title to gas prices
     setTimeout(() => document.title = `${gas.map(e => parseInt(e)).join(', ')} GWei 🦉 ${network.token} Gas tracker 🦉 Owlracle`, 5000);
+};
+
+
+function setColorGradient(elem, time){
+    const maxTime = 300;
+    const rate = Math.min(time, maxTime) / maxTime;
+
+    const color = {b: '00', toString: color => '00'.slice(color.toString(16).length) + color.toString(16)};
+    color.r = color.toString(Math.round(rate * 200));
+    color.g = color.toString(Math.round((1 - rate) * 200));
+
+    elem.style['background-color'] = `#${color.r}${color.g}${color.b}`;
+    new Tooltip(elem, `RPC last update was ${time}s ago`, { createEvent: 'mouseenter' });
 }
 
 

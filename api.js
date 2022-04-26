@@ -12,7 +12,7 @@ const corsOptions = {
     optionsSuccessStatus: 200,
 };
 
-const sampleRespone = JSON.parse(fs.readFileSync(`${__dirname}/sampleResponse.json`));
+const sampleRespone = require(`./sampleResponse.json`);
 
 module.exports = app => {
     // old endpoint. will still work for now
@@ -86,7 +86,7 @@ module.exports = app => {
                 
                 // avg gas and estimated gas fee price (in $)
                 const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
-                const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[network.token].price;
+                const tokenPrice = JSON.parse(fs.readFileSync(`./tokenPrice.json`))[network.token].price;
 
                 speeds = speeds.map(speed => {
                     return {

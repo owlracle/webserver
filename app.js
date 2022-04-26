@@ -148,6 +148,11 @@ app.get('/links', (req, res) => {
 });
 
 
+app.get('/status', (req, res) => {
+    res.render(`status`, {});
+});
+
+
 // when you want to replicate database. can comment when not using
 // replicateDB.createWorker(app, db);
 

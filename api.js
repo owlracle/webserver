@@ -876,7 +876,32 @@ module.exports = app => {
             return;
     }
     });
-    
+
+
+    // get info about all rpcs
+    app.get('/rpc', cors(corsOptions), async (req, res) => {
+        res.send(await Promise.all(Object.entries(networkList).map(async ([k,v]) => {
+            const data = await oracle.getNetInfo(v.name, blocks=1);
+            return {
+                network: k,
+                rpc: data.rpc,
+                lastTime: data.lastTime,
+            };
+        })));
+    });
+
+
+    // get info about a single rpc
+    app.get('/rpc/:network', cors(corsOptions), async (req, res) => {
+        const network = networkList[req.params.network];
+        const data = await oracle.getNetInfo(network.name, blocks=1);
+        res.send({
+            network: req.params.network,
+            rpc: data.rpc,
+            lastTime: data.lastTime,
+        });
+    });
+
 
     return api;
 }
@@ -1571,7 +1596,7 @@ const api = {
     // create alert if lag if greater than 5 minutes
     checkLag(network, lastTime) {
         const timeLimit = 300; // 5 minutes
-        const warmupTime = 300; // 5 minutes between alerts
+        const warmupTime = 1800; // 30 minutes between alerts
         
         const nowTime = new Date().getTime() / 1000;
         const lastAlert = this.lagAlert[network] || 0;

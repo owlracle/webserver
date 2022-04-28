@@ -597,6 +597,80 @@ module.exports = app => {
     });
     
     
+    // get api key info
+    app.get('/keys/:key', cors(corsOptions), async (req, res) => {
+        const key = req.params.key;
+    
+        if (key == sampleRespone.apiPlaceholder){
+            res.send(sampleRespone.endpoints.keys);
+            return;
+        }
+
+        let keyRow = await api.validateKey(key);
+        if (keyRow.status != 200) {
+            res.status(keyRow.status).send(keyRow.send);
+            return;
+        }
+        keyRow = keyRow.send;
+
+        const id = keyRow.id;
+
+        const data = {
+            apiKey: key,
+            creation: keyRow.creation,
+            credit: keyRow.credit,
+            chatid: keyRow.chatid,
+        };
+
+        if (keyRow.origin){
+            data.origin = keyRow.origin;
+        }
+        if (keyRow.note){
+            data.note = keyRow.note;
+        }
+
+        const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
+        const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ?`;
+
+        [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, [ id, id ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        data.usage = {
+            apiKeyHour: rows[0].hourapi,
+            apiKeyTotal: rows[0].totalapi,
+        };
+
+        [rows, error] = await db.query(`SELECT chatid FROM credit_alerts WHERE apikey = ? AND active = 1`, [ id ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        if (rows.length){
+            data.creditNotification = rows.map(row => row.chatid);
+        }
+
+        res.send(data);
+    });
+    
+    
     // get api usage logs
     app.get('/logs/:key', cors(corsOptions), async (req, res) => {
         const key = req.params.key;
@@ -666,107 +740,6 @@ module.exports = app => {
         }
 
         res.send(rows);
-    });
-    
-    
-    // get api key info
-    app.get('/keys/:key', cors(corsOptions), async (req, res) => {
-        const key = req.params.key;
-    
-        if (key == sampleRespone.apiPlaceholder){
-            res.send(sampleRespone.endpoints.keys);
-            return;
-        }
-
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
-            return;
-        }
-
-        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
-
-        if (row.length == 0){
-            res.status(401);
-            res.send({
-                status: 401,
-                error: 'Unauthorized',
-                message: 'Could not find your api key.'
-            });
-            return;
-        }
-
-        const id = row[0].id;
-
-        const data = {
-            apiKey: key,
-            creation: row[0].creation,
-            credit: row[0].credit
-        };
-
-        if (row[0].origin){
-            data.origin = row[0].origin;
-        }
-        if (row[0].note){
-            data.note = row[0].note;
-        }
-
-        const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
-        const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ?`;
-
-        [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, [ id, id ]);
-
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        data.usage = {
-            apiKeyHour: rows[0].hourapi,
-            apiKeyTotal: rows[0].totalapi,
-        };
-
-        [rows, error] = await db.query(`SELECT chatid FROM credit_alerts WHERE apikey = ? AND active = 1`, [ id ]);
-
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        if (rows.length){
-            data.creditNotification = rows.map(row => row.chatid);
-        }
-
-        res.send(data);
     });
     
     
@@ -900,6 +873,76 @@ module.exports = app => {
             rpc: data.rpc,
             lastTime: data.lastTime,
         });
+    });
+
+
+    // bind a telegram chat id to your apikey
+    app.post('/authbot/:apikey', cors(corsOptions), async (req, res) => {
+        let keyRow = await api.validateKey(req.params.apikey);
+        if (keyRow.status != 200) {
+            res.status(keyRow.status).send(keyRow.send);
+            return;
+        }
+        keyRow = keyRow.send;
+
+        // chat id is already set, request secret key
+        if (keyRow.chatid && keyRow.chatid.length > 0) {
+            res.status(403).send({
+                status: 403,
+                error: 'Forbidden',
+                message: 'There is already a telegram chatid bound to this apikey. Remove it first.',
+            });
+            return;
+        }
+
+        [rows, error] = await db.update('api_keys', { chatid: req.body.chatid }, `id = ?`, [ keyRow.id ]);
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving your credit information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        res.send({ message: 'success' });
+    });
+
+
+    // delete previously set chatid
+    app.delete('/authbot/:apikey', cors(corsOptions), async (req, res) => {
+        let keyRow = await api.validateKey(req.params.apikey);
+        if (keyRow.status != 200) {
+            res.status(keyRow.status).send(keyRow.send);
+            return;
+        }
+        keyRow = keyRow.send;
+
+        // chat id is already set, request secret key
+        if (!(await bcrypt.compare(req.body.secret, keyRow.secret))) {
+            res.status(401).send({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Your secret key does not match.',
+            });
+            return;
+        }
+
+        [rows, error] = await db.update('api_keys', { chatid: '' }, `id = ?`, [ keyRow.id ]);
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving your credit information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        res.send({ message: 'success' });
     });
 
 

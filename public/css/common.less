@@ -306,6 +306,7 @@ header {
             height: 35px;
             margin-left: 10px;
             margin-right: 10px;
+            transition: 0.3s all;
             
             @media @size-600 {
                 display: flex;
@@ -328,14 +329,10 @@ header {
                 color: var(--text-dark-intense-color);
                 outline: none;
                 width: 120px;
-                transition: 0.3s color;
+                transition: 0.5s color;
                 
                 @media @size-600 {
                     display: flex;
-                }
-
-                @media @size-900 {
-                    width: 240px;
                 }
 
                 &:disabled {
@@ -414,6 +411,14 @@ header {
                             }
                         }
                     }
+                }
+            }
+
+            &.logged {
+
+                input {
+                    border-color: #3498db61;
+                    background-color: #23689634;
                 }
             }
         }
@@ -793,7 +798,7 @@ header {
         border-color: var(--border-color);
         box-shadow: 2px 2px 5px black;
         width: 100%;
-        max-width: 400px;
+        max-width: 410px;
         max-height: 100vh;
 
         &.large {
@@ -815,6 +820,25 @@ header {
     
             h2 {
                 margin: 10px 0 20px 0;
+            }
+
+            .title{
+                display: flex;
+                justify-content: space-between;
+
+                .col {
+                    display: flex;
+                    flex-direction: column;
+
+                    .right {
+                        text-align: right;
+
+                        input {
+                            margin-left: 10px;
+                            padding: 5px 10px;
+                        }
+                    }
+                }
             }
             
             .table .empty {
@@ -985,7 +1009,7 @@ header {
             flex-direction: column;
 
             .body {
-                overflow-y: auto;
+                overflow: hidden auto;
                 max-height: 300px;
 
                 @media @size-600 {
@@ -994,12 +1018,14 @@ header {
             }
 
             .row {
-                display: flex;
-                justify-content: space-between;
+                display: grid;
                 border-bottom: 1px solid var(--border-color);
                 transition: 0.3s all;
                 cursor: default;
-                flex-wrap: wrap;
+
+                &.col-4 { grid-template-columns: repeat(4, 1fr); }
+                &.col-5 { grid-template-columns: repeat(5, 1fr); }
+                &.col-6 { grid-template-columns: repeat(6, 1fr); }
 
                 &:hover {
                     background-color: var(--border-color);
@@ -1007,17 +1033,16 @@ header {
 
                 &.head {
                     font-weight: bold;
-
                     background-color: transparent;
                 }
-
+    
                 .cell {
                     padding: 5px 15px;
                     display: flex;
                     align-items: center;
-                    width: 16.66%;
                     min-width: 130px;
                     box-sizing: border-box;
+                    overflow-x: hidden;
 
                     a {
                         text-decoration: none;

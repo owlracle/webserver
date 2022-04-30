@@ -322,8 +322,7 @@ const network = {
     },
 
     getById: function(id) {
-        const match = Object.values(this.list).filter(e => e.id == id);
-        return match.length ? match[0] : false;
+        return Object.values(this.list).find(e => e.id == id);
     },
 
     set: function(name){
@@ -1013,23 +1012,36 @@ const api = {
             const check = '<i class="fa-solid fa-square-check"></i>';
             const empty = '<i class="fa-solid fa-square"></i>';
 
+            // build fields
             const fields = `
                 <p class="title">API Key</p>
-                <input type="text" class="input-text keys" id="input-apiKey" value="${ key }" readonly>
+                <div class="input-container">
+                    <input type="text" class="input-text keys" id="input-apiKey" value="${ key }" readonly>
+                    <div id="reset-key" class="input-button" title="Reset key"><i class="fas fa-sync-alt"></i></div>
+                </div>
                 
                 <p class="title">Creation</p>
                 <input type="text" class="input-text keys" id="input-creation" value="${ new Date(data.creation).toISOString().replace('T', ' ').split('.')[0] }" readonly>
 
                 <p class="title">Credit</p>
-                <input type="text" class="input-text keys" id="input-credit" value="$${ parseFloat(data.credit).toFixed(6) }" readonly>
+                <div class="input-container">
+                    <input type="text" class="input-text keys" id="input-credit" value="$${ parseFloat(data.credit).toFixed(6) }" readonly>
+                    <div id="recharge-key" class="input-button" title="Recharge key"><i class="fa-solid fa-bolt"></i></div>
+                </div>
 
                 ${ data.origin ? `<p class="title">Origin</p>
-                <input type="text" class="input-text keys" id="input-origin" value="${ data.origin }" readonly>`: ''}
+                <div class="input-container">
+                    <input type="text" class="input-text keys" id="input-origin" value="${ data.origin }" readonly>
+                    <div id="edit-origin" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
+                </div>` : ''}
 
                 ${ data.note ? `<p class="title">Note</p>
-                <input type="text" class="input-text keys" id="input-note" value="${ data.note }" readonly>`: ''}
+                <div class="input-container">
+                    <input type="text" class="input-text keys" id="input-note" value="${ data.note }" readonly>
+                    <div id="edit-note" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
+                </div>` : ''}
 
-                `;
+            `;
                 // <p class="title">Bot Permissions:</p><div id="chk-container">
                 //     <div class="opt-card"><span>Telegram auth</span>${ data.chatid ? check : empty}</div>
                 //     <div class="opt-card"><span>Credit alerts</span>${ data.chatid ? check : empty}</div>
@@ -1041,19 +1053,9 @@ const api = {
                 <h2>API key information</h2>
                 ${fields}
                 <div id="button-container">
-                    <button id="credit">History</button>
                     <button id="close">Close</button>
                 </div>
             </div>`;
-
-            const historyButton = modal.querySelector('#credit');
-            historyButton.addEventListener('click', async () => {
-                historyButton.innerHTML = '<i class="fas fa-cog fa-spin"></i>';
-                historyButton.setAttribute('disabled', true);
-            
-                const data = await this.getCredit(key);
-                this.showWindowCredit(key, data);
-            });    
         }
         else{
             modal.innerHTML = `<div id="content">
@@ -1068,17 +1070,16 @@ const api = {
 
     showWindowCredit: function(key, data) {
         // console.log(data)
-        const ntw = network.get();
         const modal = document.querySelector('#fog #api-window');
 
-        let txs = `<div class="empty">No transactions found. Try sending some ${ntw.token} to your API wallet.</div>`;
+        let txs = `<div class="empty">No transactions found. Try recharging your API key.</div>`;
         if (data.results.length > 0){
             modal.classList.add('large');
 
             const tds = data.results.map(e => {
                 const thisNetwork = network.getList()[e.network];
 
-                return `<div class="row">
+                return `<div class="row col-6">
                     <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank" rel="noopener nofollow">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
                     <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
                     <div class="cell">${thisNetwork.name}</div>
@@ -1087,7 +1088,7 @@ const api = {
                     <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
                 </div>`;
             }).join('');
-            txs = `<div class="row head">
+            txs = `<div class="row head col-6">
                 <div class="cell">Tx</div>
                 <div class="cell">Time</div>
                 <div class="cell">Network</div>
@@ -1106,6 +1107,77 @@ const api = {
             <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a>!</p>
             <div id="button-container"><button id="close">Close</button></div>
         </div>`;
+        
+        modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').remove());
+    },
+
+    // show reqeuests table 
+    showWindowRequests: async function(key) {
+        let toTime = parseInt(new Date().getTime() / 1000);
+        let fromTime = toTime - 3600;
+        const data = await this.getLogs(key, fromTime, toTime);
+
+        const buildTable = data => {
+            let txs = `<div class="empty">No requests found. Try to adjust the time range of your search.</div>`;
+            if (data.length > 0){
+                const tds = data.map(e => {
+                    const thisNetwork = network.getList()[e.network];
+    
+                    return `<div class="row col-5">
+                        <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
+                        <div class="cell">${thisNetwork.name}</div>
+                        <div class="cell">${e.endpoint}</div>
+                        <div class="cell">${e.ip}</div>
+                        <div class="cell" title="${e.origin}">${e.origin}</div>
+                    </div>`;
+                }).join('');
+                txs = `<div class="row head col-5">
+                    <div class="cell">Time</div>
+                    <div class="cell">Network</div>
+                    <div class="cell">Endpoint</div>
+                    <div class="cell">IP</div>
+                    <div class="cell">Origin</div>
+                </div>
+                <div class="body">${tds}</div>`;
+            }
+            txs = `<div class="table">${txs}</div>`;
+            return txs;
+        };
+        const txs = buildTable(data);
+
+        const now = new Date().toISOString().slice(0,16);
+        const ago = new Date(new Date().getTime() - 3600000).toISOString().slice(0,16);
+
+        const modal = document.querySelector('#fog #api-window');
+        modal.classList.add('large');
+        modal.innerHTML = `<div id="content">
+            <div class="title">
+                <div class="col">
+                    <h2>API request history</h2>
+                    <p id="key-show">${key}</p>
+                </div>                
+                <div class="col">
+                    <label class="right">From: <input id="from-time" type="datetime-local" class="input-text time-range" value="${ ago }"></label>
+                    <label class="right">To: <input id="to-time" type="datetime-local" class="input-text time-range" value="${ now }"></label>
+                </div>    
+            </div>
+            <div id="table-container">${txs}</div>
+            <div id="button-container"><button id="close">Close</button></div>
+        </div>`;
+
+        modal.querySelectorAll('.time-range').forEach(e => e.addEventListener('input', async () => {
+            const pos = e.id.split('-')[0];
+            const value = parseInt(new Date(e.value).getTime() / 1000);
+            if (pos == 'from') {
+                fromTime = value;
+            }
+            else {
+                toTime = value;
+            }
+            const data = await this.getLogs(key, fromTime, toTime);
+            const table = buildTable(data);
+            modal.querySelector('#table-container').innerHTML = table;
+        }));
         
         modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').remove());
     },
@@ -1211,16 +1283,15 @@ const api = {
     },
 
     getLogs: async function(key, fromTime, toTime) {
-        let options = {};
+        const options = {};
         if (fromTime){
-            options.fromTime = fromTime;
+            options.fromtime = fromTime;
         }
         if (toTime){
-            options.toTime = toTime;
+            options.totime = toTime;
         }
-        options = Object.keys(options).length == 0 ? '' : '?' + Object.entries(options).map(([key, value]) => `${key}=${value}`).join('&');
 
-        return await this.request(`/logs/${key}${options}`, {
+        return await this.request(`/logs/${key}?${ new URLSearchParams(options).toString() }`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
@@ -1236,6 +1307,7 @@ const api = {
         navigator.clipboard.writeText(oldText);
     },
 
+    // generic requests method
     request: async function(endpoint, options){
         try {
             const data = await (await fetch(endpoint, options)).json();
@@ -1249,31 +1321,73 @@ const api = {
             console.log(error);
             return error;
         }
-    }
-};
+    },
 
-
-const startHeaderApiSearch = () => {
-    // search api key button
-    document.querySelector('#search #api-info').addEventListener('click', async () => {
+    // login with an api key.
+    login: async function() {
         const glyph = document.querySelector('#search #api-info i');
         glyph.classList.remove('fa-search');
         glyph.classList.add('fa-spin', 'fa-cog');
     
         const input = document.querySelector('#search input');
-        input.setAttribute('disabled', true);
+        input.setAttribute('readonly', true);
     
-        const key = input.value.trim().toLowerCase();
+        const key = cookies.get('apikey-login') || input.value.trim().toLowerCase();
+        let keyInfo = false;
         if (key.match(api.regex.apiKey)){
-            const data = await api.getKey(key);
-            api.showModal();
-            api.showWindowInfo(data);
-    
+            keyInfo = await api.getKey(key);
+            if (keyInfo.apiKey) {
+                cookies.set('apikey-login', keyInfo.apiKey, { expires: { days: 30 } });
+
+                document.querySelector('#search').classList.add('logged');
+                input.value = `${key.slice(0,7)}...${key.slice(-7)}`;
+            }
         }
+
         glyph.classList.remove('fa-spin', 'fa-cog');    
         glyph.classList.add('fa-search');
-        input.removeAttribute('disabled');
-        input.value = '';
+        
+        if (!keyInfo) {
+            input.removeAttribute('readonly');
+            input.value = '';
+        }
+
+        return keyInfo;
+    },
+
+    // logout from api key
+    logout: function() {
+        if (cookies.get('apikey-login')) {
+            cookies.delete('apikey-login');
+    
+            document.querySelector('#search').classList.remove('logged');
+            const input = document.querySelector('#search input');
+            input.value = ``;
+            input.removeAttribute('readonly');
+
+            new Toast('👋 You have logged out', { timeOut: 5000 });
+        }
+    },
+
+    isLogged: function() {
+        return cookies.get('apikey-login') || false;
+    },
+};
+
+
+const startHeaderApiSearch = () => {
+    api.login();
+
+    // search api key button
+    document.querySelector('#search #api-info').addEventListener('click', async () => {
+        const data = await api.login();
+        if (!data){
+            new Toast('😖 API key not found', { timeOut: 5000 });
+            return;
+        }
+        
+        api.showModal();
+        api.showWindowInfo(data);
     });
     
     document.querySelector('#search input').addEventListener('keyup', e => {
@@ -1282,22 +1396,49 @@ const startHeaderApiSearch = () => {
         }
     });
     
+    // dropdown header menu
     document.querySelector('#search #drop').addEventListener('click', async function() {
         const dropdown = document.createElement('div');
         dropdown.id = 'dropdown';
+
+        const key = api.isLogged();
     
-        dropdown.innerHTML = `
-            <div id="info-key" class="item">API key info</div>
-            <div id="create-key" class="item">Create API key</div>
-            <div id="edit-key" class="item">Edit API key</div>
-            <div id="recharge-key" class="item">Recharge API key</div>
-        `;
+        const dropdownContent = ['<div id="create-key" class="item">New API Key</div>'];
+        if (key) {
+            dropdownContent.push(
+                `<div id="info-key" class="item">View key info</div>`,
+                `<div id="recharge-history" class="item">Recharge history</div>`,
+                `<div id="request-logs" class="item">Request logs</div>`,
+                `<div id="logout-key" class="item">Logout</div>`
+            );
+        }
+        dropdown.innerHTML = dropdownContent.join('');
     
         dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 145}px`;
     
-        dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => api.showModal(e.id.split('-')[0])));
-        
+        dropdown.querySelector('#create-key').addEventListener('click', () => api.showModal('create'));
+        if (key) {
+            dropdown.querySelector('#info-key').addEventListener('click', () => {
+                document.querySelector('#search #api-info').click();
+            });
+            
+            dropdown.querySelector('#recharge-history').addEventListener('click', async () => {
+                const data = await api.getCredit(key);
+                api.showModal();
+                api.showWindowCredit(key, data);
+            });
+            
+            dropdown.querySelector('#request-logs').addEventListener('click', async () => {
+                api.showModal();
+                api.showWindowRequests(key);
+            });
+            
+            dropdown.querySelector('#logout-key').addEventListener('click', () => {
+                api.logout();
+            });
+        }
+
         const fog = document.createElement('div');
         fog.id = 'fog';
         fog.classList.add('invisible');

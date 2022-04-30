@@ -958,7 +958,7 @@ const api = {
                     <li>Make sure to save this information before closing this window.</li>
                     <li>We do not store your key and secret in plain text, so we cannot recover them in case of loss.</li>
                 </ul>
-                <p><a class="link" href="https://t.me/owlracle_gas_bot?start=credit" rel="noopener" target="_blank">Receive Telegram alerts about API credits.</a></p>
+                <p><a class="link" href="https://t.me/owlracle_gas_bot?start=${ window.btoa('credit') }" rel="noopener" target="_blank">Receive Telegram alerts about API credits.</a></p>
                 <div id="button-container"><button id="close">OK</button></div>
             </div>`;
             // add buttons for clipboard copy info
@@ -1009,60 +1009,43 @@ const api = {
         const modal = document.querySelector('#fog #api-window');
         if (data.apiKey){
             const key = data.apiKey;
-            const blacklist = ['usage', 'creditNotification'];
-            const fields = Object.entries(data).filter(e => !blacklist.includes(e[0])).map(e => {
-                const label = e[0] == 'apiKey' ? 'API Key' : e[0];
 
-                let value = e[1];
-                if (e[0] == 'credit') {
-                    value = `$` + parseFloat(value).toFixed(6);
-                }
-                else if (e[0] == 'creation'){
-                    value = new Date(e[1]).toISOString().replace('T', ' ').split('.')[0];
-                }
+            const check = '<i class="fa-solid fa-square-check"></i>';
+            const empty = '<i class="fa-solid fa-square"></i>';
 
-                let input = `<input type="text" class="input-text keys" id="input-${label}" value="${value}" readonly>`;
-                if (e[0] == 'wallet'){
-                    return '';
-                    // input = `<div class="input-container">${input}<div id="copy" class="input-button" title="Copy"><i class="far fa-copy"></i></div></div>`;
-                }
-                // if (e[0] == 'credit'){
-                //     input = `<div class="input-container">${input}<div id="update" class="input-button" title="Update"><i class="fas fa-sync-alt"></i></div></div>`;
-                // }
-                else if (e[0] == 'origin'){
-                    input = `<div class="input-container">${input}<a id="open-link" class="input-button" title="Open Link" href="https://${value}" target="_blank" rel="noopener nofollow"><i class="fas fa-external-link-alt"></i></a></div>`;
-                }
-                return `<p class="title">${label}</p>${input}`;
-            }).join('');
+            const fields = `
+                <p class="title">API Key</p>
+                <input type="text" class="input-text keys" id="input-apiKey" value="${ key }" readonly>
+                
+                <p class="title">Creation</p>
+                <input type="text" class="input-text keys" id="input-creation" value="${ new Date(data.creation).toISOString().replace('T', ' ').split('.')[0] }" readonly>
 
-            let alertLink = '';
+                <p class="title">Credit</p>
+                <input type="text" class="input-text keys" id="input-credit" value="$${ parseFloat(data.credit).toFixed(6) }" readonly>
+
+                ${ data.origin ? `<p class="title">Origin</p>
+                <input type="text" class="input-text keys" id="input-origin" value="${ data.origin }" readonly>`: ''}
+
+                ${ data.note ? `<p class="title">Note</p>
+                <input type="text" class="input-text keys" id="input-note" value="${ data.note }" readonly>`: ''}
+
+                `;
+                // <p class="title">Bot Permissions:</p><div id="chk-container">
+                //     <div class="opt-card"><span>Telegram auth</span>${ data.chatid ? check : empty}</div>
+                //     <div class="opt-card"><span>Credit alerts</span>${ data.chatid ? check : empty}</div>
+                //     <div class="opt-card"><span>Gas alerts</span>${ empty}</div>
+                // </div>
             console.log(data)
-            if (!data.creditNotification) {
-                alertLink = `<a class="link" href="https://t.me/owlracle_gas_bot?start=credit" rel="noopener" target="_blank">Get notified when running out of credits!</a>`;
-            }
 
             modal.innerHTML = `<div id="content">
                 <h2>API key information</h2>
                 ${fields}
-                ${alertLink}
                 <div id="button-container">
                     <button id="credit">History</button>
                     <button id="close">Close</button>
                 </div>
             </div>`;
 
-            // modal.querySelector('#copy').addEventListener('click', function(){
-            //     const parent = this.closest('.input-container');
-            //     api.copyText(parent);
-            // });
-            
-            // modal.querySelector('#update').addEventListener('click', function(){
-            //     this.classList.add('clicked');
-            //     setTimeout(() => this.classList.remove('clicked'), 700);
-            //     modal.querySelector('#input-credit').value = '...';
-            //     refreshCredit(key);
-            // });
-            
             const historyButton = modal.querySelector('#credit');
             historyButton.addEventListener('click', async () => {
                 historyButton.innerHTML = '<i class="fas fa-cog fa-spin"></i>';
@@ -1071,23 +1054,6 @@ const api = {
                 const data = await this.getCredit(key);
                 this.showWindowCredit(key, data);
             });    
-
-            // async function refreshCredit(key){
-            //     const modal = document.querySelector('#fog #api-window');
-            //     const inputCredit = modal.querySelector('#input-credit');
-            //     if (modal && inputCredit){
-            //         await api.updateCredit({ apiKey: key });
-            //         const data = await api.getKey(key);
-            //         console.log(data)
-
-            //         // if even after await you are still on the same window
-            //         if (modal && inputCredit && key == modal.querySelector('.input-text').value){
-            //             inputCredit.value = `$` + parseFloat(data.credit).toFixed(6);
-            //             setTimeout(() => refreshCredit(key), 5000);
-            //         }
-            //     }
-            // }
-            // refreshCredit(key);
         }
         else{
             modal.innerHTML = `<div id="content">

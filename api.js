@@ -885,7 +885,7 @@ module.exports = app => {
         }
         keyRow = keyRow.send;
 
-        // chat id is already set, request secret key
+        // chat id is already set, forbid
         if (keyRow.chatid && keyRow.chatid.length > 0) {
             res.status(403).send({
                 status: 403,

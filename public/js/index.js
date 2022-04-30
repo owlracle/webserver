@@ -163,6 +163,11 @@ const network = (symbol => {
         api.showModal('recharge');
     }
 
+    // open api key edit window directly from url
+    if (query.action && query.action === 'editkey'){
+        api.showModal('edit');
+    }
+
     return network;
 })(templateVar.network);
 

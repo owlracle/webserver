@@ -341,6 +341,45 @@ const api = {
         apiKey: new RegExp(/^[a-f0-9]{32}$/),
     },
 
+    showNewAPI: function(data){
+        const modal = document.querySelector('#fog #api-window #content');
+        if (data.apiKey){
+            modal.innerHTML = `
+                <h2>API key Created</h2>
+                <p class="title">API Key</p>
+                <div class="input-container">
+                    <input type="text" class="input-text keys" value="${data.apiKey}" readonly>
+                    <div class="input-button"><i class="far fa-copy"></i></div>
+                </div>
+                <p class="title">API Secret</p>
+                <div class="input-container">
+                    <input type="text" class="input-text keys" value="${data.secret}" readonly>
+                    <div class="input-button"><i class="far fa-copy"></i></div>
+                </div>
+                <ul>
+                    <li>Make sure to save this information before closing this window.</li>
+                    <li>We do not store your key and secret in plain text, so we cannot recover them in case of loss.</li>
+                </ul>
+                <p><a class="link" href="https://t.me/owlracle_gas_bot?start=${ window.btoa('credit') }" rel="noopener" target="_blank">Receive Telegram alerts about API credits.</a></p>
+            `;
+            // add buttons for clipboard copy info
+
+            modal.querySelectorAll('.input-button').forEach(e => e.addEventListener('click', function(){
+                const parent = this.closest('.input-container');
+                api.copyText(parent);
+            }));
+        }
+        else{
+            modal.innerHTML = `<div id="content">
+                <h2>${data.error || 'Message'}</h2>
+                <p>${data.message}</p>
+                <div id="button-container"><button id="close">OK</button></div>
+            </div>`;
+
+            modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').click());
+        }
+    },
+
     createEditApiContent: function(){
         // edit api key modal
         const tabsContent = this.tabsContent;
@@ -968,7 +1007,7 @@ const profile = {
             
                         body.grc = await recaptcha.getToken();
                         const data = await api.createKey(body);
-                        api.showWindowCreate(data);
+                        api.showNewAPI(data);
                     }
                 });
             },
@@ -1638,7 +1677,7 @@ class Modal {
 }
 
 class Toast {
-    constructor(text, { timeOut, position='right' }={}) {
+    constructor(text, { timeOut, position='center' }={}) {
         let container = document.querySelector('#toast-container');
         if (!container) {
             container = document.createElement('div');

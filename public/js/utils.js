@@ -635,6 +635,9 @@ const api = {
                 document.querySelector('#search').classList.add('logged');
                 input.value = `${key.slice(0,7)}...${key.slice(-7)}`;
             }
+            else {
+                api.logout();
+            }
         }
 
         glyph.classList.remove('fa-spin', 'fa-cog');    
@@ -648,7 +651,7 @@ const api = {
     },
 
     // logout from api key
-    logout: function() {
+    logout: function({ verbose=1 }={}) {
         if (api.isLogged()) {
             cookies.delete('apikey-login');
     
@@ -661,7 +664,9 @@ const api = {
             glyph.classList.remove('fa-key');
             glyph.classList.add('fa-right-to-bracket');
 
-            new Toast('👋 You have logged out', { timeOut: 5000 });
+            if (verbose == 1){
+                new Toast('👋 You have logged out', { timeOut: 5000 });
+            }
         }
     },
 
@@ -674,6 +679,7 @@ const api = {
 const profile = {
     content: {},
 
+    // when you need a login window separate from the header.
     loginModal: async function(redirect) {
         const fog = document.createElement('div');
         fog.id = 'fog';
@@ -732,6 +738,7 @@ const profile = {
         fadeIn(fog, 500);
     },
 
+    // show a tab in the profile window
     show: async function(id) { 
         const elem = document.querySelector(`#fog #${id}.tab`);
         if (!profile.locked && !elem.classList.contains('disabled')){
@@ -758,6 +765,7 @@ const profile = {
         }
     },
 
+    // create content from the tabs
     createContent: async function(id) {
         const contentFunctions = {
             info: async () => {
@@ -925,9 +933,11 @@ const profile = {
         return container;
     },
 
+    // bind events and dynamic content for tabs
     bindContent: function(id) {
         const bindFunctions = {
             info: () => {
+                // modal for inputing api secret (edit key)
                 async function modalSecret() {
                     return new Promise( resolve => {
                         const fog = document.createElement('div');
@@ -996,10 +1006,12 @@ const profile = {
 
                 const content = this.content[id];
 
+                // light. bolt button
                 content.querySelector('#recharge-key').addEventListener('click', () => {
                     profile.show('recharge');
                 });
 
+                // create edit api key event for origin and note fields
                 const edit = async mode => {
                     const editMode = content.querySelector(`#edit-${mode}`);
                     const input = content.querySelector(`#input-${mode}`);
@@ -1023,6 +1035,10 @@ const profile = {
     
                             input.setAttribute('readonly', true);
     
+                            if (input.value == oldValue) {
+                                input.value = oldValue;
+                                return;
+                            }
                             if (mode == 'origin'){
                                 const match = input.value.match(api.regex.url);
                                 if (!match || match.length <= 1){
@@ -1030,10 +1046,6 @@ const profile = {
                                     input.value = oldValue;
                                     return;
                                 }
-                            }
-                            if (input.value == oldValue) {
-                                input.value = oldValue;
-                                return;
                             }
                             const secret = await modalSecret();
                             if (!secret) {
@@ -1068,6 +1080,53 @@ const profile = {
                 }
                 edit('origin');
                 edit('note');
+
+                // reset key button
+                content.querySelector('#reset-key').addEventListener('click', () => {
+                    const confirm = new Modal(`<h2>Reset API key hash</h2>
+                        <p>Are you sure you want to do this? If your API key hash is reset, you will receive a new hash, and the old will be unusable.</p>
+                        <div id="button-container">
+                            <button id="yes">YES</button>
+                            <button id="no">NO</button>
+                        </div>`, {
+                            buttonClose: 'no',
+                            events: [{
+                                id: 'yes',
+                                event: 'click',
+                                callback: async () => {
+                                    confirm.close();
+                                    const secret = await modalSecret();
+            
+                                    if (!secret) {
+                                        return;
+                                    }
+
+                                    const args = {
+                                        secret: secret,
+                                        resetKey: true,
+                                    };
+                                    const data = await api.editKey(api.isLogged(), args);
+            
+                                    if (data.error){
+                                        new Modal(`<h2>${data.error}</h2>
+                                            <p>${data.message}</p>
+                                            <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                                        );
+                                        return;
+                                    }
+            
+                                    const newHash = data.apiKey;
+                                    new Toast(`🔑 API key hash is reset`, { timeOut: 5000 });
+
+                                    api.logout({ verbose: 0 });
+                                    document.querySelector('#search input').value = newHash;
+                                    await api.login();
+                                    profile.show('info');
+                                },
+                            }]
+                        }
+                    );
+                });
             },
 
             create: () => {

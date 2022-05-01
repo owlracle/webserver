@@ -517,6 +517,7 @@ module.exports = app => {
                 error: 'Bad Request',
                 message: 'The api secret was not provided.'
             });
+            return;
         }
 
         const secretCheck = await bcrypt.compare(secret, keyInfo.secret);
@@ -568,7 +569,7 @@ module.exports = app => {
         delete data.peek;
 
         res.send({
-            message: 'api key ionformation updated.',
+            message: 'api key information updated.',
             ...data
         });
     });

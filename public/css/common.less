@@ -794,25 +794,20 @@ header {
         border-radius: 3px;
         box-sizing: border-box;
         display: flex;
-        flex-direction: column;
         border-color: var(--border-color);
         box-shadow: 2px 2px 5px black;
         width: 100%;
         max-width: 410px;
         max-height: 100vh;
 
-        &.large {
-            max-width: 900px;
-        }
-
         #content {
             display: flex;
             flex-direction: column;
             padding: 5px 5px 20px 5px;
-            overflow-y: auto;
-            max-height: 100vh;
-            width: 100%;
+            overflow: hidden auto;
+            flex-grow: 1;
             box-sizing: border-box;
+            max-height: 90vh;
             
             @media @size-400 {
                 padding: 20px 30px;
@@ -821,26 +816,7 @@ header {
             h2 {
                 margin: 10px 0 20px 0;
             }
-
-            .title{
-                display: flex;
-                justify-content: space-between;
-
-                .col {
-                    display: flex;
-                    flex-direction: column;
-
-                    .right {
-                        text-align: right;
-
-                        input {
-                            margin-left: 10px;
-                            padding: 5px 10px;
-                        }
-                    }
-                }
-            }
-            
+           
             .table .empty {
                 font-weight: bold;
                 margin-bottom: 20px;
@@ -897,19 +873,6 @@ header {
     
         }
 
-        .title {
-            font-size: 0.9rem;
-            margin: 10px 0 10px 5px;
-            opacity: 0.7;
-            text-transform: capitalize;
-
-            i {
-                margin-left: 5px;
-                color: var(--text-intense-color);
-                cursor: pointer;
-            }
-        }
-
         .input-text {
             padding: 10px 15px;
             margin-bottom: 15px;
@@ -921,6 +884,7 @@ header {
             border: 1px solid transparent;
             font-size: 1rem;
             transition: 0.3s all;
+            display: flex;
 
             &:focus {
                 border-color: var(--border-color);
@@ -1010,10 +974,10 @@ header {
 
             .body {
                 overflow: hidden auto;
-                max-height: 300px;
+                max-height: 350px;
 
                 @media @size-600 {
-                    max-height: calc(50vh - 60px);
+                    // max-height: calc(50vh - 60px);
                 }
             }
 

@@ -341,81 +341,6 @@ const api = {
         apiKey: new RegExp(/^[a-f0-9]{32}$/),
     },
 
-    createNewApiContent: function(){
-        // create api key modal
-        const tabsContent = this.tabsContent;
-        tabsContent.create.innerHTML = `<h2>New API key</h2>
-        <p class="title origin">Origin <i class="far fa-question-circle"></i></p>
-        <input type="text" class="input-text" id="origin" placeholder="mywebsite.com">
-        <span id="origin-tip" class="tip"></span>
-        <p class="title note">Note <i class="far fa-question-circle"></i></p>
-        <input type="text" class="input-text" id="note" placeholder="My personal note for this key">
-        <div id="checkbox-container">
-            <label>
-                <input type="checkbox">
-                <span>I agree to not share any of my API key information with others.</span>
-            </label>
-            <label>
-                <input type="checkbox">
-                <span>I am aware that front-end code is publicly readable and exposing my API key on it is the same as sharing them.</span>
-            </label>
-        </div>
-        <div id="button-container"><button id="create-key" disabled>Create API key</button></div>`;
-                
-        tabsContent.create.querySelectorAll('#checkbox-container input').forEach(e => e.addEventListener('click', () => {
-            const checkboxes = tabsContent.create.querySelectorAll('#checkbox-container input');
-            if (checkboxes[0].checked && checkboxes[1].checked){
-                tabsContent.create.querySelector('#create-key').removeAttribute('disabled');
-            }
-            else {
-                tabsContent.create.querySelector('#create-key').setAttribute('disabled', true);
-            }
-        }));
-
-
-        const urlRegex = this.regex.url;
-        tabsContent.create.querySelector('#origin').addEventListener('keyup', () => {
-            const value = tabsContent.create.querySelector('#origin').value.trim().toLowerCase();
-            const match = value.match(urlRegex);
-            if (match && match.length > 1){
-                const tip = tabsContent.create.querySelector('#origin-tip');
-                tip.innerHTML = '';
-                tabsContent.create.querySelector('#origin').classList.remove('red');
-            }
-        });
-
-        tabsContent.create.querySelector('#create-key').addEventListener('click', async function() {
-            const body = {};
-            let error = false;
-            if (tabsContent.create.querySelector('#origin').value.length){
-                // make sure origin informed is only then domain name
-                const value = tabsContent.create.querySelector('#origin').value.trim().toLowerCase();
-                const match = value.match(urlRegex);
-                if (match && match.length > 1){
-                    body.origin = value;
-                }
-                else{
-                    const tip = tabsContent.create.querySelector('#origin-tip');
-                    tip.innerHTML = 'Invalid domain';
-                    tabsContent.create.querySelector('#origin').classList.add('red');
-                    error = true;
-                }
-            }
-            if (tabsContent.create.querySelector('#note').value.length){
-                body.note = tabsContent.create.querySelector('#note').value.trim();
-            }
-
-            if (!error){
-                this.setAttribute('disabled', true);
-                this.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-    
-                body.grc = await recaptcha.getToken();
-                const data = await api.createKey(body);
-                api.showWindowCreate(data);
-            }
-        });
-    },
-
     createEditApiContent: function(){
         // edit api key modal
         const tabsContent = this.tabsContent;
@@ -527,717 +452,43 @@ const api = {
         });
     },
 
-    createInfoApiContent: function(){
-        // get api key information
-        const tabsContent = this.tabsContent;
-        tabsContent.info.innerHTML = `<h2>API key information</h2>
-        <p class="title">API key</p>
-        <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
-        <span id="key-tip" class="tip"></span>
-        <div id="button-container"><button id="get-key">Search</button></div>`;
-
-        tabsContent.info.querySelector('#key').addEventListener('keyup', function() {
-            const value = this.value.trim().toLowerCase();
-            if (value.match(apiKeyRegex)){
-                const tip = tabsContent.info.querySelector(`#key-tip`);
-                tip.innerHTML = '';
-                this.classList.remove('red');
-            }
-        });
-
-        const apiKeyRegex = this.regex.apiKey;
-
-        tabsContent.info.querySelector('#get-key').addEventListener('click', async function() {
-            let error = false;
-
-            const key = tabsContent.info.querySelector('#key').value.trim().toLowerCase();
-            if (!key.match(apiKeyRegex)){
-                const tip = tabsContent.info.querySelector('#key-tip');
-                tip.innerHTML = 'Invalid API key';
-                tabsContent.info.querySelector('#key').classList.add('red');
-                error = true;
-            }
-
-            if (!error){
-                this.setAttribute('disabled', true);
-                this.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-
-                const data = await api.getKey(key);
-                api.showWindowInfo(data);
-            }
-        });
-    },
-
-    createRechargeApiContent: async function(){
-        const tabsContent = this.tabsContent;
-
-        tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
-        <p>Connect your wallet to recharge your API key</p>
-        <div id="button-container" class="vertical"></div>`;
-
-        let updatingUI = false;
-       
-        const checkWalletConnection = async () => {
-            if (updatingUI) {
-                return;
-            }
-
-            updatingUI = true;
-
-            // not injected
-            if (!this.web3 || !this.web3.injected){
-                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
-                <p>You must get Metamask to connect to your wallet</p>
-                <div id="button-container" class="vertical"><button>Get Metamask</button></div>`;
-
-                const button = tabsContent.recharge.querySelector('button');
-                button.addEventListener('click', () => {
-                    window.open('https://metamask.io/');
-                    document.querySelector('#fog').click();
-                })
-                updatingUI = false;
-                return;
-            }
-
-            // not connected
-            if (!this.web3.connected) {
-                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
-                <p>Connect your wallet to recharge your API key</p>
-                <div id="button-container" class="vertical"><button>Connect</button></div>`;
-
-                const button = tabsContent.recharge.querySelector('button');
-                button.addEventListener('click', async () => {
-                    await this.web3.connect();
-                });
-
-                updatingUI = false;
-                return;
-            }
-
-            // unsupported network
-            const connectedNetwork = network.getById(await this.web3.getNetworkId());
-            if (!connectedNetwork) {
-                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
-                <p>Network not supported</p>
-                <div id="button-container" class="vertical"><button><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button></div>`;
-
-                const button = tabsContent.recharge.querySelector('button');
-                button.addEventListener('click', async () => {
-                    await this.web3.switchNetwork(network.get());
-                });
-
-                updatingUI = false;
-                return;
-            }
-
-            // wrong network
-            if (connectedNetwork.id != network.get().id) {
-                tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
-                <p>Wrong network</p>
-                <div id="button-container" class="vertical">
-                    <button id="switch"><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button>
-                    <a href="/${ connectedNetwork.symbol }"><button><img src="img/${ connectedNetwork.symbol }.png">Go to ${ connectedNetwork.name } app</button></a>
-                </div>`;
-
-                const button = tabsContent.recharge.querySelector('#switch');
-                button.addEventListener('click', async () => {
-                    await this.web3.switchNetwork(network.get());
-                });
-
-                updatingUI = false;
-                return;
-            }
-
-            // ok
-            const account = await this.web3.getAccount();
-            const accountSliced = `${ account.slice(0,6) }...${ account.slice(-4) }`;
-
-            tabsContent.recharge.innerHTML = `<h2>API key credit recharge</h2>
-            <p class="title">Connected Wallet</p>
-            <div class="input-container">
-                <input type="text" class="input-text keys" id="wallet" readonly value="${ accountSliced }">
-                <div class="input-button">
-                    <span id="network-icon"><img src='img/${ network.get().symbol }.png'></span>
-                </div>
-            </div>
-            <p class="title">API key</p>
-            <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
-            <p class="title">Recharge amount</p>
-            <div class="input-container">
-                <input type="text" class="input-text keys" id="amount" placeholder="0.0000">
-                <div id="token" class="input-button">
-                    <span class="token-name">${ network.get().token }</span>
-                </div>
-            </div>
-            <p class="title" id="values">
-                <span id="usd">~$0.00</span>
-                <span>Balance: <span id="balance">0.0000</span><span class="token-name">${ network.get().token }</span></span>
-            </p>
-            <div id="gasprice">
-                <div id="title">
-                    <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
-                    <psna>Recommended Gas Price</span>
-                </div>
-                <div id="body">
-                    <div class="spin"><i class="fas fa-spin fa-cog"></i></div>
-                    <span>Let me handle this </span>
-                </div>
-            </div>
-            <div id="button-container"><button id="recharge-key" disabled>⚡Recharge⚡</button></div>`;
-
-            const key = tabsContent.recharge.querySelector('#key');
-            const apiKeyRegex = this.regex.apiKey;
-            const button = tabsContent.recharge.querySelector('button');
-            const amount = tabsContent.recharge.querySelector('#amount');
-
-            // refresh TOKEN balance automatically
-            const refreshBalance = async (loop=true) => {
-                const balanceDOM = this.tabsContent.recharge.querySelector('#values #balance');
-                if (balanceDOM) {
-                    balanceDOM.innerHTML = (await this.web3.getBalance()).slice(0,9);
-                    if (loop) {
-                        setTimeout(() => refreshBalance(), 5000);
-                    }
-                }
-            };
-            await refreshBalance();
-
-            // event for when typing on the value input
-            const inputAmount = async () => {
-                const value = parseFloat(amount.value);
-                const usd = tabsContent.recharge.querySelector('#values #usd');
-                usd.innerHTML = `~$${ (price.current.now * value).toFixed(2) }`;
-
-                // check fi valid
-                if (isNaN(value) || value <= 0) {
-                    usd.innerHTML = `~$0.00`;
-                }
-
-                // check if there is sufficient amount
-                if (value <= parseFloat(await this.web3.getBalance()) && value > 0){
-                    button.removeAttribute('disabled');
-                    amount.classList.remove('red');
-                }
-            }
-            // update usd span to reflect amount value converted to usd
-            amount.addEventListener('keyup', inputAmount);
-
-            // click the TOKEN button
-            tabsContent.recharge.querySelector('#token .token-name').addEventListener('click', () => {
-                amount.value = tabsContent.recharge.querySelector('#values #balance').innerHTML;
-                inputAmount();
-            });
-
-            const gas = {
-                init: async function() {
-                    // selected index
-                    this.selected = 2;
-                    await this.update();
-                },
-
-                // get the calculated selected gas price (not the index)
-                getSelected: function() {
-                    return parseInt(this.list[this.selected] * 1000000000);
-                },
-
-                // update gas price on the list, dom and call timeout
-                update: async function() {
-                    if (tabsContent.recharge){
-                        setTimeout(() => this.update(), 10000);
-                    }
-                    this.list = (await this.get()).speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
-                    
-                    tabsContent.recharge.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} GWei` );
-                },
-
-                // get gas price from window var
-                get: async function() {
-                    return new Promise( resolve => {
-                        const wait = () => {
-                            if (window.gasPrice) {
-                                resolve(window.gasPrice);
-                                return;
-                            }
-                            setTimeout(() => { wait() }, 250);
-                        };
-                        wait();
-                    });
-                },
-            };
-            await gas.init();
-            
-            // after fetching, put three cards for the user to choose from
-            const gasPriceContainer = tabsContent.recharge.querySelector('#gasprice #body');
-            gasPriceContainer.innerHTML = gas.list.map((e,i) => {
-                const speeds = [ '🛴 Slow', '🚗 Standard', '✈️ Fast'];
-                tabsContent.recharge.querySelector('#recharge-key').removeAttribute('disabled');
-                return `<div class="card ${ i == 2 ? 'selected' : '' }"><span>${speeds[i]}</span><span class="value">${e.toFixed(1)} GWei</span></div>`;
-            }).join('');
-
-            // event for selecting the gas cards
-            const cards = gasPriceContainer.querySelectorAll('.card');
-            cards.forEach((e,i) => e.addEventListener('click', () => {
-                cards.forEach(e => e.classList.remove('selected'));
-                e.classList.add('selected');
-                gas.selected = i;
-            }));
-
-            // bind event to remove red tip when typying a corret api key
-            key.addEventListener('keyup', () => {
-                const value = key.value.trim().toLowerCase();
-                if (value.match(apiKeyRegex)){
-                    button.removeAttribute('disabled');
-                    key.classList.remove('red');
-                }
-            });
-        
-            button.addEventListener('click', async () => {
-                // check if key doesnt match regex
-                if (!key.value.match(apiKeyRegex)){
-                    new Toast(`🔑 Invalid API key`, { timeOut: 3000, position: 'center' });
-                    button.setAttribute('disabled', true);
-                    key.classList.add('red');
-                    return;
-                }
-    
-                // check if there is enough balance
-                if (parseFloat(amount.value) > parseFloat(await this.web3.getBalance())) {
-                    new Toast(`💸 Insufficient balance`, { timeOut: 3000, position: 'center' });
-                    button.setAttribute('disabled', true);
-                    amount.classList.add('red');
-                    return;
-                }
-                
-                // check if amount is a valid positive value
-                if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
-                    new Toast(`💰 Invalid token value`, { timeOut: 3000, position: 'center' });
-                    button.setAttribute('disabled', true);
-                    amount.classList.add('red');
-                    return;
-                }
-
-                // check if api key is valid
-                button.setAttribute('disabled', true);
-                button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-                const validKey = await (async () => {
-                    const data = await api.getKey(key.value);
-                    return !data.error;
-                })();
-                if (!validKey) {
-                    new Toast(`🔑 API key not found`, { timeOut: 3000, position: 'center' });
-                    key.classList.add('red');
-                    button.innerHTML = '⚡Recharge⚡';
-                    return;
-                }
-    
-                // start actions to send token
-    
-                let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
-                let toastAccept;
-    
-                let stopError = false;
-                await new Promise(resolve => {
-                    const successFlow = async (hash, { cancel=false }={}) => {
-                        toastAccept.fade(1000);
-                        new Toast(`Transaction ${ cancel ? 'Cancelled' : 'Confirmed' }. <a href="${ network.get().explorer.href }/tx/${ hash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
-
-                        // since we already tracked the tx, we remove the cookie
-                        cookies.delete('pending-tx-recharge');
-        
-                        if (!cancel) {
-                            let toastUpdate = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Updating your API credit...</span>`, { timeOut: 0, position: 'center' });
-                            const data = await this.updateCredit({
-                                apiKey: key.value,
-                                transactionHash: hash
-                            });
-                            toastUpdate.fade(1000);
-            
-                            if (data.status == 200) {
-                                let bonus = '';
-                                if (data.bonus) {
-                                    bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
-                                }
-                                new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
-
-                                return true;
-                            }
-
-                            new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://t.me/owlracle" target="_blank" aria-label="telegram group" rel="noopener">Telegram group</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
-                            return false;
-                        }
-
-                        return true;
-                    };
-
-                    this.web3.send({
-                        from: account,
-                        to: wallet.address, // dont bother changing this, server wont recognize your tx
-                        value: amount.value,
-                        gasPrice: gas.getSelected(),
-                    })
-                    .on('error', error => {
-                        if (!stopError) {
-                            new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
-                            toastConfirm.fade(1000);
-                            if (toastAccept) {
-                                toastAccept.fade(1000);
-                            }
-                            resolve(error);
-                        }
-                    })
-                    .on('transactionHash', async hash => {
-                        // console.log(hash)
-                        toastConfirm.fade(1000);
-                        toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction...</span>`, { timeOut: 0, position: 'center' });
-
-                        // set cookie to tx so we can track even when page reload
-                        cookies.set('pending-tx-recharge', {
-                            hash: hash,
-                            apikey: key.value,
-                        }, {
-                            expires: { hours: 1 },
-                            json: true,
-                        });
-    
-                        const confirm = await this.web3.waitConfirmation(hash);
-                        if (!confirm.error && (confirm.status == 'replaced' || confirm.status == 'cancelled')) {
-                            console.log(`Found ${ confirm.status } tx: ${ confirm.tx.hash }`);
-                            await successFlow(confirm.tx.hash, { cancel: confirm.status == 'cancelled' });
-                            stopError = true;
-                            resolve(confirm.tx);
-                        }
-                    })
-                    .on('receipt', async receipt => {
-                        await successFlow(receipt.transactionHash);
-                        resolve(receipt);
-                    });
-                });
-                
-                refreshBalance(false);
-                button.removeAttribute('disabled');
-                button.innerHTML = '⚡Recharge⚡';
-            });
-
-            updatingUI = false;
-            return;
-        }
-
-
-        document.querySelector('#fog #recharge.tab').addEventListener('click', async () => {
-            // import web3 from cdn
-            await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
-            this.web3 = (await import('./web3.min.js')).default;
-            this.web3.init().then(() => {
-                this.web3.on('connect', checkWalletConnection);
-                this.web3.on('networkChange', checkWalletConnection);
-                this.web3.on('accountChange', checkWalletConnection);
-        
-                // after web3 load
-                checkWalletConnection();
-            });
-        });
-    },
-
-    showWindowCreate: function(data){
-        const modal = document.querySelector('#fog #api-window');
-        if (data.apiKey){
-            modal.innerHTML = `<div id="content">
-                <h2>API key Created</h2>
-                <p class="title">API Key</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" value="${data.apiKey}" readonly>
-                    <div class="input-button"><i class="far fa-copy"></i></div>
-                </div>
-                <p class="title">API Secret</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" value="${data.secret}" readonly>
-                    <div class="input-button"><i class="far fa-copy"></i></div>
-                </div>
-                <ul>
-                    <li>Make sure to save this information before closing this window.</li>
-                    <li>We do not store your key and secret in plain text, so we cannot recover them in case of loss.</li>
-                </ul>
-                <p><a class="link" href="https://t.me/owlracle_gas_bot?start=${ window.btoa('credit') }" rel="noopener" target="_blank">Receive Telegram alerts about API credits.</a></p>
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-            // add buttons for clipboard copy info
-
-            modal.querySelector('#close').addEventListener('click', () => modal.parentNode.remove());
-
-            modal.querySelectorAll('.input-button').forEach(e => e.addEventListener('click', function(){
-                const parent = this.closest('.input-container');
-                api.copyText(parent);
-            }));
-        }
-        else{
-            modal.innerHTML = `<div id="content">
-                <h2>${data.error || 'Message'}</h2>
-                <p>${data.message}</p>
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-
-            modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').click());
-        }
-    },
-
-    showWindowEdit: function(data){
-        const modal = document.querySelector('#fog #api-window');
-        if (data.apiKey){
-            const fields = Object.entries(data).filter(e => e[0] != 'apiKey' && e[0] != 'message').map(e => `<p class="title">${e[0]}</p><input type="text" class="input-text keys" value="${e[1]}" readonly>`).join('');
-
-            modal.innerHTML = `<div id="content">
-                <h2>API key information updated</h2>
-                <p class="title">API Key</p>
-                <input type="text" class="input-text keys" value="${data.apiKey}" readonly>
-                ${fields}
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-        }
-        else{
-            modal.innerHTML = `<div id="content">
-                <h2>${data.error || 'Message'}</h2>
-                <p>${data.message}</p>
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-        }
-
-        modal.querySelector('#close').addEventListener('click', () => modal.parentNode.remove());
-    },
-
-    showWindowInfo: function(data) {
-        const modal = document.querySelector('#fog #api-window');
-        if (data.apiKey){
-            const key = data.apiKey;
-
-            const check = '<i class="fa-solid fa-square-check"></i>';
-            const empty = '<i class="fa-solid fa-square"></i>';
-
-            // build fields
-            const fields = `
-                <p class="title">API Key</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" id="input-apiKey" value="${ key }" readonly>
-                    <div id="reset-key" class="input-button" title="Reset key"><i class="fas fa-sync-alt"></i></div>
-                </div>
-                
-                <p class="title">Creation</p>
-                <input type="text" class="input-text keys" id="input-creation" value="${ new Date(data.creation).toISOString().replace('T', ' ').split('.')[0] }" readonly>
-
-                <p class="title">Credit</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" id="input-credit" value="$${ parseFloat(data.credit).toFixed(6) }" readonly>
-                    <div id="recharge-key" class="input-button" title="Recharge key"><i class="fa-solid fa-bolt"></i></div>
-                </div>
-
-                ${ data.origin ? `<p class="title">Origin</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" id="input-origin" value="${ data.origin }" readonly>
-                    <div id="edit-origin" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
-                </div>` : ''}
-
-                ${ data.note ? `<p class="title">Note</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" id="input-note" value="${ data.note }" readonly>
-                    <div id="edit-note" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
-                </div>` : ''}
-
-            `;
-                // <p class="title">Bot Permissions:</p><div id="chk-container">
-                //     <div class="opt-card"><span>Telegram auth</span>${ data.chatid ? check : empty}</div>
-                //     <div class="opt-card"><span>Credit alerts</span>${ data.chatid ? check : empty}</div>
-                //     <div class="opt-card"><span>Gas alerts</span>${ empty}</div>
-                // </div>
-            console.log(data)
-
-            modal.innerHTML = `<div id="content">
-                <h2>API key information</h2>
-                ${fields}
-                <div id="button-container">
-                    <button id="close">Close</button>
-                </div>
-            </div>`;
-        }
-        else{
-            modal.innerHTML = `<div id="content">
-                <h2>${data.error || 'Message'}</h2>
-                <p>${data.message}</p>
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-        }
-
-        modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').remove());
-    },
-
-    showWindowCredit: function(key, data) {
-        // console.log(data)
-        const modal = document.querySelector('#fog #api-window');
-
-        let txs = `<div class="empty">No transactions found. Try recharging your API key.</div>`;
-        if (data.results.length > 0){
-            modal.classList.add('large');
-
-            const tds = data.results.map(e => {
-                const thisNetwork = network.getList()[e.network];
-
-                return `<div class="row col-6">
-                    <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank" rel="noopener nofollow">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
-                    <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
-                    <div class="cell">${thisNetwork.name}</div>
-                    <div class="cell"><a href="${thisNetwork.explorer.href}/address/${e.fromWallet}" target="_blank" rel="noopener nofollow">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
-                    <div class="cell">${parseFloat(e.price).toFixed(4)}</div>
-                    <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
-                </div>`;
-            }).join('');
-            txs = `<div class="row head col-6">
-                <div class="cell">Tx</div>
-                <div class="cell">Time</div>
-                <div class="cell">Network</div>
-                <div class="cell">From wallet</div>
-                <div class="cell">Token Price</div>
-                <div class="cell">Value</div>
-            </div>
-            <div class="body">${tds}</div>`;
-        }
-        txs = `<div class="table">${txs}</div>`;
-        
-        modal.innerHTML = `<div id="content">
-            <h2>API recharge history</h2>
-            <p id="key-show">${key}</p>
-            ${txs}
-            <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a>!</p>
-            <div id="button-container"><button id="close">Close</button></div>
-        </div>`;
-        
-        modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').remove());
-    },
-
-    // show reqeuests table 
-    showWindowRequests: async function(key) {
-        let toTime = parseInt(new Date().getTime() / 1000);
-        let fromTime = toTime - 3600;
-        const data = await this.getLogs(key, fromTime, toTime);
-
-        const buildTable = data => {
-            let txs = `<div class="empty">No requests found. Try to adjust the time range of your search.</div>`;
-            if (data.length > 0){
-                const tds = data.map(e => {
-                    const thisNetwork = network.getList()[e.network];
-    
-                    return `<div class="row col-5">
-                        <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
-                        <div class="cell">${thisNetwork.name}</div>
-                        <div class="cell">${e.endpoint}</div>
-                        <div class="cell">${e.ip}</div>
-                        <div class="cell" title="${e.origin}">${e.origin}</div>
-                    </div>`;
-                }).join('');
-                txs = `<div class="row head col-5">
-                    <div class="cell">Time</div>
-                    <div class="cell">Network</div>
-                    <div class="cell">Endpoint</div>
-                    <div class="cell">IP</div>
-                    <div class="cell">Origin</div>
-                </div>
-                <div class="body">${tds}</div>`;
-            }
-            txs = `<div class="table">${txs}</div>`;
-            return txs;
-        };
-        const txs = buildTable(data);
-
-        const now = new Date().toISOString().slice(0,16);
-        const ago = new Date(new Date().getTime() - 3600000).toISOString().slice(0,16);
-
-        const modal = document.querySelector('#fog #api-window');
-        modal.classList.add('large');
-        modal.innerHTML = `<div id="content">
-            <div class="title">
-                <div class="col">
-                    <h2>API request history</h2>
-                    <p id="key-show">${key}</p>
-                </div>                
-                <div class="col">
-                    <label class="right">From: <input id="from-time" type="datetime-local" class="input-text time-range" value="${ ago }"></label>
-                    <label class="right">To: <input id="to-time" type="datetime-local" class="input-text time-range" value="${ now }"></label>
-                </div>    
-            </div>
-            <div id="table-container">${txs}</div>
-            <div id="button-container"><button id="close">Close</button></div>
-        </div>`;
-
-        modal.querySelectorAll('.time-range').forEach(e => e.addEventListener('input', async () => {
-            const pos = e.id.split('-')[0];
-            const value = parseInt(new Date(e.value).getTime() / 1000);
-            if (pos == 'from') {
-                fromTime = value;
-            }
-            else {
-                toTime = value;
-            }
-            const data = await this.getLogs(key, fromTime, toTime);
-            const table = buildTable(data);
-            modal.querySelector('#table-container').innerHTML = table;
-        }));
-        
-        modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').remove());
-    },
-
-    showModal: function(tabSelected){
+    showProfile: function(tabSelected){
         const fog = document.createElement('div');
         fog.id = 'fog';
-        fog.innerHTML = `<div id='api-window' class="modal">
+
+        const container = document.createElement('div');
+        container.innerHTML = `<div id='api-window' class="modal profile">
             <div id='tab-container'>
-                <div class="tab" id="info"><i class="fas fa-eye"></i><span class="text">Key Info</span></div>
-                <div class="tab" id="create"><i class="fas fa-plus"></i><span class="text">Create Key</span></div>
-                <div class="tab" id="edit"><i class="fas fa-edit"></i><span class="text">Edit Key</span></div>
-                <div class="tab" id="recharge"><i class="fa-solid fa-dollar-sign"></i><span class="text">Recharge Key</span></div>
-                <div class="tab" id="close-tab"><i class="fas fa-times"></i></div>
+                <div class="tab" id="create"><i class="fas fa-square-plus"></i><span class="text">New API Key</span></div>
+                <div class="tab disabled" id="info"><i class="fas fa-key"></i><span class="text">Key Info</span></div>
+                <div class="tab disabled" id="recharge"><i class="fa-solid fa-bolt"></i><span class="text">Recharge Key</span></div>
+                <div class="tab disabled" id="history"><i class="fa-solid fa-file-invoice-dollar"></i></i><span class="text">My recharges</span></div>
+                <div class="tab disabled" id="logs"><i class="fa-solid fa-file-lines"></i><span class="text">Usage logs</span></div>
+                <div class="tab disabled" id="logout"><i class="fa-solid fa-right-from-bracket"></i><span class="text">Logout</span></div>
             </div>
-            <div id='content'></div>
+            <div id="content" class="empty"><i class="fa-solid fa-gear fa-spin"></i></div>
         </div>`;
 
-        const tabsContent = Object.fromEntries(['info', 'create', 'edit', 'recharge'].map(e => [e, (() => {
-            const elem = document.createElement('div');
-            elem.id = 'content';
-            return elem;
-        })()]));
-        this.tabsContent = tabsContent;
+        if (this.isLogged()) {
+            container.querySelectorAll('.tab.disabled').forEach(e => e.classList.remove('disabled'));
+        }
 
-        fog.querySelectorAll('.tab').forEach(e => e.addEventListener('click', () => {
-            if (e.id == 'close-tab'){
-                fog.click();
-                return;
-            }
-
-            if (!e.classList.contains('active')){
-                fog.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
+        container.querySelectorAll('.tab').forEach(e => e.addEventListener('click', async () => {
+            if (!profile.locked && !e.classList.contains('disabled')){
+                document.querySelectorAll('#fog .tab').forEach(e => e.classList.remove('active'));
                 e.classList.add('active');
+                profile.show(e.id);
             }
-            const content = fog.querySelector(`#content`);
-            content.replaceWith(tabsContent[e.id]);
         }));
 
+        profile.window = container.querySelector('div');
+
+        fog.appendChild(profile.window);
         fog.addEventListener('click', () => fog.remove());
         fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
 
         document.body.appendChild(fog);
         fadeIn(fog, 500);
-
-        this.createNewApiContent();
-        this.createEditApiContent();
-        this.createInfoApiContent();
-        this.createRechargeApiContent();
-
-        const titleInfo = {
-            origin: 'Informing an origin restrict the use of your API key to only the designated domain. It is highly recommended for preventing unauthorized calls using your key.',
-            note: 'You could set a note to your key for informative purposes.',
-        };
-
-        Object.keys(tabsContent).forEach(tab => tabsContent[tab].querySelectorAll('.title i').forEach(e => {
-            const inputClass = Array.from(e.parentNode.classList).filter(e => Object.keys(titleInfo).includes(e));
-            new Tooltip(e, titleInfo[inputClass]);
-        }));
-
         fog.querySelector(`#tab-container #${tabSelected || 'info'}`).click();
     },
 
@@ -1326,18 +577,19 @@ const api = {
     // login with an api key.
     login: async function() {
         const glyph = document.querySelector('#search #api-info i');
-        glyph.classList.remove('fa-search');
+        glyph.classList.remove('fa-right-to-bracket', 'fa-key');
         glyph.classList.add('fa-spin', 'fa-cog');
     
         const input = document.querySelector('#search input');
         input.setAttribute('readonly', true);
     
-        const key = cookies.get('apikey-login') || input.value.trim().toLowerCase();
+        const key = api.isLogged() || input.value.trim().toLowerCase();
         let keyInfo = false;
         if (key.match(api.regex.apiKey)){
             keyInfo = await api.getKey(key);
             if (keyInfo.apiKey) {
                 cookies.set('apikey-login', keyInfo.apiKey, { expires: { days: 30 } });
+                glyph.classList.add('fa-key');
 
                 document.querySelector('#search').classList.add('logged');
                 input.value = `${key.slice(0,7)}...${key.slice(-7)}`;
@@ -1345,9 +597,8 @@ const api = {
         }
 
         glyph.classList.remove('fa-spin', 'fa-cog');    
-        glyph.classList.add('fa-search');
-        
         if (!keyInfo) {
+            glyph.classList.add('fa-right-to-bracket');
             input.removeAttribute('readonly');
             input.value = '';
         }
@@ -1357,13 +608,17 @@ const api = {
 
     // logout from api key
     logout: function() {
-        if (cookies.get('apikey-login')) {
+        if (api.isLogged()) {
             cookies.delete('apikey-login');
     
             document.querySelector('#search').classList.remove('logged');
             const input = document.querySelector('#search input');
             input.value = ``;
             input.removeAttribute('readonly');
+
+            const glyph = document.querySelector('#search #api-info i');
+            glyph.classList.remove('fa-key');
+            glyph.classList.add('fa-right-to-bracket');
 
             new Toast('👋 You have logged out', { timeOut: 5000 });
         }
@@ -1375,19 +630,698 @@ const api = {
 };
 
 
+const profile = {
+    content: {},
+
+    show: async function(id) { 
+        this.locked = true;
+
+        if (!this.content[id]){
+            // put placeholder container
+            this.content[id] = document.createElement('div');
+            this.content[id].id = 'content';
+            this.content[id].classList.add('empty');
+            this.content[id].innerHTML = '<i class="fa-solid fa-gear fa-spin"></i>';
+        }
+        this.window.querySelector('#content').replaceWith(this.content[id]);
+        
+        await this.createContent(id);
+        this.bindContent(id);
+
+        this.window.querySelector('#content').replaceWith(this.content[id]);
+
+        this.locked = false;
+    },
+
+    createContent: async function(id) {
+        const contentFunctions = {
+            info: async () => {
+                const data = await api.getKey(api.isLogged());
+                console.log(data);
+
+                if (!data.apiKey){
+                    new Toast(`☹️ ${ data.error }: ${ data.message }`)
+                    return '';
+                }
+
+                // build fields
+                return `<h2>API key information</h2><div id="content-container">
+                    <p class="label">API Key</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-apiKey" readonly value="${ data.apiKey }">
+                        <div id="reset-key" class="input-button" title="Reset key"><i class="fas fa-sync-alt"></i></div>
+                    </div>
+                    
+                    <p class="label">Creation</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-creation" readonly value="${ new Date(data.creation).toISOString().replace('T', ' ').split('.')[0] }">
+                    </div>
+    
+                    <p class="label">Credit</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-credit" readonly value="$${ parseFloat(data.credit).toFixed(6) }">
+                        <div id="recharge-key" class="input-button" title="Recharge key"><i class="fa-solid fa-bolt"></i></div>
+                    </div>
+    
+                    <p class="label">Origin</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-origin" readonly value="${ data.origin || '' }">
+                        <div id="edit-origin" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
+                    </div>
+    
+                    <p class="label">Note</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-note" readonly value="${ data.note || '' }">
+                        <div id="edit-note" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
+                    </div>
+                </div>`;
+            },
+
+            create: async () => {
+                return `<h2>New API key</h2>
+                    <p class="label origin">Origin</p>
+                    <input type="text" class="input-text" id="origin" placeholder="mywebsite.com">
+                    <span id="origin-tip" class="tip"></span>
+                    <p class="label note">Note</p>
+                    <input type="text" class="input-text" id="note" placeholder="My personal note for this key">
+                    <div id="checkbox-container">
+                        <label>
+                            <input type="checkbox">
+                            <span>I agree to not share any of my API key information with others.</span>
+                        </label>
+                        <label>
+                            <input type="checkbox">
+                            <span>I am aware that front-end code is publicly readable and exposing my API key on it is the same as sharing them.</span>
+                        </label>
+                    </div>
+                    <div id="button-container"><button id="create-key" disabled>Create API key</button></div>
+                `;
+            },
+
+            recharge: async () => {
+                return this.content[id].querySelector('.fa-gear') ?
+                    `<h2>API key credit recharge</h2>
+                    <p>Connect your wallet to recharge your API key</p>
+                    <div id="button-container" class="vertical"></div>` :
+                    this.content[id].innerHTML;
+            },
+
+            history: async () => {
+                const modal = document.querySelector('#fog #api-window');
+                modal.classList.add('large');
+
+                const key = api.isLogged();
+                const data = await api.getCredit(key);
+
+                let txs = `<div class="empty">No transactions found. Try recharging your API key.</div>`;
+                if (data.results.length > 0){            
+                    const tds = data.results.map(e => {
+                        const thisNetwork = network.getList()[e.network];
+        
+                        return `<div class="row col-6">
+                            <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank" rel="noopener nofollow">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
+                            <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
+                            <div class="cell">${thisNetwork.name}</div>
+                            <div class="cell"><a href="${thisNetwork.explorer.href}/address/${e.fromWallet}" target="_blank" rel="noopener nofollow">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
+                            <div class="cell">${parseFloat(e.price).toFixed(4)}</div>
+                            <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
+                        </div>`;
+                    }).join('');
+                    txs = `<div class="row head col-6">
+                        <div class="cell">Tx</div>
+                        <div class="cell">Time</div>
+                        <div class="cell">Network</div>
+                        <div class="cell">From wallet</div>
+                        <div class="cell">Token Price</div>
+                        <div class="cell">Value</div>
+                    </div>
+                    <div class="body">${tds}</div>`;
+                }
+                txs = `<div class="table">${txs}</div>`;
+                
+                return `<h2>API recharge history</h2>
+                    <p id="key-show">${key}</p>
+                    ${txs}
+                    <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a>!</p>
+                `;
+            },
+
+            logs: async () => {
+                const key = api.isLogged();
+        
+                const txs = `<div class="table"><div class="empty">No requests found. Try to adjust the time range of your search.</div></div>`;
+        
+                if (!this.fromTime) {
+                    this.fromTime = parseInt(new Date(new Date().getTime() - 3600000).getTime() / 1000);
+                }
+                if (!this.toTime) {
+                    this.toTime = parseInt(new Date().getTime() / 1000);
+                }
+
+                const now = new Date(this.toTime * 1000).toISOString().slice(0,16);
+                const ago = new Date(this.fromTime * 1000).toISOString().slice(0,16);
+        
+                const modal = document.querySelector('#fog #api-window');
+                modal.classList.add('large');
+
+                let previousTable = this.content[id].querySelector('#table-container');
+                if (previousTable) {
+                    previousTable = previousTable.innerHTML;
+                }
+
+                return `<div class="title">
+                    <div class="col">
+                        <h2>API request history</h2>
+                        <p id="key-show">${key}</p>
+                    </div>                
+                    <div class="col right">
+                        <label>
+                            <span>From:</span>
+                            <input id="from-time" type="datetime-local" class="input-text time-range" value="${ ago }">
+                        </label>
+                        <label>
+                            <span>To:</span>
+                            <input id="to-time" type="datetime-local" class="input-text time-range" value="${ now }">
+                        </label>
+                    </div>    
+                </div>
+                <div id="table-container">${previousTable || txs}</div>`;
+            }
+        };
+
+        const modal = document.querySelector('#fog #api-window')
+        modal.classList.remove('large');
+
+        const container = document.createElement('div');
+        container.id = 'content';
+        container.innerHTML = contentFunctions[id] ? await contentFunctions[id]() : '';
+
+        this.content[id] = container;
+        return container;
+    },
+
+    bindContent: function(id) {
+        const bindFunctions = {
+            create: () => {
+                const content = this.content[id];
+                content.querySelectorAll('#checkbox-container input').forEach(e => e.addEventListener('click', () => {
+                    const checkboxes = content.querySelectorAll('#checkbox-container input');
+                    if (checkboxes[0].checked && checkboxes[1].checked){
+                        content.querySelector('#create-key').removeAttribute('disabled');
+                    }
+                    else {
+                        content.querySelector('#create-key').setAttribute('disabled', true);
+                    }
+                }));
+
+                const urlRegex = api.regex.url;
+                content.querySelector('#origin').addEventListener('keyup', () => {
+                    const value = content.querySelector('#origin').value.trim().toLowerCase();
+                    const match = value.match(urlRegex);
+                    if (match && match.length > 1){
+                        const tip = content.querySelector('#origin-tip');
+                        tip.innerHTML = '';
+                        content.querySelector('#origin').classList.remove('red');
+                    }
+                });
+
+                content.querySelector('#create-key').addEventListener('click', async function() {
+                    const body = {};
+                    let error = false;
+                    if (content.querySelector('#origin').value.length){
+                        // make sure origin informed is only then domain name
+                        const value = content.querySelector('#origin').value.trim().toLowerCase();
+                        const match = value.match(urlRegex);
+                        if (match && match.length > 1){
+                            body.origin = value;
+                        }
+                        else{
+                            const tip = content.querySelector('#origin-tip');
+                            tip.innerHTML = 'Invalid domain';
+                            content.querySelector('#origin').classList.add('red');
+                            error = true;
+                        }
+                    }
+                    if (content.querySelector('#note').value.length){
+                        body.note = content.querySelector('#note').value.trim();
+                    }
+
+                    if (!error){
+                        this.setAttribute('disabled', true);
+                        this.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i>';
+            
+                        body.grc = await recaptcha.getToken();
+                        const data = await api.createKey(body);
+                        api.showWindowCreate(data);
+                    }
+                });
+            },
+
+            recharge: () => {
+                const content = this.content[id];
+
+                let updatingUI = false;
+   
+                const checkWalletConnection = async () => {
+                    if (updatingUI) {
+                        return;
+                    }
+
+                    updatingUI = true;
+
+                    // not injected
+                    if (!this.web3 || !this.web3.injected){
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>You must get Metamask to connect to your wallet</p>
+                        <div id="button-container" class="vertical"><button>Get Metamask</button></div>`;
+
+                        const button = content.querySelector('button');
+                        button.addEventListener('click', () => {
+                            window.open('https://metamask.io/');
+                            document.querySelector('#fog').click();
+                        })
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // not connected
+                    if (!this.web3.connected) {
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>Connect your wallet to recharge your API key</p>
+                        <div id="button-container" class="vertical"><button>Connect</button></div>`;
+
+                        const button = content.querySelector('button');
+                        button.addEventListener('click', async () => {
+                            await this.web3.connect();
+                        });
+
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // unsupported network
+                    const connectedNetwork = network.getById(await this.web3.getNetworkId());
+                    if (!connectedNetwork) {
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>Network not supported</p>
+                        <div id="button-container" class="vertical"><button><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button></div>`;
+
+                        const button = content.querySelector('button');
+                        button.addEventListener('click', async () => {
+                            await this.web3.switchNetwork(network.get());
+                        });
+
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // wrong network
+                    if (connectedNetwork.id != network.get().id) {
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>Wrong network</p>
+                        <div id="button-container" class="vertical">
+                            <button id="switch"><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button>
+                            <a href="/${ connectedNetwork.symbol }"><button><img src="img/${ connectedNetwork.symbol }.png">Go to ${ connectedNetwork.name } app</button></a>
+                        </div>`;
+
+                        const button = content.querySelector('#switch');
+                        button.addEventListener('click', async () => {
+                            await this.web3.switchNetwork(network.get());
+                        });
+
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // ok
+                    const account = await this.web3.getAccount();
+                    const accountSliced = `${ account.slice(0,6) }...${ account.slice(-4) }`;
+
+                    content.innerHTML = `<h2>API key credit recharge</h2>
+                    <p class="title">Connected Wallet</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="wallet" readonly value="${ accountSliced }">
+                        <div class="input-button">
+                            <span id="network-icon"><img src='img/${ network.get().symbol }.png'></span>
+                        </div>
+                    </div>
+                    <p class="title">API key</p>
+                    <input type="text" class="input-text keys" id="key" readonly value="${ api.isLogged() }">
+                    <p class="title">Recharge amount</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="amount" placeholder="0.0000">
+                        <div id="token" class="input-button">
+                            <span class="token-name">${ network.get().token }</span>
+                        </div>
+                    </div>
+                    <p class="title" id="values">
+                        <span id="usd">~$0.00</span>
+                        <span>Balance: <span id="balance">0.0000</span><span class="token-name">${ network.get().token }</span></span>
+                    </p>
+                    <div id="gasprice">
+                        <div id="title">
+                            <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
+                            <psna>Recommended Gas Price</span>
+                        </div>
+                        <div id="body">
+                            <div class="spin"><i class="fas fa-spin fa-cog"></i></div>
+                            <span>Let me handle this </span>
+                        </div>
+                    </div>
+                    <div id="button-container"><button id="recharge-key" disabled>⚡Recharge⚡</button></div>`;
+
+                    const key = content.querySelector('#key');
+                    const apiKeyRegex = api.regex.apiKey;
+                    const button = content.querySelector('button');
+                    const amount = content.querySelector('#amount');
+
+                    // refresh TOKEN balance automatically
+                    const refreshBalance = async (loop=true) => {
+                        const balanceDOM = content.querySelector('#values #balance');
+                        if (balanceDOM) {
+                            balanceDOM.innerHTML = (await this.web3.getBalance()).slice(0,9);
+                            if (loop) {
+                                setTimeout(() => refreshBalance(), 5000);
+                            }
+                        }
+                    };
+                    await refreshBalance();
+
+                    // event for when typing on the value input
+                    const inputAmount = async () => {
+                        const value = parseFloat(amount.value);
+                        const usd = content.querySelector('#values #usd');
+                        usd.innerHTML = `~$${ (price.current.now * value).toFixed(2) }`;
+
+                        // check fi valid
+                        if (isNaN(value) || value <= 0) {
+                            usd.innerHTML = `~$0.00`;
+                        }
+
+                        // check if there is sufficient amount
+                        if (value <= parseFloat(await this.web3.getBalance()) && value > 0){
+                            button.removeAttribute('disabled');
+                            amount.classList.remove('red');
+                        }
+                    }
+                    // update usd span to reflect amount value converted to usd
+                    amount.addEventListener('keyup', inputAmount);
+
+                    // click the TOKEN button
+                    content.querySelector('#token .token-name').addEventListener('click', () => {
+                        amount.value = content.querySelector('#values #balance').innerHTML;
+                        inputAmount();
+                    });
+
+                    const gas = {
+                        init: async function() {
+                            // selected index
+                            this.selected = 2;
+                            await this.update();
+                        },
+
+                        // get the calculated selected gas price (not the index)
+                        getSelected: function() {
+                            return parseInt(this.list[this.selected] * 1000000000);
+                        },
+
+                        // update gas price on the list, dom and call timeout
+                        update: async function() {
+                            if (content){
+                                setTimeout(() => this.update(), 10000);
+                            }
+                            this.list = (await this.get()).speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
+                            
+                            content.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} GWei` );
+                        },
+
+                        // get gas price from window var
+                        get: async function() {
+                            return new Promise( resolve => {
+                                const wait = () => {
+                                    if (window.gasPrice) {
+                                        resolve(window.gasPrice);
+                                        return;
+                                    }
+                                    setTimeout(() => { wait() }, 250);
+                                };
+                                wait();
+                            });
+                        },
+                    };
+                    await gas.init();
+                    
+                    // after fetching, put three cards for the user to choose from
+                    const gasPriceContainer = content.querySelector('#gasprice #body');
+                    gasPriceContainer.innerHTML = gas.list.map((e,i) => {
+                        const speeds = [ '🛴 Slow', '🚗 Standard', '✈️ Fast'];
+                        content.querySelector('#recharge-key').removeAttribute('disabled');
+                        return `<div class="card ${ i == 2 ? 'selected' : '' }"><span>${speeds[i]}</span><span class="value">${e.toFixed(1)} GWei</span></div>`;
+                    }).join('');
+
+                    // event for selecting the gas cards
+                    const cards = gasPriceContainer.querySelectorAll('.card');
+                    cards.forEach((e,i) => e.addEventListener('click', () => {
+                        cards.forEach(e => e.classList.remove('selected'));
+                        e.classList.add('selected');
+                        gas.selected = i;
+                    }));
+
+                    // bind event to remove red tip when typying a corret api key
+                    key.addEventListener('keyup', () => {
+                        const value = key.value.trim().toLowerCase();
+                        if (value.match(apiKeyRegex)){
+                            button.removeAttribute('disabled');
+                            key.classList.remove('red');
+                        }
+                    });
+                
+                    button.addEventListener('click', async () => {
+                        // check if key doesnt match regex
+                        if (!key.value.match(apiKeyRegex)){
+                            new Toast(`🔑 Invalid API key`, { timeOut: 3000, position: 'center' });
+                            button.setAttribute('disabled', true);
+                            key.classList.add('red');
+                            return;
+                        }
+            
+                        // check if there is enough balance
+                        if (parseFloat(amount.value) > parseFloat(await this.web3.getBalance())) {
+                            new Toast(`💸 Insufficient balance`, { timeOut: 3000, position: 'center' });
+                            button.setAttribute('disabled', true);
+                            amount.classList.add('red');
+                            return;
+                        }
+                        
+                        // check if amount is a valid positive value
+                        if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                            new Toast(`💰 Invalid token value`, { timeOut: 3000, position: 'center' });
+                            button.setAttribute('disabled', true);
+                            amount.classList.add('red');
+                            return;
+                        }
+
+                        // check if api key is valid
+                        button.setAttribute('disabled', true);
+                        button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+                        const validKey = await (async () => {
+                            const data = await api.getKey(key.value);
+                            return !data.error;
+                        })();
+                        if (!validKey) {
+                            new Toast(`🔑 API key not found`, { timeOut: 3000, position: 'center' });
+                            key.classList.add('red');
+                            button.innerHTML = '⚡Recharge⚡';
+                            return;
+                        }
+            
+                        // start actions to send token
+            
+                        let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
+                        let toastAccept;
+            
+                        let stopError = false;
+                        await new Promise(resolve => {
+                            const successFlow = async (hash, { cancel=false }={}) => {
+                                toastAccept.fade(1000);
+                                new Toast(`Transaction ${ cancel ? 'Cancelled' : 'Confirmed' }. <a href="${ network.get().explorer.href }/tx/${ hash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+
+                                // since we already tracked the tx, we remove the cookie
+                                cookies.delete('pending-tx-recharge');
+                
+                                if (!cancel) {
+                                    let toastUpdate = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Updating your API credit...</span>`, { timeOut: 0, position: 'center' });
+                                    const data = await this.updateCredit({
+                                        apiKey: key.value,
+                                        transactionHash: hash
+                                    });
+                                    toastUpdate.fade(1000);
+                    
+                                    if (data.status == 200) {
+                                        let bonus = '';
+                                        if (data.bonus) {
+                                            bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
+                                        }
+                                        new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
+
+                                        return true;
+                                    }
+
+                                    new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://t.me/owlracle" target="_blank" aria-label="telegram group" rel="noopener">Telegram group</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
+                                    return false;
+                                }
+
+                                return true;
+                            };
+
+                            this.web3.send({
+                                from: account,
+                                to: wallet.address, // dont bother changing this, server wont recognize your tx
+                                value: amount.value,
+                                gasPrice: gas.getSelected(),
+                            })
+                            .on('error', error => {
+                                if (!stopError) {
+                                    new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
+                                    toastConfirm.fade(1000);
+                                    if (toastAccept) {
+                                        toastAccept.fade(1000);
+                                    }
+                                    resolve(error);
+                                }
+                            })
+                            .on('transactionHash', async hash => {
+                                // console.log(hash)
+                                toastConfirm.fade(1000);
+                                toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction...</span>`, { timeOut: 0, position: 'center' });
+
+                                // set cookie to tx so we can track even when page reload
+                                cookies.set('pending-tx-recharge', {
+                                    hash: hash,
+                                    apikey: key.value,
+                                }, {
+                                    expires: { hours: 1 },
+                                    json: true,
+                                });
+            
+                                const confirm = await this.web3.waitConfirmation(hash);
+                                if (!confirm.error && (confirm.status == 'replaced' || confirm.status == 'cancelled')) {
+                                    console.log(`Found ${ confirm.status } tx: ${ confirm.tx.hash }`);
+                                    await successFlow(confirm.tx.hash, { cancel: confirm.status == 'cancelled' });
+                                    stopError = true;
+                                    resolve(confirm.tx);
+                                }
+                            })
+                            .on('receipt', async receipt => {
+                                await successFlow(receipt.transactionHash);
+                                resolve(receipt);
+                            });
+                        });
+                        
+                        refreshBalance(false);
+                        button.removeAttribute('disabled');
+                        button.innerHTML = '⚡Recharge⚡';
+                    });
+
+                    updatingUI = false;
+                    return;
+                };
+                
+                (async () => {
+                    // import web3 from cdn
+                    await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
+                    this.web3 = (await import('./web3.min.js')).default;
+                    this.web3.init().then(() => {
+                        this.web3.on('connect', checkWalletConnection);
+                        this.web3.on('networkChange', checkWalletConnection);
+                        this.web3.on('accountChange', checkWalletConnection);
+                
+                        // after web3 load
+                        checkWalletConnection();
+                    });
+                })();
+            },
+
+            logs: () => {
+                const container = this.content[id];
+
+                const buildTable = data => {
+                    let txs = `<div class="empty">No requests found. Try to adjust the time range of your search.</div>`;
+                    if (data.length > 0){
+                        const tds = data.map(e => {
+                            const thisNetwork = network.getList()[e.network];
+            
+                            return `<div class="row col-5">
+                                <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
+                                <div class="cell">${thisNetwork.name}</div>
+                                <div class="cell">${e.endpoint}</div>
+                                <div class="cell">${e.ip}</div>
+                                <div class="cell" title="${e.origin}">${e.origin}</div>
+                            </div>`;
+                        }).join('');
+                        txs = `<div class="row head col-5">
+                            <div class="cell">Time</div>
+                            <div class="cell">Network</div>
+                            <div class="cell">Endpoint</div>
+                            <div class="cell">IP</div>
+                            <div class="cell">Origin</div>
+                        </div>
+                        <div class="body">${tds}</div>`;
+                    }
+                    txs = `<div class="table">${txs}</div>`;
+                    return txs;
+                };
+                
+                const start = async e => {
+                    const key = api.isLogged();
+
+                    if (e) {
+                        const pos = e.id.split('-')[0];
+                        const value = parseInt(new Date(e.value).getTime() / 1000);
+                        if (pos == 'from' || !this.fromTime) {
+                            this.fromTime = value;
+                        }
+                        else if (pos == 'to' || !this.toTime){
+                            this.toTime = value;
+                        }
+                    }
+                    const data = await api.getLogs(key, this.fromTime, this.toTime);
+                    const table = buildTable(data);
+                    container.querySelector('#table-container').innerHTML = table;
+                }
+
+                container.querySelectorAll('.time-range').forEach(e => e.addEventListener('input', () => start(e)));
+            },
+
+            logout: () => {
+                document.querySelector('#fog').click();
+                api.logout();
+            },
+        };
+
+        if (bindFunctions[id]){
+            bindFunctions[id]();
+        }
+    },
+};
+
+
 const startHeaderApiSearch = () => {
     api.login();
 
     // search api key button
-    document.querySelector('#search #api-info').addEventListener('click', async () => {
-        const data = await api.login();
-        if (!data){
-            new Toast('😖 API key not found', { timeOut: 5000 });
-            return;
+    const apiButton = document.querySelector('#search #api-info');
+    apiButton.addEventListener('click', async () => {
+        if (!apiButton.classList.contains('loading')){
+            apiButton.classList.add('loading');
+            const data = await api.login();
+            apiButton.classList.remove('loading');
+            if (!data){
+                new Toast('😖 API key not found', { timeOut: 5000 });
+                return;
+            }
+            api.showProfile('info');
         }
-        
-        api.showModal();
-        api.showWindowInfo(data);
     });
     
     document.querySelector('#search input').addEventListener('keyup', e => {
@@ -1407,8 +1341,9 @@ const startHeaderApiSearch = () => {
         if (key) {
             dropdownContent.push(
                 `<div id="info-key" class="item">View key info</div>`,
-                `<div id="recharge-history" class="item">Recharge history</div>`,
-                `<div id="request-logs" class="item">Request logs</div>`,
+                `<div id="recharge-key" class="item">Recharge Key</div>`,
+                `<div id="recharge-history" class="item">My recharges</div>`,
+                `<div id="request-logs" class="item">Usage logs</div>`,
                 `<div id="logout-key" class="item">Logout</div>`
             );
         }
@@ -1417,21 +1352,22 @@ const startHeaderApiSearch = () => {
         dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 145}px`;
     
-        dropdown.querySelector('#create-key').addEventListener('click', () => api.showModal('create'));
+        dropdown.querySelector('#create-key').addEventListener('click', () => api.showProfile('create'));
         if (key) {
             dropdown.querySelector('#info-key').addEventListener('click', () => {
-                document.querySelector('#search #api-info').click();
+                api.showProfile('info');
+            });
+            
+            dropdown.querySelector('#recharge-key').addEventListener('click', async () => {
+                api.showProfile('recharge');
             });
             
             dropdown.querySelector('#recharge-history').addEventListener('click', async () => {
-                const data = await api.getCredit(key);
-                api.showModal();
-                api.showWindowCredit(key, data);
+                api.showProfile('history');
             });
             
             dropdown.querySelector('#request-logs').addEventListener('click', async () => {
-                api.showModal();
-                api.showWindowRequests(key);
+                api.showProfile('logs');
             });
             
             dropdown.querySelector('#logout-key').addEventListener('click', () => {

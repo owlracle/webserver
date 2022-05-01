@@ -474,11 +474,13 @@ const api = {
         }
 
         container.querySelectorAll('.tab').forEach(e => e.addEventListener('click', async () => {
-            if (!profile.locked && !e.classList.contains('disabled')){
-                document.querySelectorAll('#fog .tab').forEach(e => e.classList.remove('active'));
-                e.classList.add('active');
-                profile.show(e.id);
+            if (e.classList.contains('disabled')) {
+                fog.remove();
+                await profile.loginModal(tabSelected);
+                return;
             }
+
+            profile.show(e.id)
         }));
 
         profile.window = container.querySelector('div');
@@ -633,24 +635,88 @@ const api = {
 const profile = {
     content: {},
 
+    loginModal: async function(redirect) {
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+
+        // get api key information
+        const content = document.createElement('div');
+
+        fog.innerHTML = `<div class="modal"><div id="content">
+            <h2>API key Login</h2>
+            <p class="title">API key</p>
+            <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
+            <span id="key-tip" class="tip"></span>
+            <div id="button-container"><button id="get-key">Search</button></div>
+        </div></div>`;
+
+        // remove tip for invalid key
+        fog.querySelector('#key').addEventListener('keyup', function() {
+            const value = this.value.trim().toLowerCase();
+            if (value.match(apiKeyRegex)){
+                const tip = fog.querySelector(`#key-tip`);
+                tip.innerHTML = '';
+                this.classList.remove('red');
+            }
+        });
+
+        const apiKeyRegex = api.regex.apiKey;
+
+        fog.querySelector('#get-key').addEventListener('click', async function() {
+            let error = false;
+
+            const key = fog.querySelector('#key').value.trim().toLowerCase();
+            if (!key.match(apiKeyRegex)){
+                const tip = fog.querySelector('#key-tip');
+                tip.innerHTML = 'Invalid API key';
+                fog.querySelector('#key').classList.add('red');
+                error = true;
+            }
+
+            if (!error){
+                this.setAttribute('disabled', true);
+                this.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+
+                const data = await api.getKey(key);
+
+                fog.remove();
+                document.querySelector('#search input').value = data.apiKey;
+                await api.login();
+                api.showProfile(redirect);
+            }
+        });
+
+        fog.addEventListener('click', () => fog.remove());
+        fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+
+        document.body.appendChild(fog);
+        fadeIn(fog, 500);
+    },
+
     show: async function(id) { 
-        this.locked = true;
-
-        if (!this.content[id]){
-            // put placeholder container
-            this.content[id] = document.createElement('div');
-            this.content[id].id = 'content';
-            this.content[id].classList.add('empty');
-            this.content[id].innerHTML = '<i class="fa-solid fa-gear fa-spin"></i>';
+        const elem = document.querySelector(`#fog #${id}.tab`);
+        if (!profile.locked && !elem.classList.contains('disabled')){
+            this.locked = true;
+    
+            document.querySelectorAll('#fog .tab').forEach(e => e.classList.remove('active'));
+            elem.classList.add('active');
+    
+            if (!this.content[id]){
+                // put placeholder container
+                this.content[id] = document.createElement('div');
+                this.content[id].id = 'content';
+                this.content[id].classList.add('empty');
+                this.content[id].innerHTML = '<i class="fa-solid fa-gear fa-spin"></i>';
+            }
+            this.window.querySelector('#content').replaceWith(this.content[id]);
+            
+            await this.createContent(id);
+            this.bindContent(id);
+    
+            this.window.querySelector('#content').replaceWith(this.content[id]);
+    
+            this.locked = false;
         }
-        this.window.querySelector('#content').replaceWith(this.content[id]);
-        
-        await this.createContent(id);
-        this.bindContent(id);
-
-        this.window.querySelector('#content').replaceWith(this.content[id]);
-
-        this.locked = false;
     },
 
     createContent: async function(id) {
@@ -822,6 +888,36 @@ const profile = {
 
     bindContent: function(id) {
         const bindFunctions = {
+            info: () => {
+                const content = this.content[id];
+
+                content.querySelector('#recharge-key').addEventListener('click', () => {
+                    profile.show('recharge');
+                });
+
+                const editOrigin = content.querySelector('#edit-origin');
+                const input = content.querySelector('#input-origin');
+                const glyph = editOrigin.querySelector('i');
+
+                editOrigin.addEventListener('click', () => {
+                    if (editOrigin.classList.contains('green')) {
+                        glyph.classList.add('fa-pen-to-square');
+                        glyph.classList.remove('fa-check');
+                        editOrigin.classList.remove('green');
+
+                        console.log(input.value);
+                    }
+                    else {
+                        glyph.classList.remove('fa-pen-to-square');
+                        glyph.classList.add('fa-check');
+                        editOrigin.classList.add('green');
+                        input.removeAttribute('readonly');
+                        input.focus();
+                    }
+
+                });
+            },
+
             create: () => {
                 const content = this.content[id];
                 content.querySelectorAll('#checkbox-container input').forEach(e => e.addEventListener('click', () => {

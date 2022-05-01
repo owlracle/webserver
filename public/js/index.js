@@ -147,25 +147,23 @@ const network = (symbol => {
 
     // show api key information directly from url
     if (query.action && query.action === 'keys' && query.apikey){
-        api.getKey(query.apikey).then( data => {
-            api.showModal('info');
-            api.showWindowInfo(data);
-        });
+        document.querySelector('#search input').value = query.apikey;
+        document.querySelector('#search #api-info').click();
     }
 
     // open api key creation window directly from url
     if (query.action && query.action === 'newkey'){
-        api.showModal('create');
+        api.showProfile('create');
     }
 
     // open api key recharge window directly from url
     if (query.action && query.action === 'recharge'){
-        api.showModal('recharge');
+        api.showProfile('recharge');
     }
 
     // open api key edit window directly from url
     if (query.action && query.action === 'editkey'){
-        api.showModal('edit');
+        api.showProfile('info');
     }
 
     return network;
@@ -855,7 +853,7 @@ new Tooltip(document.querySelector('#theme'), 'Toggle light/dark mode', { delay:
 // const codePens = ['KKvKJRN', 'BadaMVN'].map((v,i) => new CodePen(document.querySelector(`#codepen${i+1}`), v));
 
 
-document.querySelector('#manage-apikey').addEventListener('click', () => api.showModal());
+document.querySelector('#manage-apikey').addEventListener('click', () => api.showProfile('info'));
 
 
 const limits = {
@@ -976,7 +974,7 @@ const faq = {
         document.querySelector('#faq').innerHTML = `<ul>${this.list.map(e => `<li><ul><li class="question"><i class="fas fa-angle-right"></i>${e[0]}</li><li class="answer">${e[1]}</li></ul></li>`).join('')}</ul>`;
         document.querySelectorAll('#faq .question').forEach(e => e.addEventListener('click', () => e.parentNode.classList.toggle('open')));
         
-        document.querySelector('#link-reset-key').addEventListener('click', () => api.showModal('edit'));
+        document.querySelector('#link-reset-key').addEventListener('click', () => api.showProfile('info'));
         document.querySelectorAll('#faq .token-name').forEach(e => e.innerHTML = network.token);
         
         // smooth scrolling when clicking link
@@ -989,9 +987,6 @@ const faq = {
     }
 };
 faq.rebuild();
-
-// set footer link to api key management window
-// document.querySelector('#footer-keys').addEventListener('click', () => api.showModal());
 
 
 // pretty print json inside html

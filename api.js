@@ -502,16 +502,15 @@ module.exports = app => {
     app.put('/keys/:key', async (req, res) => {
         const key = req.params.key;
         const secret = req.body.secret;
-    
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
+
+        const row = await api.validateKey(key);
+        if (row.status != 200) {
+            res.status(row.status).send(row.send);
+            return;
         }
-        else if (!secret){
+        const keyInfo = row.send;
+
+        if (!secret){
             res.status(400);
             res.send({
                 status: 400,
@@ -519,81 +518,59 @@ module.exports = app => {
                 message: 'The api secret was not provided.'
             });
         }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else{
-                const rowsPromise = rows.map(row => Promise.all([
-                    bcrypt.compare(key, row.apiKey),
-                    bcrypt.compare(secret, row.secret)
-                ]));
-                const row = (await Promise.all(rowsPromise)).map((e,i) => e[0] && e[1] ? rows[i] : false).filter(e => e);
-    
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find an api key matching the provided secret key.'
-                    });
-                }
-                else {
-                    const data = {};
-                    const id = row[0].id;
-        
-                    let newKey = key;
-        
-                    // fields to edit
-                    if (req.body.resetKey){
-                        newKey = uuidv4().split('-').join('');
-                        data.peek = newKey.slice(-4);
-                        data.apiKey = await bcrypt.hash(newKey, 10);
-                    }
-                    if (req.body.origin){
-                        data.origin = req.body.origin;
-                    }
-                    if (req.body.note){
-                        data.note = req.body.note;
-                    }
-        
-                    if (Object.keys(data).length == 0){
-                        res.send({ message: 'No information was changed.' });
-                    }
-                    else {
-                        const [rows, error] = await db.update('api_keys', data, `id = ?`, [id]);
-                        
-                        if (error){
-                            res.status(500);
-                            res.send({
-                                status: 500,
-                                error: 'Internal Server Error',
-                                message: 'Error while trying to update api key information.',
-                                serverMessage: error,
-                            });
-                        }
-                        else{
-                            data.apiKey = newKey;
-                            delete data.peek;
-            
-                            res.send({
-                                message: 'api key ionformation updated.',
-                                ...data
-                            });
-                        }
-                    }
-        
-                }
-            }
+
+        const secretCheck = await bcrypt.compare(secret, keyInfo.secret);
+        if (!secretCheck){
+            res.status(403).send({
+                status: 403,
+                error: 'Forbidden',
+                message: 'The provided api key and secret does not match.',
+            });
+            return;
         }
+
+        const data = {};
+        const id = keyInfo.id;
+
+        let newKey = key;
+
+        // fields to edit
+        if (req.body.resetKey){
+            newKey = uuidv4().split('-').join('');
+            data.peek = newKey.slice(-4);
+            data.apiKey = await bcrypt.hash(newKey, 10);
+        }
+        if (req.body.origin){
+            data.origin = req.body.origin;
+        }
+        if (req.body.note){
+            data.note = req.body.note;
+        }
+
+        if (Object.keys(data).length == 0){
+            res.status(304).send({ message: 'No information was changed.' });
+            return;
+        }
+
+        const [rows, error] = await db.update('api_keys', data, `id = ?`, [id]);
+        
+        if (error){
+            res.status(500).send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to update api key information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        data.apiKey = newKey;
+        delete data.peek;
+
+        res.send({
+            message: 'api key ionformation updated.',
+            ...data
+        });
     });
     
     

@@ -928,33 +928,146 @@ const profile = {
     bindContent: function(id) {
         const bindFunctions = {
             info: () => {
+                async function modalSecret() {
+                    return new Promise( resolve => {
+                        const fog = document.createElement('div');
+                        fog.id = 'fog';
+                        fog.innerHTML = `<div class="modal"><div id="content">
+                            <h2>Key Authorization</h2>
+                            <p class="title">This action requires you to provide your API secret.</p>
+                            <p class="title">API Secret</p>
+                            <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
+                            <span id="key-tip" class="tip"></span>
+                            <div id="button-container"><button id="send">OK</button></div>
+                        </div></div>`;
+
+                        // remove tip for invalid key
+                        fog.querySelector('#key').addEventListener('keyup', function() {
+                            const value = this.value.trim().toLowerCase();
+                            if (value.match(apiKeyRegex)){
+                                const tip = fog.querySelector(`#key-tip`);
+                                tip.innerHTML = '';
+                                this.classList.remove('red');
+                            }
+                        });
+
+                        const apiKeyRegex = api.regex.apiKey;
+
+                        fog.querySelector('#key').addEventListener('keyup', e => {
+                            if (e.key == 'Enter'){
+                                send();
+                            }
+                        });
+
+                        fog.querySelector('#send').addEventListener('click', () => send());
+
+                        const send = async () => {
+                            const button = fog.querySelector('#send');
+                            let error = false;
+
+                            const key = fog.querySelector('#key').value.trim().toLowerCase();
+                            if (!key.match(apiKeyRegex)){
+                                const tip = fog.querySelector('#key-tip');
+                                tip.innerHTML = 'Invalid API secret';
+                                fog.querySelector('#key').classList.add('red');
+                                error = true;
+                            }
+
+                            if (!error){
+                                button.setAttribute('disabled', true);
+                                button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+
+                                fog.remove();
+                                resolve(key);
+                            }
+                        }
+
+                        fog.addEventListener('click', () => {
+                            fog.remove();
+                            resolve(false);
+                        });
+                        fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+
+                        document.body.appendChild(fog);
+                        fadeIn(fog, 500);
+                        fog.querySelector('input').focus();
+                    });
+                }
+
                 const content = this.content[id];
 
                 content.querySelector('#recharge-key').addEventListener('click', () => {
                     profile.show('recharge');
                 });
 
-                const editOrigin = content.querySelector('#edit-origin');
-                const input = content.querySelector('#input-origin');
-                const glyph = editOrigin.querySelector('i');
+                const edit = async mode => {
+                    const editMode = content.querySelector(`#edit-${mode}`);
+                    const input = content.querySelector(`#input-${mode}`);
+                    const glyph = editMode.querySelector('i');
+                    let oldValue;
+    
+                    input.addEventListener('keyup', e => {
+                        if (e.key == 'Enter'){
+                            change();
+                        }
+                    });
+                
+                    editMode.addEventListener('click', () => change());
 
-                editOrigin.addEventListener('click', () => {
-                    if (editOrigin.classList.contains('green')) {
-                        glyph.classList.add('fa-pen-to-square');
-                        glyph.classList.remove('fa-check');
-                        editOrigin.classList.remove('green');
-
-                        console.log(input.value);
+                    const change = async () => {
+    
+                        if (editMode.classList.contains('green')) {
+                            glyph.classList.add('fa-pen-to-square');
+                            glyph.classList.remove('fa-check');
+                            editMode.classList.remove('green');
+    
+                            input.setAttribute('readonly', true);
+    
+                            if (mode == 'origin'){
+                                const match = input.value.match(api.regex.url);
+                                if (!match || match.length <= 1){
+                                    new Toast(`🏠 Invalid domain`, { timeOut: 5000 });
+                                    input.value = oldValue;
+                                    return;
+                                }
+                            }
+                            if (input.value == oldValue) {
+                                input.value = oldValue;
+                                return;
+                            }
+                            const secret = await modalSecret();
+                            if (!secret) {
+                                input.value = oldValue;
+                                return;
+                            }
+                            const args = { secret: secret };
+                            args[mode] = input.value;
+                            const data = await api.editKey(api.isLogged(), args);
+    
+                            if (data.error){
+                                new Modal(`<h2>${data.error}</h2>
+                                    <p>${data.message}</p>
+                                    <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                                );
+                                input.value = oldValue;
+                                return;
+                            }
+    
+                            new Toast(`🔑 API key changed successfully`, { timeOut: 5000 });
+                        }
+                        else {
+                            oldValue = input.value;
+                            glyph.classList.remove('fa-pen-to-square');
+                            glyph.classList.add('fa-check');
+                            editMode.classList.add('green');
+                            input.removeAttribute('readonly');
+                            input.focus();
+                        }
+    
                     }
-                    else {
-                        glyph.classList.remove('fa-pen-to-square');
-                        glyph.classList.add('fa-check');
-                        editOrigin.classList.add('green');
-                        input.removeAttribute('readonly');
-                        input.focus();
-                    }
-
-                });
+                }
+                edit('origin');
+                edit('note');
             },
 
             create: () => {

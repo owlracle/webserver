@@ -597,8 +597,11 @@ module.exports = app => {
             apiKey: key,
             creation: keyRow.creation,
             credit: keyRow.credit,
-            chatid: keyRow.chatid,
         };
+
+        if (keyRow.chatid && keyRow.chatid.length) {
+            data.chatid = keyRow.chatid;
+        }
 
         if (keyRow.origin){
             data.origin = keyRow.origin;
@@ -627,23 +630,6 @@ module.exports = app => {
             apiKeyHour: rows[0].hourapi,
             apiKeyTotal: rows[0].totalapi,
         };
-
-        [rows, error] = await db.query(`SELECT chatid FROM credit_alerts WHERE apikey = ? AND active = 1`, [ id ]);
-
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        if (rows.length){
-            data.creditNotification = rows.map(row => row.chatid);
-        }
 
         res.send(data);
     });
@@ -1410,14 +1396,14 @@ const api = {
             });
 
             // reset alert status
-            const [rows, error] = await db.query(`SELECT id, chatid FROM credit_alerts WHERE active = 1 AND apikey = ?`, [ id ]);
+            const [rows, error] = await db.query(`SELECT a.id, k.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.active = 1 AND a.apikey = ?`, [ id ]);
 
             const chats = [];
             if (!error) {
                 rows.forEach(row => {
                     db.update('credit_alerts', { status: '{}' }, `id = ?`, [ row.id ]);
 
-                    if (!chats.includes(row.chatid)) {
+                    if (row.chatid && row.chatid.length && !chats.includes(row.chatid)) {
                         chats.push(row.chatid);
                     }
                 });

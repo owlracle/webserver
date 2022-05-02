@@ -360,7 +360,6 @@ const api = {
                     <li>Make sure to save this information before closing this window.</li>
                     <li>We do not store your key and secret in plain text, so we cannot recover them in case of loss.</li>
                 </ul>
-                <p><a class="link" href="https://t.me/owlracle_gas_bot?start=${ window.btoa('credit') }" rel="noopener" target="_blank">Receive Telegram alerts about API credits.</a></p>
             `;
             // add buttons for clipboard copy info
 
@@ -380,7 +379,7 @@ const api = {
         }
     },
 
-    showProfile: function(tabSelected){
+    showProfile: function(tabSelected='info'){
         const fog = document.createElement('div');
         fog.id = 'fog';
 
@@ -390,6 +389,7 @@ const api = {
                 <div class="tab" id="create"><i class="fas fa-square-plus"></i><span class="text">New API Key</span></div>
                 <div class="tab disabled" id="info"><i class="fa-solid fa-key"></i><span class="text">Key Info</span></div>
                 <div class="tab disabled" id="recharge"><i class="fa-solid fa-bolt"></i><span class="text">Recharge Key</span></div>
+                <div class="tab disabled" id="alerts"><i class="fa-solid fa-bell"></i><span class="text">Alerts</span></div>
                 <div class="tab disabled" id="history"><i class="fa-solid fa-file-invoice-dollar"></i></i><span class="text">My recharges</span></div>
                 <div class="tab disabled" id="logs"><i class="fa-solid fa-file-lines"></i><span class="text">Usage logs</span></div>
                 <div class="tab disabled" id="logout"><i class="fa-solid fa-right-from-bracket"></i><span class="text">Logout</span></div>
@@ -473,6 +473,35 @@ const api = {
         }
 
         return await this.request(`/logs/${key}?${ new URLSearchParams(options).toString() }`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+    },
+
+    revokeAlertAuth: async function(key, secret) {
+        return await this.request(`/authbot/${key}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ secret: secret }),
+        });
+    },
+
+    addCreditAlert: async function(key) {
+        return await this.request(`/alert/credit/${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+    },
+
+    removeCreditAlert: async function(key) {
+        return await this.request(`/alert/credit/${key}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
+    },
+
+    getCreditAlert: async function(key) {
+        return await this.request(`/alert/credit/${key}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
@@ -574,6 +603,73 @@ const api = {
 
 const profile = {
     content: {},
+
+    // modal for inputing api secret (edit key)
+    modalSecret: async function () {
+        return new Promise( resolve => {
+            const fog = document.createElement('div');
+            fog.id = 'fog';
+            fog.innerHTML = `<div class="modal"><div id="content">
+                <h2>Key Authorization</h2>
+                <p class="title">This action requires you to provide your API secret.</p>
+                <p class="title">API Secret</p>
+                <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
+                <span id="key-tip" class="tip"></span>
+                <div id="button-container"><button id="send">OK</button></div>
+            </div></div>`;
+
+            // remove tip for invalid key
+            fog.querySelector('#key').addEventListener('keyup', function() {
+                const value = this.value.trim().toLowerCase();
+                if (value.match(apiKeyRegex)){
+                    const tip = fog.querySelector(`#key-tip`);
+                    tip.innerHTML = '';
+                    this.classList.remove('red');
+                }
+            });
+
+            const apiKeyRegex = api.regex.apiKey;
+
+            fog.querySelector('#key').addEventListener('keyup', e => {
+                if (e.key == 'Enter'){
+                    send();
+                }
+            });
+
+            fog.querySelector('#send').addEventListener('click', () => send());
+
+            const send = async () => {
+                const button = fog.querySelector('#send');
+                let error = false;
+
+                const key = fog.querySelector('#key').value.trim().toLowerCase();
+                if (!key.match(apiKeyRegex)){
+                    const tip = fog.querySelector('#key-tip');
+                    tip.innerHTML = 'Invalid API secret';
+                    fog.querySelector('#key').classList.add('red');
+                    error = true;
+                }
+
+                if (!error){
+                    button.setAttribute('disabled', true);
+                    button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+
+                    fog.remove();
+                    resolve(key);
+                }
+            }
+
+            fog.addEventListener('click', () => {
+                fog.remove();
+                resolve(false);
+            });
+            fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+
+            document.body.appendChild(fog);
+            fadeIn(fog, 500);
+            fog.querySelector('input').focus();
+        });
+    },
 
     // when you need a login window separate from the header.
     loginModal: async function(redirect) {
@@ -735,6 +831,66 @@ const profile = {
                     this.content[id].innerHTML;
             },
 
+            alerts: async () => {
+                const data = await api.getKey(api.isLogged());
+
+                if (!data.apiKey){
+                    new Toast(`☹️ ${ data.error }: ${ data.message }`)
+                    return '';
+                }
+
+                if (!data.chatid) {
+                    // build fields
+                    return `<h2>API key Telegram alerts</h2>
+                    <div id="content-container">
+                        <p>Before receiving alerts, you must authorize our bot to send messages to you. Do not worry though, he will only send messages following the criteria of your choice.</p>
+                        <div id="button-container"><a class="button" href="https://t.me/owlracle_gas_bot?start=${ window.btoa('auth ' + data.apiKey) }" aria-label="open telegram" rel="noopener">Say hello to our bot</a></div>
+                    </div>`;
+                }
+
+                const creditAlerts = await api.getCreditAlert(data.apiKey);
+
+                if (creditAlerts.error) {
+                    new Modal(`<h2>${data.error}</h2>
+                        <p>${data.message}</p>
+                        <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                    );
+                    return;
+                }
+
+                return `<h2>API key Telegram alerts</h2>
+                <p>Choose the kind of alert you want to receive from our Telegram bot</p>
+                <div id="alert-opt-container">
+                    <div id="credit-alerts" class="opt-card ${ creditAlerts.apiKey ? 'selected' : '' }">
+                        <div class="title">
+                            <span><i class="fa-solid fa-wallet"></i> Credit alerts</span>
+                        </div>
+                        <div class="body">
+                            <div class="check-container"><i class="fa-solid fa-circle-check checked"></i><i class="fa-solid fa-circle not-checked"></i></div>
+                            <span>${ creditAlerts.apiKey ? 'You are receiving credit alerts.' : 'Receive alerts when your API credit is below $1 and when they expire.' }</span>
+                        </div>
+                    </div>
+                    <div id="gas-alerts" class="opt-card disabled">
+                        <div class="title">
+                            <span><i class="fa-solid fa-gas-pump"></i> Gas alerts</span>
+                        </div>
+                        <div class="body">
+                            <div class="check-container"><i class="fa-solid fa-circle-check checked"></i><i class="fa-solid fa-circle not-checked"></i></div>
+                            <span>Set custom conditions based on network's gas price and receive alerts when those conditions are met.</span>
+                        </div>
+                    </div>
+                    <div id="revoke" class="opt-card">
+                        <div class="title">
+                            <span><i class="fa-solid fa-ban"></i> Revoke bot permission</span>
+                        </div>
+                        <div class="body">
+                            <span>Remove your Telegram chatid from our bot's memory. It won't be able to send alerts to you anymore.</span>
+                        </div>
+                    </div>
+                </div>
+                </div>`;
+            },
+
             history: async () => {
                 const modal = document.querySelector('#fog #api-window');
                 modal.classList.add('large');
@@ -833,73 +989,6 @@ const profile = {
     bindContent: function(id) {
         const bindFunctions = {
             info: () => {
-                // modal for inputing api secret (edit key)
-                async function modalSecret() {
-                    return new Promise( resolve => {
-                        const fog = document.createElement('div');
-                        fog.id = 'fog';
-                        fog.innerHTML = `<div class="modal"><div id="content">
-                            <h2>Key Authorization</h2>
-                            <p class="title">This action requires you to provide your API secret.</p>
-                            <p class="title">API Secret</p>
-                            <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
-                            <span id="key-tip" class="tip"></span>
-                            <div id="button-container"><button id="send">OK</button></div>
-                        </div></div>`;
-
-                        // remove tip for invalid key
-                        fog.querySelector('#key').addEventListener('keyup', function() {
-                            const value = this.value.trim().toLowerCase();
-                            if (value.match(apiKeyRegex)){
-                                const tip = fog.querySelector(`#key-tip`);
-                                tip.innerHTML = '';
-                                this.classList.remove('red');
-                            }
-                        });
-
-                        const apiKeyRegex = api.regex.apiKey;
-
-                        fog.querySelector('#key').addEventListener('keyup', e => {
-                            if (e.key == 'Enter'){
-                                send();
-                            }
-                        });
-
-                        fog.querySelector('#send').addEventListener('click', () => send());
-
-                        const send = async () => {
-                            const button = fog.querySelector('#send');
-                            let error = false;
-
-                            const key = fog.querySelector('#key').value.trim().toLowerCase();
-                            if (!key.match(apiKeyRegex)){
-                                const tip = fog.querySelector('#key-tip');
-                                tip.innerHTML = 'Invalid API secret';
-                                fog.querySelector('#key').classList.add('red');
-                                error = true;
-                            }
-
-                            if (!error){
-                                button.setAttribute('disabled', true);
-                                button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-
-                                fog.remove();
-                                resolve(key);
-                            }
-                        }
-
-                        fog.addEventListener('click', () => {
-                            fog.remove();
-                            resolve(false);
-                        });
-                        fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
-
-                        document.body.appendChild(fog);
-                        fadeIn(fog, 500);
-                        fog.querySelector('input').focus();
-                    });
-                }
-
                 const content = this.content[id];
 
                 // copy api key
@@ -955,7 +1044,7 @@ const profile = {
                                     return;
                                 }
                             }
-                            const secret = await modalSecret();
+                            const secret = await this.modalSecret();
                             if (!secret) {
                                 input.value = oldValue;
                                 return;
@@ -1454,6 +1543,77 @@ const profile = {
                         checkWalletConnection();
                     });
                 })();
+            },
+
+            alerts: async () => {
+                const content = this.content[id];
+
+                // content.querySelectorAll('.opt-card').forEach(e => e.addEventListener('click', () => {
+                //     content.querySelectorAll('.opt-card').forEach(e => e.classList.remove('selected'));
+                //     e.classList.add('selected');
+                // }));
+
+                const data = await api.getKey(api.isLogged());
+                if (!data.chatid) {
+                    return;
+                }
+
+                // revoke bot access
+                content.querySelector('#revoke.opt-card').addEventListener('click', async () => {
+                    const secret = await this.modalSecret();
+                    if (!secret) {
+                        return;
+                    }
+                    
+                    const data = await api.revokeAlertAuth(api.isLogged(), secret);
+                    if (data.error) {
+                        new Modal(`<h2>${data.error}</h2>
+                            <p>${data.message}</p>
+                            <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                        );
+                        return;
+                    }
+
+                    this.show('alerts');
+                    new Toast('🦉 Owlracle gas bot will no longer send you alerts. 🥹', { timeOut: 8000 });
+                });
+
+                // add/remove credit alerts
+                content.querySelector('#credit-alerts.opt-card').addEventListener('click', async () => {
+                    const key = api.isLogged();
+
+                    const existing = await api.getCreditAlert(key);
+                    // already receiving alerts
+                    let data;
+                    if (existing.apiKey) {
+                        data = await api.removeCreditAlert(key);
+                    }
+                    else {
+                        data = await api.addCreditAlert(key);
+                    }
+
+                    if (data.error) {
+                        new Modal(`<h2>${data.error}</h2>
+                            <p>${data.message}</p>
+                            <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                        );
+                        return;
+                    }
+
+                    this.show('alerts');
+
+                    if (existing.apiKey) {
+                        new Toast('🦉 You will no longer receive alerts about your API credits. 💸', { timeOut: 8000 });
+                    }
+                    else {
+                        new Toast('🦉 You will now receive alerts about your API credits. 💵', { timeOut: 8000 });
+                    }
+                });
+
+                // add/remove gas alerts
+                content.querySelector('#gas-alerts.opt-card').addEventListener('click', async () => {
+                    new Toast('🦉 Coming Soon! Stay tuned. 👀', { timeOut: 3000 });
+                });
             },
 
             logs: () => {

@@ -4,17 +4,6 @@ module.exports = (app, api) => {
     // add credit alert
     app.post('/alert/credit/:key', async (req, res) => {
         const key = req.params.key;
-        const chatId = req.body.chatid || '';
-
-        if (!chatId){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'You must provide a chat id.'
-            });
-            return;
-        }
 
         const keyData = await api.validateKey(key);
         if (keyData.status != 200) {
@@ -24,7 +13,7 @@ module.exports = (app, api) => {
 
         const keyId = keyData.send.id;
         // check if there is already an alert for this key-chat pair
-        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ?`, [ keyId, chatId ]);
+        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ?`, [ keyId ]);
 
         if (error){
             res.status(500);
@@ -59,7 +48,6 @@ module.exports = (app, api) => {
 
         [rows, error] = await db.insert('credit_alerts', {
             apikey: keyId,
-            chatid: chatId
         });
 
         if (error){
@@ -82,7 +70,6 @@ module.exports = (app, api) => {
     // remove credit alert
     app.delete('/alert/credit/:key', async (req, res) => {
         const key = req.params.key;
-        const chatId = req.body.chatid || '';
 
         const keyData = await api.validateKey(key);
         if (keyData.status != 200) {
@@ -92,7 +79,7 @@ module.exports = (app, api) => {
 
         const keyId = keyData.send.id;
         // check if there is already an alert for this key-chat pair
-        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND chatid = ? AND active = 1`, [ keyId, chatId ]);
+        [rows, error] = await db.query(`SELECT * FROM credit_alerts WHERE apikey = ? AND active = 1`, [ keyId ]);
 
         if (error){
             res.status(500);
@@ -106,11 +93,11 @@ module.exports = (app, api) => {
         }
 
         if (rows.length == 0){
-            res.status(401);
+            res.status(404);
             res.send({
-                status: 401,
-                error: 'Unauthorized',
-                message: 'This key-chatid pair is not registered.'
+                status: 404,
+                error: 'Not Found',
+                message: 'There is no alert for this key.'
             });
             return;
         }
@@ -135,22 +122,16 @@ module.exports = (app, api) => {
     });
 
     // get info about credit alerts
-    app.get('/alert/credit/:id', async (req, res) => {
-        let id = req.params.id;
-        const field = id.match(/^[a-f0-9]{32}$/) ? 'apikey' : 'chatid';
-
-        // informed field is apikey hash
-        if (field == 'apikey') {
-            const keyData = await api.validateKey(id);
-            if (keyData.status != 200) {
-                res.status(keyData.status).send(keyData.send);
-                return;
-            }
-    
-            id = keyData.send.id;
+    app.get('/alert/credit/:key', async (req, res) => {
+        const keyData = await api.validateKey(req.params.key);
+        if (keyData.status != 200) {
+            res.status(keyData.status).send(keyData.send);
+            return;
         }
+
+        const id = keyData.send.id;
         
-        let [rows, error] = await db.query(`SELECT k.peek, k.credit, a.chatid, a.active FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.${field} = ? AND a.active = 1`, [ id ]);
+        let [rows, error] = await db.query(`SELECT k.credit, k.chatid, a.active FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.apikey = ? AND a.active = 1`, [ id ]);
     
         if (error){
             res.status(500);
@@ -163,17 +144,16 @@ module.exports = (app, api) => {
             return;
         }
 
-        const keys = rows.map(row => {
-            return {
-                apiKey: row.peek,
-                chatId: row.chatid,
-                credit: row.credit,
-            }
-        });
+        if (!rows.length) {
+            res.send({ status: 'empty' });
+            return;
+        }
 
         res.send({
             status: 'success',
-            apiKeys: keys,
+            apiKey: req.params.key,
+            chatId: rows[0].chatid,
+            credit: rows[0].credit,
         });
 
         return;

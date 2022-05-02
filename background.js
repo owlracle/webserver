@@ -102,7 +102,7 @@ async function updateTokenPrice(){
 
 
 async function alertCredit() {
-    const [rows, error] = await db.query(`SELECT a.id, k.peek, a.status, k.credit, a.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.active = 1`);
+    const [rows, error] = await db.query(`SELECT a.id, k.peek, a.status, k.credit, k.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.active = 1`);
     if (error){
         console.log(error);
         return;

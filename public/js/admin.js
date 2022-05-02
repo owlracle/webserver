@@ -366,77 +366,6 @@ document.querySelectorAll('#side-menu .item').forEach((e,i) => e.addEventListene
 }));
 document.querySelector('#side-menu #requests').click();
 
-// DEPRECATED
-// wallet check
-// document.querySelector('#side-menu #wallets').addEventListener('click', async () => {
-//     // placeholder
-//     document.querySelector('#content #wallet-table').innerHTML = [...Array(10)].map(w => `<div class="row placeholder"></div>`).join('');
-
-//     const data = await api.request(`/admin/wallets?currentSession=${session.get()}`);
-
-//     if (data.error){
-//         console.log(data);
-//         new Modal(`<h2>${data.error}</h2>
-//             <p>${data.message}</p>
-//             <div id="button-container"><button id="close">OK</button></div>`, { fog: { dark: true } }
-//         ).addEvent({ tag: 'button', event: 'click', callback: () => session.login() });
-//         return;
-//     }
-
-//     let wallets = Object.keys(data.balances).map(wallet => {
-//         // calc values using token balance and token price
-//         const value = Object.fromEntries(Object.entries(data.balances[wallet]).filter(([k,v]) => k != 'private').map(([k,v]) => {
-//             return isNaN(parseFloat(v)) ? [k,v] : [k, parseFloat(v) * 0.000000000000000001 * parseFloat(data.tokenPrices[k])];
-//         }));
-
-//         const pvt = data.balances[wallet].private;
-//         delete data.balances[wallet].private;
-
-//         const total = Object.values(value).reduce((p,c) => p+c, 0);
-
-//         return {
-//             wallet: wallet,
-//             private: pvt,
-//             balance: data.balances[wallet],
-//             value: value,
-//             total: total,
-//         }
-//     });
-
-//     // sort descending
-//     wallets = wallets.sort((a,b) => b.total - a.total);
-
-//     // place info in the DOM table
-//     const body = wallets.map(w => `<div class="row">
-//         <div class="title">
-//             <div class="cell">
-//                 <span class="info">${w.wallet.slice(0,5)}...${w.wallet.slice(-4)}</span>
-//                 <span class="text">Wallet</span>
-//             </div>
-//             <div class="cell">
-//                 <span class="info">$${w.total.toFixed(4)}</span>
-//                 <span class="text">Balance</span>
-//             </div>
-//         </div>
-//         <div class="details">
-//             ${Object.entries(w.balance).map(([k,v]) => `<div class="row"><div class="cell">${(parseFloat(v) * 0.000000000000000001).toFixed(6)} <span class="token">${network.getList()[k].token}</span></div><div class="cell">$${w.value[k].toFixed(4)}</div></div>`).join('')}
-//             <div class="private-container"><span class="private">${w.private.slice(0,10)}...${w.private.slice(-10)}</span><span class="text">Private Key</span></div>
-//         </div>
-//     </div>`).join('');
-
-//     document.querySelector('#content #wallet-table').innerHTML = body;
-
-//     document.querySelectorAll('#content #wallet-table .row').forEach(r => r.addEventListener('click', () => {
-//         r.querySelector('.details').classList.toggle('open');
-//     }));
-
-//     // click on copy
-//     document.querySelectorAll('#content #wallet-table .private').forEach((e,i) => e.addEventListener('click', () => {
-//         navigator.clipboard.writeText(wallets[i].private);
-//     }));
-    
-// });
-
 
 const creditTable = {
     input: document.querySelector('#content #key input'),
@@ -489,60 +418,6 @@ const creditTable = {
             this.checkBtn.removeAttribute('disabled');
             this.checkBtn.innerHTML = `Check`;
         });
-
-        // DEPRECATED
-        // update api keys by wallet
-        // this.updateBtn.addEventListener('click', async () => {
-        //     if (this.updateBtn.hasAttribute('disabled')){
-        //         return;
-        //     }
-
-        //     const value = this.input.value;
-
-        //     this.updateBtn.setAttribute('disabled', true);
-        //     this.updateBtn.innerHTML = `<i class="fas fa-spin fa-cog"></i>`;
-
-        //     const body = {};
-        //     if (value.length){
-        //         const field = isNaN(parseInt(value)) ? 'wallet' : 'id';
-        //         body[field] = value;
-        //     }
-
-        //     const data = await api.request(`/admin/credit`, {
-        //         method: 'PUT',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify(body),
-        //     });
-        //     // console.log(data)
-
-        //     if (data.error){
-        //         console.log(error);
-        //         return;
-        //     }
-
-        //     this.updateBtn.removeAttribute('disabled');
-        //     this.updateBtn.innerHTML = `Update`;
-
-        //     this.checkBtn.click();
-        // });
-
-        // change page in table
-        // this.pageLeft.addEventListener('click', async () => {
-        //     this.data.page = this.data.page <= 0 ? 0 : this.data.page - 1;
-        //     const text = this.pageLeft.innerHTML;
-        //     this.pageLeft.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
-        //     await this.check();
-        //     this.pageLeft.innerHTML = text;
-        // });
-        // this.pageRight.addEventListener('click', async () => {
-        //     this.data.page++;
-        //     const text = this.pageRight.innerHTML;
-        //     this.pageRight.innerHTML = `<div><i class="fas fa-spin fa-cog"></i></div>`;
-        //     await this.check();
-        //     this.pageRight.innerHTML = text;
-        // });
-
-
     },
 
     check: async function() {

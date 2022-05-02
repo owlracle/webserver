@@ -110,67 +110,6 @@ module.exports = (app, api) => {
     });
 
     
-    // DEPRECATED
-    // wallet balances
-    // app.get('/admin/wallets', async (req, res) => {
-    //     // session check
-    //     const session = Session.getInstance(req.query.currentSession || false);
-
-    //     if (!session) {
-    //         res.status(401);
-    //         res.send({
-    //             status: 401,
-    //             error: 'Unauthorized',
-    //             message: 'Your session token is invalid.',
-    //         });
-    //         return;
-    //     }
-
-    //     session.refresh();
-
-    //     // get wallets available
-    //     let sql = `SELECT wallet, private FROM api_keys;`;
-    //     let [rows, error] = await db.query(sql, []);
-
-    //     if (error) {
-    //         res.status(500);
-    //         res.send({
-    //             status: 500,
-    //             error: 'Internal Server Error',
-    //             message: 'Error retrieving api keys stats.'
-    //         });
-    //         return;
-    //     }
-
-    //     // get balance from explorer
-    //     const wallets = rows.map(row => row.wallet).filter(e => e);
-    //     const balances = await explorer.getMultiBalance(wallets);
-    //     rows.filter(e => e.wallet).forEach(e => balances[e.wallet].private = e.private);
-
-    //     // get last token price for every network
-    //     sql = `SELECT token_price, n.symbol AS network FROM price_history p INNER JOIN networks n ON n.id = p.network2 WHERE p.id IN (SELECT MAX(id) FROM price_history GROUP BY network2);`;
-    //     [rows, error] = await db.query(sql, []);
-
-    //     if (error) {
-    //         res.status(500);
-    //         res.send({
-    //             status: 500,
-    //             error: 'Internal Server Error',
-    //             message: 'Error retrieving token prices.'
-    //         });
-    //         return;
-    //     }
-
-    //     const tokenPrices = Object.fromEntries(rows.map(row => [ row.network, row.token_price ]));
-    
-    //     res.send({
-    //         message: 'success',
-    //         balances: balances,
-    //         tokenPrices: tokenPrices,
-    //     });
-    // });
-
-
     // get api credit
     app.get('/admin/credit', async (req, res) => {
 
@@ -261,39 +200,4 @@ module.exports = (app, api) => {
             results: data,
         })
     });
-
-
-    // DEPRECATED. WILL BE REMOVED IN THE FUTURE
-    // update api credit
-    // app.put('/admin/credit', async (req, res) => {
-    //     const data = [];
-    //     let filter = '';
-    //     if (req.body.wallet) {
-    //         filter = ' WHERE wallet = ?';
-    //         data.push(req.body.wallet.toLowerCase());
-    //     }
-    //     else if (req.body.id) {
-    //         filter = ' WHERE id = ?';
-    //         data.push(req.body.id);
-    //     }
-
-    //     const [rows, error] = await db.query(`SELECT * FROM api_keys${filter} ORDER BY timeChecked`, data);
-
-    //     if (error) {
-    //         res.status(500).send({
-    //             status: 500,
-    //             error: 'Internal server error',
-    //             message: 'Error retrieving the api key information'
-    //         });
-    //         return;
-    //     }
-
-    //     // wait before every api update so we dont overload the explorers
-    //     const resp = {};
-    //     for (let i=0 ; i < rows.length ; i++){
-    //         resp[rows[i].id] = await api.updateCreditLegacy(rows[i]);
-    //     }
-
-    //     res.send({ message: 'success', keys: resp });
-    // });
 };

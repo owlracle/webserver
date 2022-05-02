@@ -943,13 +943,13 @@ header {
             &.vertical {
                 flex-direction: column;
 
-                button {
+                button, .button {
                     margin: 5px 0;
                     width: 100%;
                 }
             }
 
-            button {
+            button, .button {
                 border: none;
                 border-radius: 3px;
                 height: 35px;
@@ -961,6 +961,9 @@ header {
                 transition: 0.3s all;
                 font-size: 1.1rem;
                 margin: 0 5px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
 
                 &:hover {
                     color: var(--text-dark-intense-color);

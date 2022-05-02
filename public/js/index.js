@@ -145,25 +145,31 @@ const network = (symbol => {
         // });
     }
 
-    // show api key information directly from url
-    if (query.action && query.action === 'keys' && query.apikey){
-        document.querySelector('#search input').value = query.apikey;
-        document.querySelector('#search #api-info').click();
-    }
 
-    // open api key creation window directly from url
-    if (query.action && query.action === 'newkey'){
-        api.showProfile('create');
+    // query action based on tab name
+    const tabAliases = {
+        create: [ 'newkey' ],
+        info: [ 'keys' ],
+        recharge: [],
+        alerts: [],
+        history: [],
+        logs: [],
     }
-
-    // open api key recharge window directly from url
-    if (query.action && query.action === 'recharge'){
-        api.showProfile('recharge');
-    }
-
-    // open api key edit window directly from url
-    if (query.action && query.action === 'editkey'){
-        api.showProfile('info');
+    if ( query.action && ( Object.keys(tabAliases).includes(query.action) || Object.values(tabAliases).flat().includes(query.action) ) ) {
+        (async () => {
+            if (query.apikey) {
+                await api.login(query.apikey);                
+            }
+            let chosenTab;
+            if (Object.keys(tabAliases).includes(query.action)) {
+                chosenTab = query.action;
+            }
+            else {
+                // get key from a matching value
+                chosenTab = Object.entries(tabAliases).map(([k,v]) => v.includes(query.action) ? k : false).find(e => e);
+            }
+            api.showProfile(chosenTab);
+        })();
     }
 
     return network;

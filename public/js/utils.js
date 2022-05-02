@@ -388,7 +388,7 @@ const api = {
         container.innerHTML = `<div id='api-window' class="modal profile">
             <div id='tab-container'>
                 <div class="tab" id="create"><i class="fas fa-square-plus"></i><span class="text">New API Key</span></div>
-                <div class="tab disabled" id="info"><i class="fas fa-key"></i><span class="text">Key Info</span></div>
+                <div class="tab disabled" id="info"><i class="fa-solid fa-key"></i><span class="text">Key Info</span></div>
                 <div class="tab disabled" id="recharge"><i class="fa-solid fa-bolt"></i><span class="text">Recharge Key</span></div>
                 <div class="tab disabled" id="history"><i class="fa-solid fa-file-invoice-dollar"></i></i><span class="text">My recharges</span></div>
                 <div class="tab disabled" id="logs"><i class="fa-solid fa-file-lines"></i><span class="text">Usage logs</span></div>
@@ -505,7 +505,7 @@ const api = {
     },
 
     // login with an api key.
-    login: async function() {
+    login: async function(apiKey) {
         const glyph = document.querySelector('#search #api-info i');
         glyph.classList.remove('fa-right-to-bracket', 'fa-key');
         glyph.classList.add('fa-spin', 'fa-cog');
@@ -513,7 +513,14 @@ const api = {
         const input = document.querySelector('#search input');
         input.setAttribute('readonly', true);
     
-        const key = api.isLogged() || input.value.trim().toLowerCase();
+        let key = input.value.trim().toLowerCase();
+        if (apiKey) {
+            key = apiKey;
+        }
+        else if (api.isLogged()){
+            key = api.isLogged();
+        }
+
         let keyInfo = false;
         if (key.match(api.regex.apiKey)){
             keyInfo = await api.getKey(key);
@@ -578,7 +585,8 @@ const profile = {
 
         fog.innerHTML = `<div class="modal"><div id="content">
             <h2>API key Login</h2>
-            <p class="title">API key</p>
+            <p class="title">For this action you must provide your API key</p>
+            <p class="label">API key</p>
             <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
             <span id="key-tip" class="tip"></span>
             <div id="button-container"><button id="get-key">Search</button></div>
@@ -614,8 +622,7 @@ const profile = {
                 const data = await api.getKey(key);
 
                 fog.remove();
-                document.querySelector('#search input').value = data.apiKey;
-                await api.login();
+                await api.login(data.apiKey);
                 api.showProfile(redirect);
             }
         });
@@ -1020,8 +1027,7 @@ const profile = {
                                     new Toast(`🔑 API key hash is reset`, { timeOut: 5000 });
 
                                     api.logout({ verbose: 0 });
-                                    document.querySelector('#search input').value = newHash;
-                                    await api.login();
+                                    await api.login(newHash);
                                     profile.show('info');
                                 },
                             }]

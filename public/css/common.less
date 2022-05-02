@@ -419,6 +419,16 @@ header {
                 input {
                     border-color: #3498db61;
                     background-color: #23689634;
+                    cursor: pointer;
+                    transition: 0.1s background, 0.3s filter;
+    
+                    &:hover {
+                        filter: brightness(1.2);
+                    }
+        
+                    &.blink {
+                        background-color: #30be1e5e;
+                    }
                 }
             }
         }
@@ -545,12 +555,12 @@ header {
         display: flex;
         align-items: center;
         height: 30px;
-        background-color: #3f789edb;
+        background-color: #3f789eee;
         border-bottom: 1px solid #4e8ab399;
+        color: var(--text-dark-intense-color);
         box-sizing: border-box;
         transition: 0.3s all;
         cursor: pointer;
-        text-shadow: 0 0 1px var(--text-color);
         
         &:hover {
             background-color: #3b8bc0;

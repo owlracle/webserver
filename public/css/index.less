@@ -1010,6 +1010,20 @@
 
         .input-text.keys {
             font-family: monospace;
+
+        }
+        
+        #input-apiKey {
+            cursor: pointer;
+            transition: 0.1s background, 0.3s filter;
+    
+            &:hover {
+                filter: brightness(1.2);
+            }
+
+            &.blink {
+                background-color: #30be1e5e;
+            }
         }
 
         #chk-container {

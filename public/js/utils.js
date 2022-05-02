@@ -895,6 +895,18 @@ const profile = {
 
                 const content = this.content[id];
 
+                // copy api key
+                const inputApiKey = content.querySelector('#input-apiKey');
+                inputApiKey.addEventListener('click', () => {
+                    const key = api.isLogged();
+                    if (key) {
+                        navigator.clipboard.writeText(key);
+                        new Toast(`📋 API key copied to the clipboard`, { timeOut: 3000 });
+                        inputApiKey.classList.add('blink');
+                        setTimeout(() => inputApiKey.classList.remove('blink'), 100);
+                    }
+                });
+                
                 // light. bolt button
                 content.querySelector('#recharge-key').addEventListener('click', () => {
                     profile.show('recharge');
@@ -1506,8 +1518,7 @@ const startHeaderApiSearch = () => {
     api.login();
 
     // search api key button
-    const apiButton = document.querySelector('#search #api-info');
-    apiButton.addEventListener('click', async () => {
+    const search = async () => {
         if (!apiButton.classList.contains('loading')){
             apiButton.classList.add('loading');
             const data = await api.login();
@@ -1518,11 +1529,25 @@ const startHeaderApiSearch = () => {
             }
             api.showProfile('info');
         }
-    });
+    };
+    const apiButton = document.querySelector('#search #api-info');
+    apiButton.addEventListener('click', search);
     
-    document.querySelector('#search input').addEventListener('keyup', e => {
+    const input = document.querySelector('#search input');
+    input.addEventListener('keyup', e => {
         if (e.key == 'Enter'){
-            document.querySelector('#search #api-info').click();
+            search();
+        }
+    });
+
+    // copy api key
+    input.addEventListener('click', () => {
+        const key = api.isLogged();
+        if (key) {
+            navigator.clipboard.writeText(key);
+            new Toast(`📋 API key copied to the clipboard`, { timeOut: 3000 });
+            input.classList.add('blink');
+            setTimeout(() => input.classList.remove('blink'), 100);
         }
     });
     

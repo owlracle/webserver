@@ -827,7 +827,7 @@ const profile = {
                 return this.content[id].querySelector('.fa-gear') ?
                     `<h2>API key credit recharge</h2>
                     <p>Connect your wallet to recharge your API key</p>
-                    <div id="button-container" class="vertical"></div>` :
+                    <div id="button-container" class="vertical"><button>Connect</button></div>` :
                     this.content[id].innerHTML;
             },
 
@@ -1092,7 +1092,7 @@ const profile = {
                                 event: 'click',
                                 callback: async () => {
                                     confirm.close();
-                                    const secret = await modalSecret();
+                                    const secret = await this.modalSecret();
             
                                     if (!secret) {
                                         return;
@@ -1454,7 +1454,7 @@ const profile = {
                 
                                 if (!cancel) {
                                     let toastUpdate = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Updating your API credit...</span>`, { timeOut: 0, position: 'center' });
-                                    const data = await this.updateCredit({
+                                    const data = await api.updateCredit({
                                         apiKey: key.value,
                                         transactionHash: hash
                                     });

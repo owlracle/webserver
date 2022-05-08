@@ -1,6 +1,7 @@
 @size-400:   ~"only screen and (min-width: 400px)";
 @size-600:   ~"only screen and (min-width: 600px)";
 @size-900:   ~"only screen and (min-width: 900px)";
+@size-1000:   ~"only screen and (min-width: 1000px)";
 @size-1200:   ~"only screen and (min-width: 1200px)";
 @size-1400:   ~"only screen and (min-width: 1400px)";
 @size-1600:   ~"only screen and (min-width: 1600px)";
@@ -984,19 +985,24 @@ header {
         .table {
             display: flex;
             flex-direction: column;
+            overflow: auto;
+
+            @media @size-1000 {
+                overflow: visible;
+            }
 
             .body {
-                overflow: hidden auto;
                 max-height: 350px;
-
-                @media @size-600 {
+                overflow: visible;
+                
+                @media @size-1000 {
+                    overflow: hidden auto;
                     // max-height: calc(50vh - 60px);
                 }
             }
 
             .row {
                 display: grid;
-                border-bottom: 1px solid var(--border-color);
                 transition: 0.3s all;
                 cursor: default;
 
@@ -1020,6 +1026,7 @@ header {
                     min-width: 130px;
                     box-sizing: border-box;
                     overflow-x: hidden;
+                    border-bottom: 1px solid var(--border-color);
 
                     a {
                         text-decoration: none;
@@ -1055,11 +1062,13 @@ header {
         padding: 10px 20px;
         border-radius: 3px;
         box-shadow: 0 0 5px var(--text-color);
-        margin-bottom: 5px;
+        margin-bottom: 10px;
         opacity: 1;
         transition: 1s all;
         font-size: 1.2rem;
         max-width: 600px;
+        pointer-events: none;
+        user-select: none;
         
         &.fade {
             opacity: 0;

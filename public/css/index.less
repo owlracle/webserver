@@ -900,11 +900,14 @@
     }
 
     #tab-container {
-        flex-basis: 180px;
         flex-shrink: 0;
         padding: 20px 0;
         border-right: 1px solid var(--border-color);
         box-sizing: border-box;
+        
+        @media @size-600 {
+            flex-basis: 180px;
+        }
         
         .tab {
             box-sizing: border-box;
@@ -930,8 +933,19 @@
             }
 
             i {
-                width: 30px;
                 font-size: 1.2rem;
+                
+                @media @size-600 {
+                    width: 30px;
+                }
+            }
+
+            .text {
+                display: none;
+
+                @media @size-600 {
+                    display: block;
+                }
             }
         }
 
@@ -985,6 +999,11 @@
         .title{
             display: flex;
             justify-content: space-between;
+            flex-direction: column;
+
+            @media @size-900 {
+                flex-direction: row;
+            }
 
             .col {
                 display: flex;

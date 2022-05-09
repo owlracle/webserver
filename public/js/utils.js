@@ -745,6 +745,7 @@ const profile = {
 
         document.body.appendChild(fog);
         fadeIn(fog, 500);
+        keyInput.focus();
     },
 
     // show a tab in the profile window

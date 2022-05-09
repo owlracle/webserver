@@ -689,18 +689,27 @@ const profile = {
         </div></div>`;
 
         // remove tip for invalid key
-        fog.querySelector('#key').addEventListener('keyup', function() {
-            const value = this.value.trim().toLowerCase();
+        const keyInput = fog.querySelector('#key');
+        keyInput.addEventListener('keyup', function(e) {
+            if (e.key == 'Enter'){
+                click();
+                return;
+            }
+
+            const value = keyInput.value.trim().toLowerCase();
             if (value.match(apiKeyRegex)){
                 const tip = fog.querySelector(`#key-tip`);
                 tip.innerHTML = '';
-                this.classList.remove('red');
+                keyInput.classList.remove('red');
             }
         });
 
         const apiKeyRegex = api.regex.apiKey;
 
-        fog.querySelector('#get-key').addEventListener('click', async function() {
+        const sendButton = fog.querySelector('#get-key');
+        sendButton.addEventListener('click', () => click());
+
+        const click = async function() {
             let error = false;
 
             const key = fog.querySelector('#key').value.trim().toLowerCase();
@@ -712,16 +721,24 @@ const profile = {
             }
 
             if (!error){
-                this.setAttribute('disabled', true);
-                this.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+                sendButton.setAttribute('disabled', true);
+                sendButton.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
 
                 const data = await api.getKey(key);
 
                 fog.remove();
-                await api.login(data.apiKey);
+                const info = await api.login(data.apiKey);
+                if (!info) {
+                    new Modal(`<h2>${data.error}</h2>
+                        <p>${data.message}</p>
+                        <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                    );
+                    return;
+                }
+
                 api.showProfile(redirect);
             }
-        });
+        };
 
         fog.addEventListener('click', () => fog.remove());
         fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
@@ -1724,10 +1741,12 @@ const startHeaderApiSearch = () => {
 
         const key = api.isLogged();
     
-        const dropdownContent = ['<div id="create-key" class="item">New API Key</div>'];
+        const dropdownContent = [
+            '<div id="create-key" class="item">New API Key</div>',
+            `<div id="info-key" class="item">View key info</div>`,
+        ];
         if (key) {
             dropdownContent.push(
-                `<div id="info-key" class="item">View key info</div>`,
                 `<div id="recharge-key" class="item">Recharge Key</div>`,
                 `<div id="recharge-history" class="item">My recharges</div>`,
                 `<div id="request-logs" class="item">Usage logs</div>`,
@@ -1740,10 +1759,9 @@ const startHeaderApiSearch = () => {
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 145}px`;
     
         dropdown.querySelector('#create-key').addEventListener('click', () => api.showProfile('create'));
+        dropdown.querySelector('#info-key').addEventListener('click', () => api.showProfile('info'));
+
         if (key) {
-            dropdown.querySelector('#info-key').addEventListener('click', () => {
-                api.showProfile('info');
-            });
             
             dropdown.querySelector('#recharge-key').addEventListener('click', async () => {
                 api.showProfile('recharge');

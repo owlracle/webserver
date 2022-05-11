@@ -952,7 +952,7 @@ const faq = {
         `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
         [`I like your service. When will you come to my favorite network?`,
         `We are constantly evaluating the benefits of adding new networks to our oracle. In general, we try to priorize networks with a good amount of monthly transactions and/or trending ones. If you feel we are missing a promising network, feel free to <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a> and share your opinion.`],
-        [`I like your website, but I wish there was a more convenient tool.`,
+        [`I like your website, but I wish there was a more convenient tool. Like a browser extension.`,
         `Weel, there is! You can go to Chrome Web Store and download our <a href="/extension" target="_blank" rel="noopener">extension</a>. It is super easy, one click and you get gas price/history from your favorite network.`],
         [`I would love to get Owlracle's predictions on my community group. Do you have anything for that?`,
         `Sure we do! You can integrate our <a href="/telegrambot" target="_blank" rel="noopener">Telegram bot</a> or <a href="discordbot" target="_blank" rel="noopener">Discord bot</a> bots directly into your groups, so your people can easily get Owlracle's predictions.`],
@@ -963,9 +963,11 @@ const faq = {
         [`Shouldn't I be worried if users peek into my app's source-code and discover my API key?`,
         `Do not EVER expose your API key on the front-end. If you do so, users will be able to read your source-code then make calls using your API (thus expending all your credits). Retrieve our data from your server back-end, then provide the cached data to your users when they request it.`],
         [`My API key have been exposed. What should I do?`,
-        `You can reset your API key hash and generate a new one <a id="link-reset-key">clicking here</a>.`],
+        `You can reset your API key hash and generate a new one <a id="link-info-key">clicking here</a>.`],
         [`I am reaching API rate limit. How can I make a recharge and keep using Owlracle?`,
-        `On the header there is a <i>Search API key</i> box. You could click on the arrow down and choose <i>Recharge API key</i> option. From there you will be asked to connect your Metamask wallet. Then you can transfer any amount of tokens to recharge your key.`],
+        `On the header there is a place where you can <a id="link-info-key">login</a> with your API key. After the login, you can click on <i>Recharge key</i> option. From there you will be asked to connect your Metamask wallet. Then you can transfer any amount of tokens to recharge your key.`],
+        [`I need to retrieve gas price info for several chains. Do I need to make a recharge on every network?`,
+        `No! Once you recharge your key, the current token price is converted to USD and stored on your API key account as credit. Every time you request our endpoints (past the free limit) credit is subtracted from your API credit, regardless of which tokens were used when recharging the key. The current token price does not matter either, as they are converted to USD at the time of the recharge.`],
     ],
 
     getList: function() {
@@ -981,7 +983,7 @@ const faq = {
         document.querySelector('#faq').innerHTML = `<ul>${this.list.map(e => `<li><ul><li class="question"><i class="fas fa-angle-right"></i>${e[0]}</li><li class="answer">${e[1]}</li></ul></li>`).join('')}</ul>`;
         document.querySelectorAll('#faq .question').forEach(e => e.addEventListener('click', () => e.parentNode.classList.toggle('open')));
         
-        document.querySelector('#link-reset-key').addEventListener('click', () => api.showProfile('info'));
+        document.querySelectorAll('#link-info-key').forEach(e => e.addEventListener('click', () => api.showProfile('info')));
         document.querySelectorAll('#faq .token-name').forEach(e => e.innerHTML = network.token);
         
         // smooth scrolling when clicking link

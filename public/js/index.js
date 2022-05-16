@@ -116,8 +116,13 @@ const network = (symbol => {
     explorer.querySelector('.name').innerHTML = network.explorer.name;
 
     // set donation wallet modal
-    wallet.loadImg(document.querySelector('#donate'), network);
-    document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
+    if (network.evm === false ) {
+        document.querySelector('#donate').remove();
+    }
+    else {
+        wallet.loadImg(document.querySelector('#donate'), network);
+        document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
+    }
 
     if (network.explorer.apiAvailable){
         document.querySelector('#nav-network').remove();
@@ -776,8 +781,8 @@ gasTimer.onUpdate = function(data){
 
         document.querySelectorAll('#gas-container .gas .eip').forEach((e,i) => {
             e.innerHTML = `
-                <span class="value"><span class="text">Base:</span> ${baseFee} GWei</span>
-                <span class="value"><span class="text">Tip:</span> ${ Math.max(0, gas[i] - baseFee).toFixed(2) } GWei</span>
+                <span class="value"><span class="text">Base:</span> ${baseFee} ${ network.evm === false ? network.unit : 'GWei' }</span>
+                <span class="value"><span class="text">Tip:</span> ${ Math.max(0, gas[i] - baseFee).toFixed(2) } ${ network.evm === false ? network.unit : 'GWei' }</span>
             `;
         });
     }
@@ -787,7 +792,7 @@ gasTimer.onUpdate = function(data){
 
     document.querySelectorAll('#gas-container .gas .body').forEach((e,i) => {
         if (data.speeds){
-            e.querySelector('.gwei').innerHTML = `${gas[i]} GWei`;
+            e.querySelector('.gwei').innerHTML = `${gas[i]} ${ network.evm === false ? network.unit : 'GWei' }`;
             e.querySelector('.usd').innerHTML = `$ ${fee[i]}`;
         }
     });
@@ -807,7 +812,7 @@ gasTimer.onUpdate = function(data){
     }
 
     // after a while, change title to gas prices
-    setTimeout(() => document.title = `${gas.map(e => parseInt(e)).join(', ')} GWei 🦉 ${network.token} Gas tracker 🦉 Owlracle`, 5000);
+    setTimeout(() => document.title = `${gas.map(e => parseInt(e)).join(', ')} ${ network.evm === false ? network.unit : 'GWei' } 🦉 ${network.token} Gas tracker 🦉 Owlracle`, 5000);
 };
 
 

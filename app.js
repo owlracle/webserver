@@ -83,6 +83,7 @@ app.get('/ht', indexRoute);
 app.get('/celo', indexRoute);
 app.get('/one', indexRoute);
 app.get('/fuse', indexRoute);
+app.get('/atom', indexRoute);
 
 function indexRoute(req, res) {
     const network = req.url.split('/')[1];

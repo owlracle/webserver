@@ -311,6 +311,9 @@ const network = {
         fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
             icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
         }, rpc: 'https://rpc.fuse.io',  },
+        atom: { symbol: 'atom', name: 'Cosmos', token: 'ATOM', explorer: {
+            icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/cosmos', name: 'Mintscan', apiAvailable: false,
+        }, evm: false, unit: 'µATOM',  },
     },
     
     get: function(name) {
@@ -1373,7 +1376,7 @@ const profile = {
                             }
                             this.list = (await this.get()).speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
                             
-                            content.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} GWei` );
+                            content.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} ${ network.evm === false ? network.unit : 'GWei' }` );
                         },
 
                         // get gas price from window var

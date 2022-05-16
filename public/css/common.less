@@ -17,6 +17,7 @@
 .one { @chain-color: #00d8af; }
 .celo { @chain-color: #35cf7f; }
 .fuse { @chain-color: #b3c05d; }
+.atom { @chain-color: #2f3148; }
 
 @import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@1,700&family=Roboto&display=swap');
 
@@ -532,6 +533,12 @@ header {
                 border-color: @chain-color;
             }
 
+            &.atom {
+                .atom();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
             .name {
                 display: none;
 
@@ -570,6 +577,8 @@ header {
         a {
             text-decoration: none;
             color: var(--text-color);
+            display: flex;
+            align-items: center;
 
             .icon {
                 height: 20px;
@@ -717,6 +726,17 @@ header {
         &.fuse {
             #title, #colored {
                 .fuse();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.atom {
+            #title, #colored {
+                .atom();
                 background-color: @chain-color;
 
                 #copy {

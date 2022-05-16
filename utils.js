@@ -122,6 +122,7 @@ const networkList = {
     ht: { name: 'heco', token: 'HT', cgid: 'huobi-token', dbid: 9 },
     celo: { name: 'celo', token: 'CELO', cgid: 'celo', dbid: 10 },
     fuse: { name: 'fuse', token: 'FUSE', cgid: 'fuse-network-token', dbid: 11 },
+    atom: { name: 'cosmos', token: 'ATOM', cgid: 'cosmos', dbid: 12 },
 };
 
 

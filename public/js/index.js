@@ -534,10 +534,6 @@ if (cookies.get('chart')){
 chart.init().then(() => {
     theme.onChange = () => {
         chart.setTheme(cookies.get('theme') || 'dark');
-
-        // if (window.__CPEmbed){
-        //     codePens.forEach(e => e.update());
-        // }
     };
     
     theme.set(cookies.get('theme') || 'dark');
@@ -729,7 +725,7 @@ const gasTimer = {
                 fog.id = 'fog';
                 fog.innerHTML = `<div id="api-window" class="modal"><div id="content">
                     <h2>Session expired</h2>
-                    <p>This page must be reloaded to keep showing updated gas prices</p>
+                    <p>This page must be reloaded to keep showing updated gas fees</p>
                     <div id="button-container">
                         <button id="reload">Reload</button>
                         <button id="cancel">Cancel</button>
@@ -755,7 +751,7 @@ const gasTimer = {
 
             const faqList = faq.getList();
             faqList.unshift(
-                ['What is the Base fee value I see in the gas price cards?', 'Base fee is a value determined by the network itself. It is the lower value you should pay to have your transaction mined. It changes form time to time, and Owlracle outputs the average value of the last blocks. This value is burned. Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.'],
+                ['What is the Base fee value I see in the gas cards?', 'Base fee is a value determined by the network itself. It is the lower value you should pay to have your transaction mined. It changes form time to time, and Owlracle outputs the average value of the last blocks. This value is burned. Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.'],
                 ['What is the priority fee?', 'These are the values you should pay to incentivize miners to process your transactions. The higher the value, faster they will be mined. Higher values means more costly transactions though. That is where Owlracle can help you giving accurate estimates so you can pay no more than what is needed. Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.'],
                 ['What is the "Max fee" value I see on my metamask wallet?', 'Max fee = Base fee + Priority fee. Check <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> for more info.']
             )
@@ -829,38 +825,6 @@ function setColorGradient(elem, time){
 
 // set tooltips
 new Tooltip(document.querySelector('#theme'), 'Toggle light/dark mode', { delay: 1000, createEvent: 'mouseenter' });
-
-
-// codepen ID, fill divs with an embed codepen
-// class CodePen {
-//     static started = false;
-
-//     constructor(element, id) {
-//         this.id = id;
-//         this.element = element;
-
-//         this.update();
-//     }
-
-//     async init() {
-//         if (super.started){
-//             return true;
-//         }
-
-//         const ready = await import('https://cpwebassets.codepen.io/assets/embed/ei.js');
-//         super.started = true;
-//         return ready;
-//     }
-
-//     update(){
-//         this.init().then(() => {
-//             const codepenEmbed = `<p class="codepen" data-height="265" data-theme-id="{{THEME}}" data-default-tab="js,result" data-user="pswerlang" data-slug-hash="${this.id}" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;" data-pen-title="BSC gas price sample code"><span>See the Pen <a href="https://codepen.io/pswerlang/pen/${this.id}" rel="noopener nofollow">Owlracle gas price sample code</a> by Pablo (<a href="https://codepen.io/pswerlang" rel="noopener nofollow">@pswerlang</a>) on <a href="https://codepen.io" rel="noopener nofollow">CodePen</a>.</span></p>`;
-//             this.element.innerHTML = codepenEmbed.split('{{THEME}}').join(theme.get());
-//             window.__CPEmbed();
-//         });
-//     }
-// }
-// const codePens = ['KKvKJRN', 'BadaMVN'].map((v,i) => new CodePen(document.querySelector(`#codepen${i+1}`), v));
 
 
 document.querySelector('#manage-apikey').addEventListener('click', () => api.showProfile('create'));
@@ -948,18 +912,18 @@ new UrlBox(document.querySelector('#url-logs.url'), { href: `/logs/YOUR_API_KEY`
 const faq = {
     list: [
         [`What is Owlracle?`,
-        `Owlracle is an open-source gas price oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
-        [`How do you make the gas price predictions?`,
-        `This tool attempts to predict the gas price to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas price. Every speed is measured by calculating the minimum gas price paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
-        [`How do you predict the gas price fee?`,
-        `We scan the last N (default 200) blocks and check the minimum gas price accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
+        `Owlracle is an open-source gas oracle running predictions for multiple blockchain networks. We provide a website and an API for retrieving Owlracle's information, giving dapp developers easy access to gas information. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
+        [`How do you make the gas predictions?`,
+        `This tool attempts to predict the gas to be paid on multiple chains by averaging recent past transactions. For each block, we take the mined transaction with the lower gas. Every speed is measured by calculating the minimum gas paid to be accepted on a given percentage of past blocks. Take into consideration that the numbers shown are just estimations. Check our <a href="https://t.co/dNa1H1g9iA" target="_blank" rel="noopener">Medium article</a> explaining that in details.`],
+        [`How do you predict the gas fee?`,
+        `We scan the last N (default 200) blocks and check the minimum gas accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
         [`I like your service. When will you come to my favorite network?`,
         `We are constantly evaluating the benefits of adding new networks to our oracle. In general, we try to priorize networks with a good amount of monthly transactions and/or trending ones. If you feel we are missing a promising network, feel free to <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a> and share your opinion.`],
         [`I like your website, but I wish there was a more convenient tool. Like a browser extension.`,
-        `Weel, there is! You can go to Chrome Web Store and download our <a href="/extension" target="_blank" rel="noopener">extension</a>. It is super easy, one click and you get gas price/history from your favorite network.`],
+        `Weel, there is! You can go to Chrome Web Store and download our <a href="/extension" target="_blank" rel="noopener">extension</a>. It is super easy, one click and you get gas/history from your favorite network.`],
         [`I would love to get Owlracle's predictions on my community group. Do you have anything for that?`,
         `Sure we do! You can integrate our <a href="/telegrambot" target="_blank" rel="noopener">Telegram bot</a> or <a href="discordbot" target="_blank" rel="noopener">Discord bot</a> bots directly into your groups, so your people can easily get Owlracle's predictions.`],
-        [`I saw tweets from Owlracle about gas prices. How can I get it to send me gas prices for my favorite network?`,
+        [`I saw tweets from Owlracle about gas. How can I get it to send me gas for my favorite network?`,
         `You just have to make a tweet mentioning <a href="https://twitter.com/owlracleapi" target="_blank" rel="noopener">@owlracleapi</a>, use the hashtag #gas and the name/token of your favorite network. e.g. polygon, ftm, bsc, etc.`],
         [`My app have thousands of users making requests to your API. The API limit seems too low.`,
         `You should never call our API from the frond-end. Schedule your server to retrieve information at time intervals of your choice, then when your users request it, just send the cached data to them.`],
@@ -969,7 +933,7 @@ const faq = {
         `You can reset your API key hash and generate a new one <a id="link-info-key">clicking here</a>.`],
         [`I am reaching API rate limit. How can I make a recharge and keep using Owlracle?`,
         `On the header there is a place where you can <a id="link-info-key">login</a> with your API key. After the login, you can click on <i>Recharge key</i> option. From there you will be asked to connect your Metamask wallet. Then you can transfer any amount of tokens to recharge your key.`],
-        [`I need to retrieve gas price info for several chains. Do I need to make a recharge on every network?`,
+        [`I need to retrieve gas info for several chains. Do I need to make a recharge on every network?`,
         `No! Once you recharge your key, the current token price is converted to USD and stored on your API key account as credit. Every time you request our endpoints (past the free limit) credit is subtracted from your API credit, regardless of which tokens were used when recharging the key. The current token price does not matter either, as they are converted to USD at the time of the recharge.`],
     ],
 
@@ -1231,16 +1195,7 @@ class EndpointTable {
 (() => {
     const now = parseInt(new Date().getTime() / 1000);
 
-    new EndpointTable(document.querySelector('#table-gas'), {
-        endpoint: '/gas',
-        network: true,
-        args: [
-            { name: 'apikey', description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one.' },
-            { name: 'blocks', default: 200, description: 'Number of past blocks you want Owlracle to scan to build the estimation. <i>Maximum 1000</i>.' },
-            { name: 'percentile', default: 0.3, description: 'Block gas percentile. For every analyzed block, Owlracle calculates the minimum gas price needed to be accepted on that block. Taking an array with asceding gas prices from the block\'s txs, the percentile argument tells Owlracle the array\'s index to be considered the first element, essentially discarding lower gas price txs from the minimum accepted gas price calculations. The value must be between 0.01 and 0.99 indicating a percentage from the array\'s position, or an integer >= 1 indicating directly the tx index in the array.' },
-            { name: 'accept', default: '35,60,90,100', description: 'Acceptance threshold of transactions. The percentage of blocks you want the transaction to be accepted, based on the past mined blocks. Higher acceptance means more speedy transactions. You can provide a single value or a comma separated list of values, representing multiple speeds.' },
-            { name: 'version', default: 2, description: 'Version of the api you want to request.' },
-        ],
+    const gasTable = {
         response: [
             { name: 'timestamp', description: 'An <a href="https://www.w3.org/TR/NOTE-datetime" target="_blank" rel="noopener nofollow">ISO 8601</a> compliant date for when the API returned the result.' },
             { name: 'baseFee', description: 'Average base fee from the scanned blocks. This field is only available if the network is <a href="https://notes.ethereum.org/@vbuterin/eip-1559-faq" target="_blank" rel="noopener nofollow">EIP-1559</a> compliant.' },
@@ -1249,10 +1204,9 @@ class EndpointTable {
             { name: 'avgTx', description: 'Average number of transactions in the blocks.' },
             { name: 'avgGas', description: 'Average gas used on transactions in the scanned blocks.' },
             { name: 'speeds', description: 'Array containing information of every speed requested in the <code class="code inline">accept</code> param.' },
-            { name: 'acceptance', description: 'Ratio of blocks accepting transactions with the suggested gas price. This value will always be >= the requested speed from the accept argument.' },
-            { name: 'gasPrice', description: 'Suggested gas price (in GWei) to be accepted in at least the requested percentage of blocks.' },
-            { name: 'estimatedFee', description: 'Estimated fee (in USD) you should pay when using the suggested gas price. This fee is calculated using the current token price and <code class="code inline">avgGas</code> value.' },
+            { name: 'acceptance', description: 'Ratio of blocks accepting transactions with the suggested gas fee. This value will always be >= the requested speed from the accept argument.' },
         ],
+
         placeholder: {
             "timestamp": "0000-00-00T00:00:00.000Z",
             "baseFee": 0.0,
@@ -1262,10 +1216,41 @@ class EndpointTable {
             "avgGas": 0.0,
             "speeds": [{
                 "acceptance": 0.0,
-                "gasPrice": 0.0,
-                "estimatedFee": 0.0
             }]
         },
+    }
+
+    if (network.nonevm) {
+        gasTable.response.push(
+            { name: 'fee', description: 'Suggested gas fee (in native network token) to be accepted in at least the requested percentage of blocks.' },
+            { name: 'estimatedGasPrice', description: 'The calculated gas price for the current fee and average gas used. Value reported is multiplied by <code class="code inline">1e9</code>' },
+            { name: 'feeUSD', description: 'The same as fee argument, but converted to USD, using current native token price.' },
+        );
+        gasTable.placeholder.speeds[0].fee = 0;
+        gasTable.placeholder.speeds[0].estimatedGasPrice = 0.0;
+        gasTable.placeholder.speeds[0].feeUSD = 0.0;
+    }
+    else {
+        gasTable.response.push(
+            { name: 'gasPrice', description: 'Suggested gas price (in GWei) to be accepted in at least the requested percentage of blocks.' },
+            { name: 'estimatedFee', description: 'Estimated fee (in USD) you should pay when using the suggested gas price. This fee is calculated using the current token price and <code class="code inline">avgGas</code> value.' },
+        );
+        gasTable.placeholder.speeds[0].gasPrice = 0.0;
+        gasTable.placeholder.speeds[0].estimatedFee = 0.0;
+    }
+
+    new EndpointTable(document.querySelector('#table-gas'), {
+        endpoint: '/gas',
+        network: true,
+        args: [
+            { name: 'apikey', description: 'You API key. Check <a href="#api-keys-sec">API keys</a> section to learn how to generate and use one.' },
+            { name: 'blocks', default: 200, description: 'Number of past blocks you want Owlracle to scan to build the estimation. <i>Maximum 1000</i>.' },
+            { name: 'percentile', default: 0.3, description: 'Block gas percentile. For every analyzed block, Owlracle calculates the minimum gas needed to be accepted on that block. Taking an array with asceding gas from the block\'s txs, the percentile argument tells Owlracle the array\'s index to be considered the first element, essentially discarding lower gas txs from the minimum accepted gas calculations. The value must be between 0.01 and 0.99 indicating a percentage from the array\'s position, or an integer >= 1 indicating directly the tx index in the array.' },
+            { name: 'accept', default: '35,60,90,100', description: 'Acceptance threshold of transactions. The percentage of blocks you want the transaction to be accepted, based on the past mined blocks. Higher acceptance means more speedy transactions. You can provide a single value or a comma separated list of values, representing multiple speeds.' },
+            { name: 'version', default: 2, description: 'Version of the api you want to request.' },
+        ],
+        response: gasTable.response,
+        placeholder: gasTable.placeholder,
     });
 
     new EndpointTable(document.querySelector('#table-history'), {

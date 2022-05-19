@@ -903,7 +903,7 @@ const profile = {
                         </div>
                         <div class="body">
                             <div class="check-container"><i class="fa-solid fa-circle-check checked"></i><i class="fa-solid fa-circle not-checked"></i></div>
-                            <span>Set custom conditions based on network's gas price and receive alerts when those conditions are met.</span>
+                            <span>Set custom conditions based on network's gas and receive alerts when those conditions are met.</span>
                         </div>
                     </div>
                     <div id="revoke" class="opt-card">

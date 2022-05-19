@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{{networkName}} Gas Price Tracker API - Owlracle</title>
+    <title>{{networkName}} Gas Tracker API - Owlracle</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -50,11 +50,11 @@
                         <div id="time-sign"></div>
                     </span>
                     <span id="site-name">OWLRACLE</span>
-                    <span class="subtitle">The multichain Gas Price tracker API</span>
+                    <span class="subtitle">The multichain Gas tracker API</span>
                 </h1>
             </div>
     
-            <p id="intro">Owlracle says you should pay no more than this for <b>Gas Price</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
+            <p id="intro">Owlracle says you should pay no more than this for <b>Gas</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
     
             <div id="gas-container"></div>
     
@@ -90,20 +90,20 @@
 
             <div class="ad horizontal hidden"></div>
     
-            <p>If you are a software developer, and want to integrate your application with our gas price oracle, you can use our endpoints.</p>
+            <p>If you are a software developer, and want to integrate your application with our gas oracle, you can use our endpoints.</p>
     
-            <h2 id="endpoint-gas">Gas price estimation</h2>
+            <h2 id="endpoint-gas">Gas fee estimation</h2>
     
             <div id="url-gas" class="url"></div>
     
-            <p>Retrieve gas prices for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
+            <p>Retrieve gas for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
 
-            <p>Owlracle scans recent past blocks (<code class="code inline">blocks</code> param) to build an estimative of required gas price to be paid. It looks for the minimum gas price accepted on a transaction for every scanned block (based on the chosen <code class="code inline">percentile</code>). Then it shows you the minimum gas price you should pay to be accepted on a percentage of your choice (<code class="code inline">accept</code> param) of those blocks.</p>
+            <p>Owlracle scans recent past blocks (<code class="code inline">blocks</code> param) to build an estimative of required gas fee to be paid. It looks for the minimum gas accepted on a transaction for every scanned block (based on the chosen <code class="code inline">percentile</code>). Then it shows you the minimum gas you should pay to be accepted on a percentage of your choice (<code class="code inline">accept</code> param) of those blocks.</p>
 
             <div id="table-gas"></div>
 
 
-            <h2>Gas price history</h2>
+            <h2>Gas history</h2>
 
             <div id="url-history" class="url"></div>
     

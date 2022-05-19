@@ -1249,7 +1249,7 @@ class EndpointTable {
             { name: 'lastBlock', description: 'Number of the last block Owlracle scanned.' },
             { name: 'avgTime', description: 'Average time between each block confirmation.' },
             { name: 'avgTx', description: 'Average number of transactions in the blocks.' },
-            { name: 'avgGas', description: 'Average gas limit set for transactions in the scanned blocks.' },
+            { name: 'avgGas', description: 'Average gas used on transactions in the scanned blocks.' },
             { name: 'speeds', description: 'Array containing information of every speed requested in the <code class="code inline">accept</code> param.' },
             { name: 'acceptance', description: 'Ratio of blocks accepting transactions with the suggested gas price. This value will always be >= the requested speed from the accept argument.' },
             { name: 'gasPrice', description: 'Suggested gas price (in GWei) to be accepted in at least the requested percentage of blocks.' },

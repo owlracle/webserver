@@ -314,6 +314,12 @@ const network = {
         atom: { symbol: 'atom', name: 'Cosmos', token: 'ATOM', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/cosmos', name: 'Mintscan', apiAvailable: false,
         }, evm: false, unit: 'µATOM',  },
+        juno: { symbol: 'juno', name: 'Juno', token: 'JUNO', explorer: {
+            icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/juno', name: 'Mintscan', apiAvailable: false,
+        }, evm: false, unit: 'µJUNO',  },
+        osmo: { symbol: 'osmo', name: 'Osmosis', token: 'OSMO', explorer: {
+            icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/osmosis', name: 'Mintscan', apiAvailable: false,
+        }, evm: false, unit: 'µOSMO',  },
     },
     
     get: function(name) {

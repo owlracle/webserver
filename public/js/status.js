@@ -25,8 +25,8 @@ const refresh = async () => {
         const dataNet = data.find(d => d.network == e.symbol);
         const timeDiff = now - (dataNet.lastTime || 0);
 
-        container.querySelectorAll('.item .row.rpc')[i].innerHTML = dataNet.rpc ? `RPC: <span class="grey">${dataNet.rpc}</span>` : '<span class="grey">No info about RPC</span>';
-        container.querySelectorAll('.item .row.time')[i].innerHTML = dataNet.rpc ? `Last Update: <span class="grey">${ timeDiff }s ago</span>` : '<span class="grey">No info about last update</span>';
+        container.querySelectorAll('.item .row.rpc')[i].innerHTML = dataNet.rpc ? `RPC: <span class="grey">${ dataNet.rpc }</span>` : `<span class="grey">No info about RPC</span>`;
+        container.querySelectorAll('.item .row.time')[i].innerHTML = dataNet.lastTime ? `Last Update: <span class="grey">${ timeDiff }s ago</span>` : '<span class="grey">No info about last update</span>';
         
         const timeSign = container.querySelectorAll('.time-sign')[i];
         const rate = Math.min(timeDiff, maxTime) / maxTime;

@@ -18,6 +18,8 @@
 .celo { @chain-color: #35cf7f; }
 .fuse { @chain-color: #b3c05d; }
 .atom { @chain-color: #2f3148; }
+.juno { @chain-color: #d67f78; }
+.osmo { @chain-color: #ba07d1; }
 
 @import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@1,700&family=Roboto&display=swap');
 
@@ -539,6 +541,18 @@ header {
                 border-color: @chain-color;
             }
 
+            &.juno {
+                .juno();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
+            &.osmo {
+                .osmo();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
             .name {
                 display: none;
 
@@ -737,6 +751,28 @@ header {
         &.atom {
             #title, #colored {
                 .atom();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.juno {
+            #title, #colored {
+                .juno();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.osmo {
+            #title, #colored {
+                .osmo();
                 background-color: @chain-color;
 
                 #copy {

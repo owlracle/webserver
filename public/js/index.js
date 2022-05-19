@@ -116,13 +116,11 @@ const network = (symbol => {
     explorer.querySelector('.name').innerHTML = network.explorer.name;
 
     // set donation wallet modal
-    if (network.evm === false ) {
-        document.querySelector('#donate').remove();
-    }
-    else {
-        wallet.loadImg(document.querySelector('#donate'), network);
-        document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, network));
-    }
+    const donateNetwork = network.nonevm ? Network.get('bsc') : network;
+    wallet.loadImg(document.querySelector('#donate'), donateNetwork);
+    document.querySelectorAll('.donate-link').forEach(e => wallet.bindModal(e, donateNetwork));
+    document.querySelector('#donate .token').innerHTML = donateNetwork.token;
+    document.querySelector('#donate .chain').innerHTML = donateNetwork.name;
 
     if (network.explorer.apiAvailable){
         document.querySelector('#nav-network').remove();
@@ -770,7 +768,7 @@ gasTimer.init(30000, 100);
 
 gasTimer.onUpdate = function(data){
     window.gasPrice = data;
-    let gas = data.speeds.map(s => s.gasPrice);
+    let gas = data.speeds.map(s => network.nonevm ? s.fee : s.gasPrice);
     let baseFee = 0;
     
     if (data.baseFee){
@@ -781,18 +779,18 @@ gasTimer.onUpdate = function(data){
 
         document.querySelectorAll('#gas-container .gas .eip').forEach((e,i) => {
             e.innerHTML = `
-                <span class="value"><span class="text">Base:</span> ${baseFee} ${ network.evm === false ? network.unit : 'GWei' }</span>
-                <span class="value"><span class="text">Tip:</span> ${ Math.max(0, gas[i] - baseFee).toFixed(2) } ${ network.evm === false ? network.unit : 'GWei' }</span>
+                <span class="value"><span class="text">Base:</span> ${baseFee} ${ network.nonevm ? network.unit : 'GWei' }</span>
+                <span class="value"><span class="text">Tip:</span> ${ Math.max(0, gas[i] - baseFee).toFixed(2) } ${ network.nonevm ? network.unit : 'GWei' }</span>
             `;
         });
     }
     gas = gas.map(s => s.toFixed(s == parseInt(s) ? 0 : 2));
 
-    const fee = data.speeds.map(s => s.estimatedFee.toFixed(4));
+    const fee = data.speeds.map(s => network.nonevm ? s.feeUSD.toFixed(4) : s.estimatedFee.toFixed(4));
 
     document.querySelectorAll('#gas-container .gas .body').forEach((e,i) => {
         if (data.speeds){
-            e.querySelector('.gwei').innerHTML = `${gas[i]} ${ network.evm === false ? network.unit : 'GWei' }`;
+            e.querySelector('.gwei').innerHTML = `${gas[i]} ${ network.nonevm ? network.unit : 'GWei' }`;
             e.querySelector('.usd').innerHTML = `$ ${fee[i]}`;
         }
     });
@@ -812,7 +810,7 @@ gasTimer.onUpdate = function(data){
     }
 
     // after a while, change title to gas prices
-    setTimeout(() => document.title = `${gas.map(e => parseInt(e)).join(', ')} ${ network.evm === false ? network.unit : 'GWei' } 🦉 ${network.token} Gas tracker 🦉 Owlracle`, 5000);
+    setTimeout(() => document.title = `${gas.map(e => parseInt(e)).join(', ')} ${ network.nonevm ? network.unit : 'GWei' } 🦉 ${network.token} Gas tracker 🦉 Owlracle`, 5000);
 };
 
 

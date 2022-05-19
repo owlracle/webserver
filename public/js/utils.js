@@ -313,13 +313,13 @@ const network = {
         }, rpc: 'https://rpc.fuse.io',  },
         atom: { symbol: 'atom', name: 'Cosmos', token: 'ATOM', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/cosmos', name: 'Mintscan', apiAvailable: false,
-        }, evm: false, unit: 'µATOM',  },
+        }, nonevm: true, unit: 'µATOM',  },
         juno: { symbol: 'juno', name: 'Juno', token: 'JUNO', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/juno', name: 'Mintscan', apiAvailable: false,
-        }, evm: false, unit: 'µJUNO',  },
+        }, nonevm: true, unit: 'µJUNO',  },
         osmo: { symbol: 'osmo', name: 'Osmosis', token: 'OSMO', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/osmosis', name: 'Mintscan', apiAvailable: false,
-        }, evm: false, unit: 'µOSMO',  },
+        }, nonevm: true, unit: 'µOSMO',  },
     },
     
     get: function(name) {
@@ -1267,17 +1267,24 @@ const profile = {
 
                     // wrong network
                     if (connectedNetwork.id != network.get().id) {
+                        let switchButton = `<button id="switch"><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button>`;
+                        if (network.get().nonevm) {
+                            switchButton = '';
+                        }
+
                         content.innerHTML = `<h2>API key credit recharge</h2>
                         <p>Wrong network</p>
                         <div id="button-container" class="vertical">
-                            <button id="switch"><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button>
+                            ${switchButton}
                             <a href="/${ connectedNetwork.symbol }"><button><img src="img/${ connectedNetwork.symbol }.png">Go to ${ connectedNetwork.name } app</button></a>
                         </div>`;
 
-                        const button = content.querySelector('#switch');
-                        button.addEventListener('click', async () => {
-                            await this.web3.switchNetwork(network.get());
-                        });
+                        if (network.get().nonevm) {
+                            const button = content.querySelector('#switch');
+                            button.addEventListener('click', async () => {
+                                await this.web3.switchNetwork(network.get());
+                            });
+                        }
 
                         updatingUI = false;
                         return;
@@ -1382,7 +1389,7 @@ const profile = {
                             }
                             this.list = (await this.get()).speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
                             
-                            content.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} ${ network.evm === false ? network.unit : 'GWei' }` );
+                            content.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} ${ network.nonevm ? network.unit : 'GWei' }` );
                         },
 
                         // get gas price from window var

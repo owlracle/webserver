@@ -10,7 +10,7 @@ This is the webserver and frontend code for [Owlracle](https://owlracle.info) we
 
 When the dawn of smart networks arrived, dapp developers saw the need to know the [gas price](https://en.wikipedia.org/wiki/Ethereum#Gas) they should pay for submitting a transaction in those networks. While those developers could fetch the last transactions and look at the gas price paid, this method is not reliable enough as gas prices wildly fluctuate between each transaction. So the gas price oracles arrived to help solving this problem. 
 
-Inspired by works like [ethgasstation](https://ethgasstation.info/), I have decided to create a gas price oracle working on several networks. Right now we provide estimations for Ethereum, BNB Chain, Polygon, Fantom, Avalanche, Moonriver, and Cronos networks. Services like owlracle are a way to remove this burden from your servers (this can be somewhat resource-intensive), while providing API to help integrate your dapps to our predictions.
+Inspired by works like [ethgasstation](https://ethgasstation.info/), I have decided to create a gas price oracle working on several networks. Right now we provide estimations for Ethereum, BNB Chain, Polygon, Fantom, Avalanche, Moonriver, Cronos, Harmony, Heco, Celo and Fuse networks. Services like owlracle are a way to remove this burden from your servers (this can be somewhat resource-intensive), while providing API to help integrate your dapps to our predictions.
 
 ## Gas Price Estimation
 

@@ -9,14 +9,15 @@ async function buildHistory(network, blocks){
     try{
         const data = await oracle.getNetInfo(networkList[network].name, blocks || 60); // considering 1 block/sec then fetch last 1 minute of blocks = interval of function call
 
-        if (data.minGwei){
+        const minInfo = data.minGwei ? data.minGwei : data.minFee;
+        if (minInfo){
             const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
             // how many blocks to fetch next time
             blocks = parseInt(60 / avgTime + 1);
 
-            if (data.minGwei.length > blocks){
+            if (minInfo.length > blocks){
                 data.avgGas = data.avgGas.slice(-blocks);
-                data.minGwei = data.minGwei.slice(-blocks);
+                minInfo = minInfo.slice(-blocks);
             }
 
             const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
@@ -35,10 +36,10 @@ async function buildHistory(network, blocks){
                 last_block: data.lastBlock || 0,
                 token_price: tokenPrice,
                 avg_gas: avgGas,
-                open: data.minGwei[0],
-                close: data.minGwei.slice(-1)[0],
-                low: Math.min(...data.minGwei),
-                high: Math.max(...data.minGwei),
+                open: minInfo[0],
+                close: minInfo.slice(-1)[0],
+                low: Math.min(...minInfo),
+                high: Math.max(...minInfo),
             });
             
             if (error){

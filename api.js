@@ -67,7 +67,10 @@ module.exports = app => {
                 return { error: data.error };
             }
         
-            if (data.minGwei) {
+            
+            const minInfo = data.minGwei ? data.minGwei : data.minFee;
+
+            if (minInfo) {
                 resp.timestamp = new Date().toISOString();
 
                 api.checkLag(req.params.network, data.lastTime);
@@ -76,7 +79,7 @@ module.exports = app => {
                 const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
 
                 // sort gwei array ascending so I can pick directly by index
-                const sortedGwei = data.minGwei.sort((a, b) => parseFloat(a) - parseFloat(b));
+                const sortedGwei = minInfo.sort((a, b) => parseFloat(a) - parseFloat(b));
 
                 let speeds = accept.map(speed => {
                     // get gwei corresponding to the slice of the array
@@ -89,6 +92,16 @@ module.exports = app => {
                 const tokenPrice = JSON.parse(fs.readFileSync(`./tokenPrice.json`))[network.token].price;
 
                 speeds = speeds.map(speed => {
+                    // cosmos
+                    if (data.minFee) {
+                        return {
+                            acceptance: sortedGwei.filter(e => e <= speed).length / sortedGwei.length,
+                            fee: speed,
+                            estimatedGasPrice: speed / avgGas * 1000, // speed (1e-6) / gas * 1gwei (1e9) == speed / gas * 1000
+                            feeUSD: (speed * 0.000001) * tokenPrice,
+                        };
+                    }
+
                     return {
                         acceptance: sortedGwei.filter(e => e <= speed).length / sortedGwei.length,
                         gasPrice: speed,

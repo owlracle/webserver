@@ -954,7 +954,7 @@ const profile = {
                 return `<h2>API recharge history</h2>
                     <p id="key-show">${key}</p>
                     ${txs}
-                    <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a>!</p>
+                    <p id="missing">Missing tx? <a href="https://discord.gg/bHckPMw3Qu" target="_blank" rel="noopener">contact us</a>!</p>
                 `;
             },
 
@@ -1504,7 +1504,7 @@ const profile = {
                                         return true;
                                     }
 
-                                    new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://t.me/owlracle" target="_blank" aria-label="telegram group" rel="noopener">Telegram group</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
+                                    new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://discord.gg/bHckPMw3Qu" target="_blank" aria-label="discord server" rel="noopener">Discord server</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
                                     return false;
                                 }
 

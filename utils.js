@@ -62,8 +62,6 @@ async function verifyRecaptcha(token){
 
 const oracle = {
     url: configFile.production ? `http://127.0.0.1:8080` : `http://127.0.0.1:4220`,
-    // url: configFile.production ? `http://34.74.44.187:8080` : `http://127.0.0.1:4220`,
-    // url: `http://191.252.191.90:8080`,
 
     getTx: async function(address, fromTime, toTime){
         try {

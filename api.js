@@ -1182,7 +1182,7 @@ const api = {
 
         // record advice
         if (adviceSettings.cost) {
-            const requestId = resp[0].insertId;
+            const requestId = resp.insertId;
             resp = await this.recordRequest('advice', {
                 fee: adviceSettings.cost,
                 accept: adviceSettings.accept,

@@ -132,6 +132,16 @@ module.exports = app => {
                         resp.baseFee = resp.baseFee.reduce((p, c) => p + c, 0) / resp.baseFee.length;
                     }
                 }
+
+                // calculate advisor cost
+                if (req.query.source && req.query.source == 'advisor') {
+                    const fee = 0.1;
+                    const maxFee = 0.1;
+                    resp.advice = {
+                        cost: Math.min(maxFee, speeds[0].estimatedFee * fee),
+                        accept: accept[0],
+                    };
+                }
             }
     
             return resp;
@@ -1064,11 +1074,22 @@ const api = {
         return true;
     },
 
-    reduceCredit: async function(keyId, usage, credit) {
-        if (keyId && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
+    reduceCredit: async function(keyId, usage, credit, fixedCost) {
+        let valueChanged = false;
+
+        if (keyId && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)) {
             // reduce credits
             credit -= this.REQUEST_COST;
-            const [rows, error] = await db.update('api_keys', {credit: credit}, `id = ?`, [keyId]);
+            valueChanged = true;
+        }
+
+        if (fixedCost) {
+            credit -= fixedCost;
+            valueChanged = true;
+        }
+
+        if (keyId && valueChanged) {
+            const [rows, error] = await db.update('api_keys', {credit: credit}, `id = ?`, [ keyId ]);
     
             if (error){
                 return { error: {
@@ -1118,8 +1139,23 @@ const api = {
             return { error: actionResp.error };
         }
 
+        // the fixed cost is meant to set a price for advisor work
+        const adviceSettings = (action => {
+            if (!action.advice) {
+                return {};
+            }
+
+            const settings = {
+                cost: action.advice.cost,
+                accept: action.advice.accept,
+            };
+
+            delete action.advice;
+            return settings;
+        })(actionResp);
+
         if (key) {
-            resp = await this.reduceCredit(sqlData.apiKey, usage, credit);
+            resp = await this.reduceCredit(sqlData.apiKey, usage, credit, adviceSettings.cost);
             if (resp.error){
                 return { error: resp.error };
             }
@@ -1129,7 +1165,7 @@ const api = {
         sqlData.version = version;
         sqlData.network2 = networkList[network].dbid;
 
-        const sourceId = { api: 0, extension: 1, bot: 2 };
+        const sourceId = { api: 0, extension: 1, bot: 2, advisor: 3 };
         sqlData.source = sourceId[source] || 0;
 
         if (ip){
@@ -1139,22 +1175,35 @@ const api = {
             sqlData.origin = origin;
         }
     
-        resp = await this.recordRequest(sqlData);
+        resp = await this.recordRequest('api_requests', sqlData);
         if (resp.error){
             return { error: resp.error };
+        }
+
+        // record advice
+        if (adviceSettings.cost) {
+            const requestId = resp[0].insertId;
+            resp = await this.recordRequest('advice', {
+                fee: adviceSettings.cost,
+                accept: adviceSettings.accept,
+                request: requestId,
+            });
+            if (resp.error){
+                return { error: resp.error };
+            }            
         }
 
         return actionResp;
     },
 
-    recordRequest: async function(data) {
+    recordRequest: async function(table, data) {
         // save API request to DB for statistics purpose
-        const [rows, error] = await db.insert('api_requests', data);
+        const [rows, error] = await db.insert(table, data);
         if (error){
             return { error: {
                 status: 500,
                 error: 'Internal Server Error',
-                message: 'Error while trying to record api request into the database.',
+                message: 'Error while trying to record request into the database.',
                 serverMessage: error,
             }};
         }

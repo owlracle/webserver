@@ -131,13 +131,13 @@ const network = (symbol => {
         // future code here
     }
     // show an intro message. show again each week
-    else if (!cookies.get('hide-info-1')){
-        const message = infoMessageModal.show(`Check our new <a>profile window</a>. It replaces the old api window, and provides some new and fun features.`);
-        infoMessageModal.onClose = () => cookies.set('hide-info-1', true, { expires: { days: 7 }, json: true });
+    else if (!cookies.get('hide-info-2')){
+        const message = infoMessageModal.show(`Hello. We have just created a new oracle for cosmos networks, potentially extending our services to the whole cosmos ecosystem. It is still in the beta stage, but you can use them now. Try our <a href="/atom">Cosmos</a>, <a href="/osmo">Osmosis</a>, and <a href="/juno">Juno</a> website.`);
+        infoMessageModal.onClose = () => cookies.set('hide-info-2', true, { expires: { days: 7 }, json: true });
 
-        message.querySelector('a').addEventListener('click', () => {
-            api.showProfile('create');
-        });
+        // message.querySelector('a').addEventListener('click', () => {
+        //     api.showProfile('create');
+        // });
         // new Modal(`
         //     <h1>Metamask integration</h1>
         //     <p>We are very excited to announce that from now on, every API recharge will be made using <a href="https://metamask.io/" target="_blank" rel="noopener">Metamask</a> extension. We believe this change will make easier for users to make recharges, and also make our app more in line with other Web3 services.</p>

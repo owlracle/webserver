@@ -1048,7 +1048,7 @@ const api = {
         return true;
     },
 
-    authorizeKey: function(key, ip, usage, credit){
+    authorizeKey: function(key, ip, usage, credit, needCredit){
         if (!ip && !key){
             return { error: {
                 status: 401,
@@ -1063,7 +1063,7 @@ const api = {
                 message: 'You have reached the guest limit. Use an api key to increase your request limit.'
             }};
         }
-        else if (key && credit < 0 && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
+        else if (key && credit < 0 && (needCredit || usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
             return { error: {
                 status: 403,
                 error: 'Forbidden',
@@ -1129,7 +1129,7 @@ const api = {
             return { error: usage.error };
         }
     
-        resp = this.authorizeKey(key, ip, usage, credit);
+        resp = this.authorizeKey(key, ip, usage, credit, source == 'advisor');
         if (resp.error){
             return { error: resp.error };
         }

@@ -126,18 +126,20 @@ const network = (symbol => {
         document.querySelector('#nav-network').remove();
     }
 
+    const cookieName = 'hide-info-3';
+
     // If got here through a ref link
     if (query.ref && query.ref === '') {
         // future code here
     }
     // show an intro message. show again each week
-    else if (!cookies.get('hide-info-2')){
-        const message = infoMessageModal.show(`Hello. We have just created a new oracle for cosmos networks, potentially extending our services to the whole cosmos ecosystem. It is still in the beta stage, but you can use them now. Try our <a href="/atom">Cosmos</a>, <a href="/osmo">Osmosis</a>, and <a href="/juno">Juno</a> website.`);
-        infoMessageModal.onClose = () => cookies.set('hide-info-2', true, { expires: { days: 7 }, json: true });
+    else if (!cookies.get(cookieName)){
+        const message = infoMessageModal.show(`Owlracle extension can now automatically recommend gas prices into your Metamask tx confirmation window. No action is needed (if you enable this feature). <a>Check it out!</a>`);
+        infoMessageModal.onClose = () => cookies.set(cookieName, true, { expires: { days: 7 }, json: true });
 
-        // message.querySelector('a').addEventListener('click', () => {
-        //     api.showProfile('create');
-        // });
+        message.querySelector('a').addEventListener('click', () => {
+            window.open('/extension');
+        });
         // new Modal(`
         //     <h1>Metamask integration</h1>
         //     <p>We are very excited to announce that from now on, every API recharge will be made using <a href="https://metamask.io/" target="_blank" rel="noopener">Metamask</a> extension. We believe this change will make easier for users to make recharges, and also make our app more in line with other Web3 services.</p>
@@ -1222,8 +1224,8 @@ class EndpointTable {
 
     if (network.nonevm) {
         gasTable.response.push(
-            { name: 'fee', description: 'Suggested gas fee (in native network token) to be accepted in at least the requested percentage of blocks.' },
-            { name: 'estimatedGasPrice', description: 'The calculated gas price for the current fee and average gas used. Value reported is multiplied by <code class="code inline">1e9</code>' },
+            { name: 'fee', description: 'Suggested gas fee (in native network token) to be accepted in at least the requested percentage of blocks. This value is reported in <code class="code inline">1e-6</code> tokens.' },
+            { name: 'estimatedGasPrice', description: 'The calculated gas price for the current fee and average gas used. Value reported is multiplied by <code class="code inline">1e9</code>.' },
             { name: 'feeUSD', description: 'The same as fee argument, but converted to USD, using current native token price.' },
         );
         gasTable.placeholder.speeds[0].fee = 0;

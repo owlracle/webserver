@@ -134,7 +134,7 @@ const network = (symbol => {
     }
     // show an intro message. show again each week
     else if (!cookies.get(cookieName)){
-        const message = infoMessageModal.show(`Owlracle extension can now automatically recommend gas prices into your Metamask tx confirmation window. No action is needed (if you enable this feature). <a>Check it out!</a>`);
+        const message = infoMessageModal.show(`Owlracle extension can now automatically recommend gas prices into your Metamask tx confirmation window (free for a limited time). <a>Check it out!</a>`);
         infoMessageModal.onClose = () => cookies.set(cookieName, true, { expires: { days: 7 }, json: true });
 
         message.querySelector('a').addEventListener('click', () => {

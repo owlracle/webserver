@@ -134,14 +134,14 @@ module.exports = app => {
                 }
 
                 // calculate advisor cost
-                if (req.query.source && req.query.source == 'advisor') {
-                    const fee = 0.1;
-                    const maxFee = 0.1;
-                    resp.advice = {
-                        cost: Math.min(maxFee, speeds[0].estimatedFee * fee),
-                        accept: accept[0],
-                    };
-                }
+                // if (req.query.source && req.query.source == 'advisor') {
+                //     const fee = 0.1;
+                //     const maxFee = 0.1;
+                //     resp.advice = {
+                //         cost: Math.min(maxFee, speeds[0].estimatedFee * fee),
+                //         accept: accept[0],
+                //     };
+                // }
             }
     
             return resp;
@@ -1129,7 +1129,8 @@ const api = {
             return { error: usage.error };
         }
     
-        resp = this.authorizeKey(key, ip, usage, credit, source == 'advisor');
+        // resp = this.authorizeKey(key, ip, usage, credit, source == 'advisor');
+        resp = this.authorizeKey(key, ip, usage, credit, false);
         if (resp.error){
             return { error: resp.error };
         }

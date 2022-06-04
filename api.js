@@ -134,12 +134,13 @@ module.exports = app => {
                 }
 
                 // calculate advisor cost
-                if (req.query.source && req.query.source == 'advisor') {
+                if (req.query.source && (req.query.source == 'advisor' || (req.query.source == 'extension' && req.query.queryadvisor))) {
                     const fee = 0.1;
                     const maxFee = 0.1;
                     resp.advice = {
                         fee: Math.min(maxFee, speeds[0].estimatedFee * fee),
                         accept: accept[0],
+                        free: req.query.queryadvisor,
                         free: true, // for a limited time
                     };
                 }
@@ -1148,7 +1149,7 @@ const api = {
             }
 
             const settings = {
-                fee: action.advice.fee,
+                fee: action.advice.free ? false : action.advice.fee,
                 accept: action.advice.accept,
             };
 

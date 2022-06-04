@@ -134,14 +134,15 @@ module.exports = app => {
                 }
 
                 // calculate advisor cost
-                // if (req.query.source && req.query.source == 'advisor') {
-                //     const fee = 0.1;
-                //     const maxFee = 0.1;
-                //     resp.advice = {
-                //         cost: Math.min(maxFee, speeds[0].estimatedFee * fee),
-                //         accept: accept[0],
-                //     };
-                // }
+                if (req.query.source && req.query.source == 'advisor') {
+                    const fee = 0.1;
+                    const maxFee = 0.1;
+                    resp.advice = {
+                        fee: Math.min(maxFee, speeds[0].estimatedFee * fee),
+                        accept: accept[0],
+                        free: true, // for a limited time
+                    };
+                }
             }
     
             return resp;
@@ -1147,16 +1148,15 @@ const api = {
             }
 
             const settings = {
-                cost: action.advice.cost,
+                fee: action.advice.fee,
                 accept: action.advice.accept,
             };
 
-            delete action.advice;
             return settings;
         })(actionResp);
 
         if (key) {
-            resp = await this.reduceCredit(sqlData.apiKey, usage, credit, adviceSettings.cost);
+            resp = await this.reduceCredit(sqlData.apiKey, usage, credit, adviceSettings.fee);
             if (resp.error){
                 return { error: resp.error };
             }
@@ -1182,10 +1182,10 @@ const api = {
         }
 
         // record advice
-        if (adviceSettings.cost) {
+        if (adviceSettings.fee) {
             const requestId = resp.insertId;
             resp = await this.recordRequest('advice', {
-                fee: adviceSettings.cost,
+                fee: adviceSettings.fee,
                 accept: adviceSettings.accept,
                 request: requestId,
             });

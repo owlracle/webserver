@@ -313,13 +313,13 @@ const network = {
         }, rpc: 'https://rpc.fuse.io',  },
         atom: { symbol: 'atom', name: 'Cosmos', token: 'ATOM', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/cosmos', name: 'Mintscan', apiAvailable: false,
-        }, nonevm: true, unit: 'µATOM',  },
+        }, nonevm: true, unit: 'µATOM', disabled: true },
         juno: { symbol: 'juno', name: 'Juno', token: 'JUNO', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/juno', name: 'Mintscan', apiAvailable: false,
-        }, nonevm: true, unit: 'µJUNO',  },
+        }, nonevm: true, unit: 'µJUNO', disabled: true },
         osmo: { symbol: 'osmo', name: 'Osmosis', token: 'OSMO', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/osmosis', name: 'Mintscan', apiAvailable: false,
-        }, nonevm: true, unit: 'µOSMO',  },
+        }, nonevm: true, unit: 'µOSMO', disabled: true },
     },
     
     get: function(name) {

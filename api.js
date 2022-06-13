@@ -1156,7 +1156,7 @@ const api = {
             return settings;
         })(actionResp);
 
-        if (key) {
+        if (key && !configFile.whitelist.includes(ip)) {
             resp = await this.reduceCredit(sqlData.apiKey, usage, credit, adviceSettings.fee);
             if (resp.error){
                 return { error: resp.error };

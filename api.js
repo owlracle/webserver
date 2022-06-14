@@ -1156,7 +1156,7 @@ const api = {
             return settings;
         })(actionResp);
 
-        if (key) {
+        if (key && !configFile.whitelist.includes(ip)) {
             resp = await this.reduceCredit(sqlData.apiKey, usage, credit, adviceSettings.fee);
             if (resp.error){
                 return { error: resp.error };
@@ -1269,20 +1269,56 @@ const api = {
 
         const priceThen = await (async () => {
             const blockNumber = parseInt(tx.blockNumber);
-            // get closest block available on history. get token_price from it
-            const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
-            const [rows, error] = await db.query(sql, [ blockNumber, networkList[network].dbid, blockNumber ]);
-    
-            if (error){
+
+            const checkError = error => {
+                if (!error){
+                    return false;
+                }    
                 return { error: {
                     status: 500,
                     error: 'Internal Server Error',
                     message: 'Error while retrieving price history information from database.',
                     serverMessage: error,
                 }};
+            };
+
+            // this will check if there is no newer block then target. Most cases this is true. then return last token price
+            const checkNew = async () => {
+                const sql = `SELECT last_block, token_price FROM price_history WHERE network2 = ? ORDER BY last_block DESC LIMIT 1;
+                `;
+                const [rows, error] = await db.query(sql, [ networkList[network].dbid ]);
+                if (error) return checkError(error);
+
+                return rows[0].last_block < blockNumber ? parseFloat(rows[0].token_price) : false;
+            };
+
+            // this function check for exact block and start expand search until a block is found
+            const loopSearch = async blockWalk => {
+                if (!blockWalk) {
+                    blockWalk = 0;
+                }
+
+                const sql = `SELECT token_price FROM price_history WHERE network2 = ? AND last_block IN (?, ?);`;
+                const [rows, error] = await db.query(sql, [ networkList[network].dbid, blockNumber - blockWalk, blockNumber + blockWalk ]);
+                if (error) return checkError(error);
+
+                if (blockWalk > 10000) {
+                    return false;
+                }
+
+                return rows.length ? parseFloat(rows[0].token_price) : await loopSearch(blockWalk + 1);
             }
 
-            return parseFloat(rows[0].token_price);
+            const fallback = async () => {
+                // get closest block available on history. get token_price from it
+                const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
+                const [rows, error] = await db.query(sql, [ blockNumber, networkList[network].dbid, blockNumber ]);
+                if (error) return checkError(error);
+    
+                return parseFloat(rows[0].token_price);
+            }
+
+            return await checkNew() || await loopSearch() || await fallback();
         })();
 
         if (priceThen.error){

@@ -9,7 +9,7 @@ async function buildHistory(network, blocks){
     try{
         const data = await oracle.getNetInfo(networkList[network].name, blocks || 60); // considering 1 block/sec then fetch last 1 minute of blocks = interval of function call
 
-        const minInfo = data.minGwei ? data.minGwei : data.minFee;
+        let minInfo = data.minGwei ? data.minGwei : data.minFee;
         if (minInfo){
             const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
             // how many blocks to fetch next time

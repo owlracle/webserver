@@ -241,32 +241,18 @@ async function fadeOut(elem, time=300){
     });
 }
 
-// fetch bnb price from binance and update the pages's ticker
+// fetch token price from coingecko and update the pages's ticker
 const price = {
     current: 0,
     element: document.querySelector('#price'),
-    token: 'BNB',
+    token: 'ETH',
 
     get: async function() {
-        let price;
-        let price24h;
-
-        try {
-            const url = `https://api.binance.com/api/v3/ticker/price?symbol=${this.token}USDT`;
-            const url24 = `https://api.binance.com/api/v3/ticker/24hr?symbol=${this.token}USDT`;
-    
-            price = (await (await fetch(url)).json()).price;
-            price24h = (await (await fetch(url24)).json()).priceChangePercent;
-        }
-        catch (error) {
-            const data = await (await fetch(`/tokenprice/${this.token}`)).json();
-            [ price, price24h ] = [ data.price, data.change24h ];
-        }
-        finally {
-            return {
-                now: parseFloat(price).toFixed(2),
-                changePercent: parseFloat(price24h).toFixed(2), 
-            }
+        const data = await (await fetch(`/tokenprice/${this.token}`)).json();
+        const [ price, price24h ] = [ data.price, data.change24h ];
+        return {
+            now: parseFloat(price).toFixed(2),
+            changePercent: parseFloat(price24h).toFixed(2), 
         }
     },
 
@@ -292,36 +278,51 @@ const price = {
 // set the corresponding network in header
 const network = {
     list: {
-        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', explorer: {
+        eth: { symbol: 'eth', name: 'Ethereum', token: 'ETH', id: 1, explorer: {
             icon: 'https://etherscan.io/images/favicon3.ico', href: 'https://etherscan.io', name: 'Etherscan', apiAvailable: true,
-        } },
-        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', explorer: {
-            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
-        } },
-        bsc: { symbol: 'bsc', name: 'BSC', longName: 'Binance Smart Chain', token: 'BNB', explorer: {
+        }, rpc: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',  },
+        bsc: { symbol: 'bsc', name: 'BSC', longName: 'BNB Chain', token: 'BNB', id: 56, explorer: {
             icon: 'https://bscscan.com/images/favicon.ico', href: 'https://bscscan.com', name: 'BscScan', apiAvailable: true,
-        } },
-        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', explorer: {
+        }, rpc: 'https://bsc-dataseed.binance.org/',  },
+        avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', id: 43114, explorer: {
             icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
-        } },
-        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', explorer: {
+        }, rpc: 'https://api.avax.network/ext/bc/C/rpc',  },
+        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', id: 250, explorer: {
+            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
+        }, rpc: 'https://rpc.ftm.tools/',  },
+        poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', id: 137, explorer: {
             icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
-        } },
-        cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', explorer: {
+        }, rpc: 'https://polygon-rpc.com',  },
+        cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', id: 25, explorer: {
             icon: 'https://cronoscan.com/images/favicon.ico', href: 'https://cronoscan.com/', name: 'Cronoscan', apiAvailable: true,
-        } },
-        one: { symbol: 'one', name: 'Harmony', token: 'ONE', explorer: {
+        }, rpc: 'https://evm-cronos.crypto.org',  },
+        one: { symbol: 'one', name: 'Harmony', longName: 'Harmony One', token: 'ONE', id: 166660000, explorer: {
             icon: 'https://explorer.harmony.one/favicon.ico', href: 'https://explorer.harmony.one', name: 'Harmony Explorer', apiAvailable: false,
-        } },
-        ht: { symbol: 'ht', name: 'Heco', token: 'HT', explorer: {
-            icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
-        } },
-        celo: { symbol: 'celo', name: 'Celo', token: 'CELO', explorer: {
+        }, rpc: 'https://api.s0.t.hmny.io/',  },
+        celo: { symbol: 'celo', name: 'Celo', token: 'CELO', id: 42220, explorer: {
             icon: 'https://avatars.githubusercontent.com/u/37552875?s=200&v=4', href: 'https://explorer.celo.org', name: 'Celo Explorer', apiAvailable: false,
-        } },
-        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', explorer: {
+        }, rpc: 'https://forno.celo.org',  },
+        ht: { symbol: 'ht', name: 'Heco', token: 'HT', id: 128, explorer: {
+            icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
+        }, rpc: 'https://http-mainnet.hecochain.com',  },
+        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
             icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
-        } },
+        }, rpc: 'https://rpc.moonriver.moonbeam.network',  },
+        fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
+            icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
+        }, rpc: 'https://rpc.fuse.io',  },
+        aurora: { symbol: 'aurora', name: 'Aurora', token: 'ETH', id: 1313161554, explorer: {
+            icon: 'https://aurorascan.dev/images/favicon.ico', href: 'https://aurorascan.dev/', name: 'Aurora Block Explorer', apiAvailable: true,
+        }, rpc: 'https://mainnet.aurora.dev',  },
+        atom: { symbol: 'atom', name: 'Cosmos', token: 'ATOM', explorer: {
+            icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/cosmos', name: 'Mintscan', apiAvailable: false,
+        }, nonevm: true, unit: 'µATOM', disabled: true },
+        juno: { symbol: 'juno', name: 'Juno', token: 'JUNO', explorer: {
+            icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/juno', name: 'Mintscan', apiAvailable: false,
+        }, nonevm: true, unit: 'µJUNO', disabled: true },
+        osmo: { symbol: 'osmo', name: 'Osmosis', token: 'OSMO', explorer: {
+            icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/osmosis', name: 'Mintscan', apiAvailable: false,
+        }, nonevm: true, unit: 'µOSMO', disabled: true },
     },
     
     get: function(name) {
@@ -330,6 +331,10 @@ const network = {
         }
 
         return this.list[name];
+    },
+
+    getById: function(id) {
+        return Object.values(this.list).find(e => e.id == id);
     },
 
     set: function(name){
@@ -348,236 +353,10 @@ const api = {
         apiKey: new RegExp(/^[a-f0-9]{32}$/),
     },
 
-    createNewApiContent: function(){
-        // create api key modal
-        const tabsContent = this.tabsContent;
-        tabsContent.create.innerHTML = `<h2>New API key</h2>
-        <p class="title origin">Origin <i class="far fa-question-circle"></i></p>
-        <input type="text" class="input-text" id="origin" placeholder="mywebsite.com">
-        <span id="origin-tip" class="tip"></span>
-        <p class="title note">Note <i class="far fa-question-circle"></i></p>
-        <input type="text" class="input-text" id="note" placeholder="My personal note for this key">
-        <div id="checkbox-container">
-            <label>
-                <input type="checkbox">
-                <span>I agree to not share any of my API key information with others.</span>
-            </label>
-            <label>
-                <input type="checkbox">
-                <span>I am aware that front-end code is publicly readable and exposing my API key on it is the same as sharing them.</span>
-            </label>
-        </div>
-        <div id="button-container"><button id="create-key" disabled>Create API key</button></div>`;
-                
-        tabsContent.create.querySelectorAll('#checkbox-container input').forEach(e => e.addEventListener('click', () => {
-            if (Array.from(tabsContent.create.querySelectorAll('#checkbox-container input')).filter(e => e.checked).length == 2){
-                tabsContent.create.querySelector('#create-key').removeAttribute('disabled');
-            }
-            else {
-                tabsContent.create.querySelector('#create-key').setAttribute('disabled', true);
-            }
-        }));
-
-
-        const urlRegex = this.regex.url;
-        tabsContent.create.querySelector('#origin').addEventListener('keyup', () => {
-            const value = tabsContent.create.querySelector('#origin').value.trim().toLowerCase();
-            const match = value.match(urlRegex);
-            if (match && match.length > 1){
-                const tip = tabsContent.create.querySelector('#origin-tip');
-                tip.innerHTML = '';
-                tabsContent.create.querySelector('#origin').classList.remove('red');
-            }
-        });
-
-        tabsContent.create.querySelector('#create-key').addEventListener('click', async function() {
-            const body = {};
-            let error = false;
-            if (tabsContent.create.querySelector('#origin').value.length){
-                // make sure origin informed is only then domain name
-                const value = tabsContent.create.querySelector('#origin').value.trim().toLowerCase();
-                const match = value.match(urlRegex);
-                if (match && match.length > 1){
-                    body.origin = value;
-                }
-                else{
-                    const tip = tabsContent.create.querySelector('#origin-tip');
-                    tip.innerHTML = 'Invalid domain';
-                    tabsContent.create.querySelector('#origin').classList.add('red');
-                    error = true;
-                }
-            }
-            if (tabsContent.create.querySelector('#note').value.length){
-                body.note = tabsContent.create.querySelector('#note').value.trim();
-            }
-
-            if (!error){
-                this.setAttribute('disabled', true);
-                this.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-    
-                body.grc = await recaptcha.getToken();
-                const data = await api.createKey(body);
-                api.showWindowCreate(data);
-            }
-        });
-    },
-
-    createEditApiContent: function(){
-        // edit api key modal
-        const tabsContent = this.tabsContent;
-        tabsContent.edit.innerHTML = `<h2>Edit API key</h2>
-        <p class="title">API Key</p>
-        <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
-        <span id="key-tip" class="tip"></span>
-        <p class="title">API Secret</p>
-        <input type="text" class="input-text keys" id="secret" placeholder="00000000000000000000000000000000">
-        <span id="secret-tip" class="tip"></span>
-        <p class="title origin">Origin <i class="far fa-question-circle"></i></p>
-        <input type="text" class="input-text" id="origin" placeholder="mywebsite.com">
-        <span id="origin-tip" class="tip"></span>
-        <p class="title note">Note <i class="far fa-question-circle"></i></p>
-        <input type="text" class="input-text" id="note" placeholder="My personal note for this key">
-        <div id="checkbox-container">
-            <label>
-                <input type="checkbox">
-                <span>
-                    <div>I want to reset my API key hash</div>
-                    <div class='tip hidden'>WARNING: The current API key hash will not be usable anymore.</div>
-                </span>
-            </label>
-        </div>
-        <div id="button-container"><button id="edit-key">Save</button></div>`;
-
-        const urlRegex = this.regex.url;
-        const apiKeyRegex = this.regex.apiKey;
-
-        tabsContent.edit.querySelector('#origin').addEventListener('keyup', function() {
-            const value = this.value.trim().toLowerCase();
-            const match = value.match(urlRegex);
-            if (match && match.length > 1){
-                const tip = tabsContent.edit.querySelector('#origin-tip');
-                tip.innerHTML = '';
-                tabsContent.edit.querySelector('#origin').classList.remove('red');
-            }
-        });
-
-        tabsContent.edit.querySelectorAll('#key, #secret').forEach(e => e.addEventListener('keyup', function() {
-            const value = this.value.trim().toLowerCase();
-            if (value.match(apiKeyRegex)){
-                const tip = tabsContent.edit.querySelector(`#${this.id}-tip`);
-                tip.innerHTML = '';
-                this.classList.remove('red');
-            }
-        }));
-
-        tabsContent.edit.querySelector('#checkbox-container input').addEventListener('change', function() {
-            const tip = this.parentNode.querySelector('.tip');
-            if (this.checked){
-                tip.classList.remove('hidden');
-            }
-            else{
-                tip.classList.add('hidden');
-            }
-        });
-
-        tabsContent.edit.querySelector('#edit-key').addEventListener('click', async function() {
-            const body = {};
-            let error = false;
-            if (tabsContent.edit.querySelector('#origin').value.length){
-                // make sure origin informed is only then domain name
-                const value = tabsContent.edit.querySelector('#origin').value.trim().toLowerCase();
-                const match = value.match(urlRegex);
-                if (match && match.length > 1){
-                    body.origin = value;
-                }
-                else{
-                    const tip = tabsContent.edit.querySelector('#origin-tip');
-                    tip.innerHTML = 'Invalid domain';
-                    tabsContent.edit.querySelector('#origin').classList.add('red');
-                    error = true;
-                }
-            }
-            if (tabsContent.edit.querySelector('#note').value.length){
-                body.note = tabsContent.edit.querySelector('#note').value.trim();
-            }
-
-            const key = tabsContent.edit.querySelector('#key').value.trim().toLowerCase();
-            if (!key.match(apiKeyRegex)){
-                const tip = tabsContent.edit.querySelector('#key-tip');
-                tip.innerHTML = 'Invalid API key';
-                tabsContent.edit.querySelector('#key').classList.add('red');
-                error = true;
-            }
-
-            body.secret = tabsContent.edit.querySelector('#secret').value.trim().toLowerCase();
-            if (!body.secret.match(apiKeyRegex)){
-                const tip = tabsContent.edit.querySelector('#secret-tip');
-                tip.innerHTML = 'Invalid API secret';
-                tabsContent.edit.querySelector('#secret').classList.add('red');
-                error = true;
-            }
-
-            const reset = tabsContent.edit.querySelector('#checkbox-container input').checked;
-            if (reset){
-                body.resetKey = true;
-            }
-
-
-            if (!error){
-                this.setAttribute('disabled', true);
-                this.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-    
-                const data = await api.editKey(key, body);
-                api.showWindowEdit(data);
-            }
-        });
-    },
-
-    createInfoApiContent: function(){
-        // get api key information
-        const tabsContent = this.tabsContent;
-        tabsContent.info.innerHTML = `<h2>API key information</h2>
-        <p class="title">API key</p>
-        <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
-        <span id="key-tip" class="tip"></span>
-        <div id="button-container"><button id="get-key">Search</button></div>`;
-
-        tabsContent.info.querySelector('#key').addEventListener('keyup', function() {
-            const value = this.value.trim().toLowerCase();
-            if (value.match(apiKeyRegex)){
-                const tip = tabsContent.info.querySelector(`#key-tip`);
-                tip.innerHTML = '';
-                this.classList.remove('red');
-            }
-        });
-
-        const apiKeyRegex = this.regex.apiKey;
-
-        tabsContent.info.querySelector('#get-key').addEventListener('click', async function() {
-            let error = false;
-
-            const key = tabsContent.info.querySelector('#key').value.trim().toLowerCase();
-            if (!key.match(apiKeyRegex)){
-                const tip = tabsContent.info.querySelector('#key-tip');
-                tip.innerHTML = 'Invalid API key';
-                tabsContent.info.querySelector('#key').classList.add('red');
-                error = true;
-            }
-
-            if (!error){
-                this.setAttribute('disabled', true);
-                this.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
-
-                const data = await api.getKey(key);
-                api.showWindowInfo(data);
-            }
-        });
-    },
-
-    showWindowCreate: function(data){
-        const modal = document.querySelector('#fog #api-window');
+    showNewAPI: function(data){
+        const modal = document.querySelector('#fog #api-window #content');
         if (data.apiKey){
-            modal.innerHTML = `<div id="content">
+            modal.innerHTML = `
                 <h2>API key Created</h2>
                 <p class="title">API Key</p>
                 <div class="input-container">
@@ -589,20 +368,12 @@ const api = {
                     <input type="text" class="input-text keys" value="${data.secret}" readonly>
                     <div class="input-button"><i class="far fa-copy"></i></div>
                 </div>
-                <p class="title">Wallet</p>
-                <div class="input-container">
-                    <input type="text" class="input-text keys" value="${data.wallet}" readonly>
-                    <div class="input-button"><i class="far fa-copy"></i></div>
-                </div>
                 <ul>
                     <li>Make sure to save this information before closing this window.</li>
                     <li>We do not store your key and secret in plain text, so we cannot recover them in case of loss.</li>
                 </ul>
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
+            `;
             // add buttons for clipboard copy info
-
-            modal.querySelector('#close').addEventListener('click', () => modal.parentNode.remove());
 
             modal.querySelectorAll('.input-button').forEach(e => e.addEventListener('click', function(){
                 const parent = this.closest('.input-container');
@@ -620,212 +391,46 @@ const api = {
         }
     },
 
-    showWindowEdit: function(data){
-        const modal = document.querySelector('#fog #api-window');
-        if (data.apiKey){
-            const fields = Object.entries(data).filter(e => e[0] != 'apiKey' && e[0] != 'message').map(e => `<p class="title">${e[0]}</p><input type="text" class="input-text keys" value="${e[1]}" readonly>`).join('');
-
-            modal.innerHTML = `<div id="content">
-                <h2>API key information updated</h2>
-                <p class="title">API Key</p>
-                <input type="text" class="input-text keys" value="${data.apiKey}" readonly>
-                ${fields}
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-        }
-        else{
-            modal.innerHTML = `<div id="content">
-                <h2>${data.error || 'Message'}</h2>
-                <p>${data.message}</p>
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-        }
-
-        modal.querySelector('#close').addEventListener('click', () => modal.parentNode.remove());
-    },
-
-    showWindowInfo: function(data) {
-        const modal = document.querySelector('#fog #api-window');
-        if (data.apiKey){
-            const key = data.apiKey;
-            const fields = Object.entries(data).filter(e => e[0] != 'usage').map(e => {
-                const label = e[0] == 'apiKey' ? 'API Key' : e[0];
-
-                let value = e[1];
-                if (e[0] == 'credit') {
-                    value = `...`;
-                }
-                else if (e[0] == 'creation'){
-                    value = new Date(e[1]).toISOString().replace('T', ' ').split('.')[0];
-                }
-
-                let input = `<input type="text" class="input-text keys" id="input-${label}" value="${value}" readonly>`;
-                if (e[0] == 'wallet'){
-                    input = `<div class="input-container">${input}<div id="copy" class="input-button" title="Copy"><i class="far fa-copy"></i></div></div>`;
-                }
-                else if (e[0] == 'credit'){
-                    input = `<div class="input-container">${input}<div id="update" class="input-button" title="Update"><i class="fas fa-sync-alt"></i></div></div>`;
-                }
-                else if (e[0] == 'origin'){
-                    input = `<div class="input-container">${input}<a id="open-link" class="input-button" title="Open Link" href="https://${value}" target="_blank" rel="noopener nofollow"><i class="fas fa-external-link-alt"></i></a></div>`;
-                }
-                return `<p class="title">${label}</p>${input}`;
-            }).join('');
-
-            modal.innerHTML = `<div id="content">
-                <h2>API key information</h2>
-                ${fields}
-                <div id="button-container">
-                    <button id="credit">History</button>
-                    <button id="close">Close</button>
-                </div>
-            </div>`;
-
-            modal.querySelector('#copy').addEventListener('click', function(){
-                const parent = this.closest('.input-container');
-                api.copyText(parent);
-            });
-            
-            modal.querySelector('#update').addEventListener('click', function(){
-                this.classList.add('clicked');
-                setTimeout(() => this.classList.remove('clicked'), 700);
-                modal.querySelector('#input-credit').value = '...';
-                refreshCredit(key);
-            });
-            
-            const historyButton = modal.querySelector('#credit');
-            historyButton.addEventListener('click', async () => {
-                historyButton.innerHTML = '<i class="fas fa-cog fa-spin"></i>';
-                historyButton.setAttribute('disabled', true);
-            
-                const data = await this.getCredit(key);
-                this.showWindowCredit(key, data);
-            });    
-
-            async function refreshCredit(key){
-                const modal = document.querySelector('#fog #api-window');
-                if (modal && modal.querySelector('#input-credit')){
-                    await api.updateCredit(key);
-                    const data = await api.getKey(key);
-
-                    // if even after await you are still on the same window
-                    if (modal && modal.querySelector('#input-credit')){
-                        modal.querySelector('#input-credit').value = `$${parseFloat(data.credit).toFixed(6)}`;
-                        setTimeout(() => refreshCredit(key), 5000);
-                    }
-                }
-            }
-            refreshCredit(key);
-        }
-        else{
-            modal.innerHTML = `<div id="content">
-                <h2>${data.error || 'Message'}</h2>
-                <p>${data.message}</p>
-                <div id="button-container"><button id="close">OK</button></div>
-            </div>`;
-        }
-
-        modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').remove());
-    },
-
-    showWindowCredit: function(key, data) {
-        // console.log(data)
-        const ntw = network.get();
-        const modal = document.querySelector('#fog #api-window');
-
-        let txs = `<div class="empty">No transactions found. Try sending some ${ntw.token} to your API wallet.</div>`;
-        if (data.results.length > 0){
-            modal.classList.add('large');
-
-            const tds = data.results.map(e => {
-                const thisNetwork = network.getList()[e.network];
-
-                return `<div class="row">
-                    <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank" rel="noopener nofollow">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
-                    <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
-                    <div class="cell">${thisNetwork.name}</div>
-                    <div class="cell"><a href="${thisNetwork.explorer.href}/address/${e.fromWallet}" target="_blank" rel="noopener nofollow">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
-                    <div class="cell">${parseFloat(e.price).toFixed(4)}</div>
-                    <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
-                </div>`;
-            }).join('');
-            txs = `<div class="row head">
-                <div class="cell">Tx</div>
-                <div class="cell">Time</div>
-                <div class="cell">Network</div>
-                <div class="cell">From wallet</div>
-                <div class="cell">Token Price</div>
-                <div class="cell">Value</div>
-            </div>
-            <div class="body">${tds}</div>`;
-        }
-        txs = `<div class="table">${txs}</div>`;
-        
-        modal.innerHTML = `<div id="content">
-            <h2>API recharge history</h2>
-            <p id="key-show">${key}</p>
-            ${txs}
-            <p id="missing">Missing tx? <a href="https://t.me/owlracle" target="_blank" rel="noopener">contact us</a>!</p>
-            <div id="button-container"><button id="close">Close</button></div>
-        </div>`;
-        
-        modal.querySelector('#close').addEventListener('click', () => document.querySelector('#fog').remove());
-    },
-
-    showModal: function(tabSelected){
+    showProfile: function(tabSelected='info'){
         const fog = document.createElement('div');
         fog.id = 'fog';
-        fog.innerHTML = `<div id='api-window' class="modal">
+
+        const container = document.createElement('div');
+        container.innerHTML = `<div id='api-window' class="modal profile">
             <div id='tab-container'>
-                <div class="tab" id="info"><i class="fas fa-eye"></i><span class="text">Key Info</span></div>
-                <div class="tab" id="edit"><i class="fas fa-edit"></i><span class="text">Edit Key</span></div>
-                <div class="tab" id="create"><i class="fas fa-plus"></i><span class="text">Create Key</span></div>
-                <div class="tab" id="close-tab"><i class="fas fa-times"></i></div>
+                <div class="tab" id="create"><i class="fas fa-square-plus"></i><span class="text">New API Key</span></div>
+                <div class="tab disabled" id="info"><i class="fa-solid fa-key"></i><span class="text">Key Info</span></div>
+                <div class="tab disabled" id="recharge"><i class="fa-solid fa-bolt"></i><span class="text">Recharge Key</span></div>
+                <div class="tab disabled" id="alerts"><i class="fa-solid fa-bell"></i><span class="text">Alerts</span></div>
+                <div class="tab disabled" id="history"><i class="fa-solid fa-file-invoice-dollar"></i></i><span class="text">My recharges</span></div>
+                <div class="tab disabled" id="logs"><i class="fa-solid fa-file-lines"></i><span class="text">Usage logs</span></div>
+                <div class="tab disabled" id="logout"><i class="fa-solid fa-right-from-bracket"></i><span class="text">Logout</span></div>
             </div>
-            <div id='content'></div>
+            <div id="content" class="empty"><i class="fa-solid fa-gear fa-spin"></i></div>
         </div>`;
 
-        const tabsContent = Object.fromEntries(['info', 'edit', 'create'].map(e => [e, (() => {
-            const elem = document.createElement('div');
-            elem.id = 'content';
-            return elem;
-        })()]));
-        this.tabsContent = tabsContent;
+        if (this.isLogged()) {
+            container.querySelectorAll('.tab.disabled').forEach(e => e.classList.remove('disabled'));
+        }
 
-        fog.querySelectorAll('.tab').forEach(e => e.addEventListener('click', () => {
-            if (e.id == 'close-tab'){
-                fog.click();
+        container.querySelectorAll('.tab').forEach(e => e.addEventListener('click', async () => {
+            if (e.classList.contains('disabled')) {
+                fog.remove();
+                await profile.loginModal(tabSelected);
+                return;
             }
-            else{
-                if (!e.classList.contains('active')){
-                    fog.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
-                    e.classList.add('active');
-                }
-                const content = fog.querySelector(`#content`);
-                content.replaceWith(tabsContent[e.id]);
-            }
+
+            profile.show(e.id)
         }));
 
+        profile.window = container.querySelector('div');
+
+        fog.appendChild(profile.window);
         fog.addEventListener('click', () => fog.remove());
         fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
 
         document.body.appendChild(fog);
         fadeIn(fog, 500);
-
-        this.createNewApiContent();
-        this.createEditApiContent();
-        this.createInfoApiContent();
-
-        const titleInfo = {
-            origin: 'Informing an origin restrict the use of your API key to only the designated domain. It is highly recommended for preventing unauthorized calls using your key.',
-            note: 'You could set a note to your key for informative purposes.',
-        };
-
-        Object.keys(tabsContent).forEach(tab => tabsContent[tab].querySelectorAll('.title i').forEach(e => {
-            const inputClass = Array.from(e.parentNode.classList).filter(e => Object.keys(titleInfo).includes(e));
-            new Tooltip(e, titleInfo[inputClass]);
-        }));
-
         fog.querySelector(`#tab-container #${tabSelected || 'info'}`).click();
     },
 
@@ -852,10 +457,14 @@ const api = {
         });
     },
 
-    updateCredit: async function(key){
-        return await this.request(`/credit/${key}`, {
+    updateCredit: async function({ apiKey, transactionHash=false }){
+        return await this.request(`/credit/${apiKey}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transactionHash: transactionHash,
+                network: network.get().symbol
+            }),
         });
     },
 
@@ -867,16 +476,44 @@ const api = {
     },
 
     getLogs: async function(key, fromTime, toTime) {
-        let options = {};
+        const options = {};
         if (fromTime){
-            options.fromTime = fromTime;
+            options.fromtime = fromTime;
         }
         if (toTime){
-            options.toTime = toTime;
+            options.totime = toTime;
         }
-        options = Object.keys(options).length == 0 ? '' : '?' + Object.entries(options).map(([key, value]) => `${key}=${value}`).join('&');
 
-        return await this.request(`/logs/${key}${options}`, {
+        return await this.request(`/logs/${key}?${ new URLSearchParams(options).toString() }`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+    },
+
+    revokeAlertAuth: async function(key, secret) {
+        return await this.request(`/authbot/${key}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ secret: secret }),
+        });
+    },
+
+    addCreditAlert: async function(key) {
+        return await this.request(`/alert/credit/${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+    },
+
+    removeCreditAlert: async function(key) {
+        return await this.request(`/alert/credit/${key}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
+    },
+
+    getCreditAlert: async function(key) {
+        return await this.request(`/alert/credit/${key}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
@@ -892,6 +529,7 @@ const api = {
         navigator.clipboard.writeText(oldText);
     },
 
+    // generic requests method
     request: async function(endpoint, options){
         try {
             const data = await (await fetch(endpoint, options)).json();
@@ -905,64 +543,1274 @@ const api = {
             console.log(error);
             return error;
         }
-    }
+    },
+
+    // login with an api key.
+    login: async function(apiKey) {
+        const glyph = document.querySelector('#search #api-info i');
+        glyph.classList.remove('fa-right-to-bracket', 'fa-key');
+        glyph.classList.add('fa-spin', 'fa-cog');
+    
+        const input = document.querySelector('#search input');
+        input.setAttribute('readonly', true);
+    
+        let key = input.value.trim().toLowerCase();
+        if (apiKey) {
+            key = apiKey;
+        }
+        else if (api.isLogged()){
+            key = api.isLogged();
+        }
+
+        let keyInfo = false;
+        if (key.match(api.regex.apiKey)){
+            keyInfo = await api.getKey(key);
+            if (keyInfo.apiKey) {
+                cookies.set('apikey-login', keyInfo.apiKey, { expires: { days: 30 } });
+                glyph.classList.add('fa-key');
+
+                document.querySelector('#search').classList.add('logged');
+                input.value = `${key.slice(0,7)}...${key.slice(-7)}`;
+            }
+            else {
+                api.logout();
+            }
+        }
+
+        glyph.classList.remove('fa-spin', 'fa-cog');    
+        if (!keyInfo) {
+            glyph.classList.add('fa-right-to-bracket');
+            input.removeAttribute('readonly');
+            input.value = '';
+        }
+
+        return keyInfo;
+    },
+
+    // logout from api key
+    logout: function({ verbose=1 }={}) {
+        if (api.isLogged()) {
+            cookies.delete('apikey-login');
+    
+            document.querySelector('#search').classList.remove('logged');
+            const input = document.querySelector('#search input');
+            input.value = ``;
+            input.removeAttribute('readonly');
+
+            const glyph = document.querySelector('#search #api-info i');
+            glyph.classList.remove('fa-key');
+            glyph.classList.add('fa-right-to-bracket');
+
+            if (verbose == 1){
+                new Toast('👋 You have logged out', { timeOut: 5000 });
+            }
+        }
+    },
+
+    isLogged: function() {
+        return cookies.get('apikey-login') || false;
+    },
 };
 
 
-// search api key button
+const profile = {
+    content: {},
 
-document.querySelector('#search #api-info').addEventListener('click', async () => {
-    const glyph = document.querySelector('#search #api-info i');
-    glyph.classList.remove('fa-search');
-    glyph.classList.add('fa-spin', 'fa-cog');
+    // modal for inputing api secret (edit key)
+    modalSecret: async function () {
+        return new Promise( resolve => {
+            const fog = document.createElement('div');
+            fog.id = 'fog';
+            fog.innerHTML = `<div class="modal"><div id="content">
+                <h2>Key Authorization</h2>
+                <p class="title">This action requires you to provide your API secret.</p>
+                <p class="title">API Secret</p>
+                <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
+                <span id="key-tip" class="tip"></span>
+                <div id="button-container"><button id="send">OK</button></div>
+            </div></div>`;
 
-    const input = document.querySelector('#search input');
-    input.setAttribute('disabled', true);
+            // remove tip for invalid key
+            fog.querySelector('#key').addEventListener('keyup', function() {
+                const value = this.value.trim().toLowerCase();
+                if (value.match(apiKeyRegex)){
+                    const tip = fog.querySelector(`#key-tip`);
+                    tip.innerHTML = '';
+                    this.classList.remove('red');
+                }
+            });
 
-    const key = input.value.trim().toLowerCase();
-    if (key.match(api.regex.apiKey)){
-        const data = await api.getKey(key);
-        api.showModal();
-        api.showWindowInfo(data);
+            const apiKeyRegex = api.regex.apiKey;
 
-    }
-    glyph.classList.remove('fa-spin', 'fa-cog');    
-    glyph.classList.add('fa-search');
-    input.removeAttribute('disabled');
-    input.value = '';
-});
+            fog.querySelector('#key').addEventListener('keyup', e => {
+                if (e.key == 'Enter'){
+                    send();
+                }
+            });
 
-document.querySelector('#search input').addEventListener('keyup', e => {
-    if (e.key == 'Enter'){
-        document.querySelector('#search #api-info').click();
-    }
-});
+            fog.querySelector('#send').addEventListener('click', () => send());
 
-document.querySelector('#search #drop').addEventListener('click', async function() {
-    const dropdown = document.createElement('div');
-    dropdown.id = 'dropdown';
+            const send = async () => {
+                const button = fog.querySelector('#send');
+                let error = false;
 
-    dropdown.innerHTML = `
-        <div id="create-key" class="item">Create API key</div>
-        <div id="edit-key" class="item">Edit API key</div>
-        <div id="info-key" class="item">API key info</div>
-    `;
+                const key = fog.querySelector('#key').value.trim().toLowerCase();
+                if (!key.match(apiKeyRegex)){
+                    const tip = fog.querySelector('#key-tip');
+                    tip.innerHTML = 'Invalid API secret';
+                    fog.querySelector('#key').classList.add('red');
+                    error = true;
+                }
 
-    dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
-    dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;
+                if (!error){
+                    button.setAttribute('disabled', true);
+                    button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
 
-    dropdown.querySelectorAll('.item').forEach(e => e.addEventListener('click', () => api.showModal(e.id.split('-')[0])));
+                    fog.remove();
+                    resolve(key);
+                }
+            }
+
+            fog.addEventListener('click', () => {
+                fog.remove();
+                resolve(false);
+            });
+            fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+
+            document.body.appendChild(fog);
+            fadeIn(fog, 500);
+            fog.querySelector('input').focus();
+        });
+    },
+
+    // when you need a login window separate from the header.
+    loginModal: async function(redirect) {
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+
+        // get api key information
+        const content = document.createElement('div');
+
+        fog.innerHTML = `<div class="modal"><div id="content">
+            <h2>API key Login</h2>
+            <p class="title">For this action you must provide your API key</p>
+            <p class="label">API key</p>
+            <input type="text" class="input-text keys" id="key" placeholder="00000000000000000000000000000000">
+            <span id="key-tip" class="tip"></span>
+            <div id="button-container"><button id="get-key">Search</button></div>
+        </div></div>`;
+
+        // remove tip for invalid key
+        const keyInput = fog.querySelector('#key');
+        keyInput.addEventListener('keyup', function(e) {
+            if (e.key == 'Enter'){
+                click();
+                return;
+            }
+
+            const value = keyInput.value.trim().toLowerCase();
+            if (value.match(apiKeyRegex)){
+                const tip = fog.querySelector(`#key-tip`);
+                tip.innerHTML = '';
+                keyInput.classList.remove('red');
+            }
+        });
+
+        const apiKeyRegex = api.regex.apiKey;
+
+        const sendButton = fog.querySelector('#get-key');
+        sendButton.addEventListener('click', () => click());
+
+        const click = async function() {
+            let error = false;
+
+            const key = fog.querySelector('#key').value.trim().toLowerCase();
+            if (!key.match(apiKeyRegex)){
+                const tip = fog.querySelector('#key-tip');
+                tip.innerHTML = 'Invalid API key';
+                fog.querySelector('#key').classList.add('red');
+                error = true;
+            }
+
+            if (!error){
+                sendButton.setAttribute('disabled', true);
+                sendButton.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+
+                const data = await api.getKey(key);
+
+                fog.remove();
+                const info = await api.login(data.apiKey);
+                if (!info) {
+                    new Modal(`<h2>${data.error}</h2>
+                        <p>${data.message}</p>
+                        <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                    );
+                    return;
+                }
+
+                api.showProfile(redirect);
+            }
+        };
+
+        fog.addEventListener('click', () => fog.remove());
+        fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
+
+        document.body.appendChild(fog);
+        fadeIn(fog, 500);
+        keyInput.focus();
+    },
+
+    // show a tab in the profile window
+    show: async function(id) { 
+        const elem = document.querySelector(`#fog #${id}.tab`);
+        if (!profile.locked && !elem.classList.contains('disabled')){
+            this.locked = true;
     
-    const fog = document.createElement('div');
-    fog.id = 'fog';
-    fog.classList.add('invisible');
+            document.querySelectorAll('#fog .tab').forEach(e => e.classList.remove('active'));
+            elem.classList.add('active');
+    
+            if (!this.content[id]){
+                // put placeholder container
+                this.content[id] = document.createElement('div');
+                this.content[id].id = 'content';
+                this.content[id].classList.add('empty');
+                this.content[id].innerHTML = '<i class="fa-solid fa-gear fa-spin"></i>';
+            }
+            this.window.querySelector('#content').replaceWith(this.content[id]);
+            
+            await this.createContent(id);
+            this.bindContent(id);
+    
+            this.window.querySelector('#content').replaceWith(this.content[id]);
+    
+            this.locked = false;
+        }
+    },
+
+    // create content from the tabs
+    createContent: async function(id) {
+        const contentFunctions = {
+            info: async () => {
+                const data = await api.getKey(api.isLogged());
+                console.log(data);
+
+                if (!data.apiKey){
+                    new Toast(`☹️ ${ data.error }: ${ data.message }`)
+                    return '';
+                }
+
+                // build fields
+                return `<h2>API key information</h2><div id="content-container">
+                    <p class="label">API Key</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-apiKey" readonly value="${ data.apiKey }">
+                        <div id="reset-key" class="input-button" title="Reset key"><i class="fas fa-sync-alt"></i></div>
+                    </div>
+                    
+                    <p class="label">Creation</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-creation" readonly value="${ new Date(data.creation).toISOString().replace('T', ' ').split('.')[0] }">
+                    </div>
+    
+                    <p class="label">Credit</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-credit" readonly value="$${ parseFloat(data.credit).toFixed(6) }">
+                        <div id="recharge-key" class="input-button" title="Recharge key"><i class="fa-solid fa-bolt"></i></div>
+                    </div>
+    
+                    <p class="label">Origin</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-origin" readonly value="${ data.origin || '' }">
+                        <div id="edit-origin" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
+                    </div>
+    
+                    <p class="label">Note</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="input-note" readonly value="${ data.note || '' }">
+                        <div id="edit-note" class="input-button" title="Edit"><i class="fa-solid fa-pen-to-square"></i></div>
+                    </div>
+                </div>`;
+            },
+
+            create: async () => {
+                return `<h2>New API key</h2>
+                    <p class="label origin">Origin</p>
+                    <input type="text" class="input-text" id="origin" placeholder="mywebsite.com">
+                    <span id="origin-tip" class="tip"></span>
+                    <p class="label note">Note</p>
+                    <input type="text" class="input-text" id="note" placeholder="My personal note for this key">
+                    <div id="checkbox-container">
+                        <label>
+                            <input type="checkbox">
+                            <span>I agree to not share any of my API key information with others.</span>
+                        </label>
+                        <label>
+                            <input type="checkbox">
+                            <span>I am aware that front-end code is publicly readable and exposing my API key on it is the same as sharing them.</span>
+                        </label>
+                    </div>
+                    <div id="button-container"><button id="create-key" disabled>Create API key</button></div>
+                `;
+            },
+
+            recharge: async () => {
+                return this.content[id].querySelector('.fa-gear') ?
+                    `<h2>API key credit recharge</h2>
+                    <p>Connect your wallet to recharge your API key</p>
+                    <div id="button-container" class="vertical"><button>Connect</button></div>` :
+                    this.content[id].innerHTML;
+            },
+
+            alerts: async () => {
+                const data = await api.getKey(api.isLogged());
+
+                if (!data.apiKey){
+                    new Toast(`☹️ ${ data.error }: ${ data.message }`)
+                    return '';
+                }
+
+                if (!data.chatid) {
+                    // build fields
+                    return `<h2>API key Telegram alerts</h2>
+                    <div id="content-container">
+                        <p>Before receiving alerts, you must authorize our bot to send messages to you. Do not worry though, he will only send messages following the criteria of your choice.</p>
+                        <div id="button-container"><a class="button" href="https://t.me/owlracle_gas_bot?start=${ window.btoa('auth ' + data.apiKey) }" aria-label="open telegram" rel="noopener">Say hello to our bot</a></div>
+                    </div>`;
+                }
+
+                const creditAlerts = await api.getCreditAlert(data.apiKey);
+
+                if (creditAlerts.error) {
+                    new Modal(`<h2>${data.error}</h2>
+                        <p>${data.message}</p>
+                        <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                    );
+                    return;
+                }
+
+                return `<h2>API key Telegram alerts</h2>
+                <p>Choose the kind of alert you want to receive from our Telegram bot</p>
+                <div id="alert-opt-container">
+                    <div id="credit-alerts" class="opt-card ${ creditAlerts.apiKey ? 'selected' : '' }">
+                        <div class="title">
+                            <span><i class="fa-solid fa-wallet"></i> Credit alerts</span>
+                        </div>
+                        <div class="body">
+                            <div class="check-container"><i class="fa-solid fa-circle-check checked"></i><i class="fa-solid fa-circle not-checked"></i></div>
+                            <span>${ creditAlerts.apiKey ? 'You are receiving credit alerts.' : 'Receive alerts when your API credit is below $1 and when they expire.' }</span>
+                        </div>
+                    </div>
+                    <div id="gas-alerts" class="opt-card disabled">
+                        <div class="title">
+                            <span><i class="fa-solid fa-gas-pump"></i> Gas alerts</span>
+                        </div>
+                        <div class="body">
+                            <div class="check-container"><i class="fa-solid fa-circle-check checked"></i><i class="fa-solid fa-circle not-checked"></i></div>
+                            <span>Set custom conditions based on network's gas and receive alerts when those conditions are met.</span>
+                        </div>
+                    </div>
+                    <div id="revoke" class="opt-card">
+                        <div class="title">
+                            <span><i class="fa-solid fa-ban"></i> Revoke bot permission</span>
+                        </div>
+                        <div class="body">
+                            <span>Remove your Telegram chatid from our bot's memory. It won't be able to send alerts to you anymore.</span>
+                        </div>
+                    </div>
+                </div>
+                </div>`;
+            },
+
+            history: async () => {
+                const modal = document.querySelector('#fog #api-window');
+                modal.classList.add('large');
+
+                const key = api.isLogged();
+                const data = await api.getCredit(key);
+
+                let txs = `<div class="empty">No transactions found. Try recharging your API key.</div>`;
+                if (data.results.length > 0){            
+                    const tds = data.results.map(e => {
+                        const thisNetwork = network.getList()[e.network];
+        
+                        return `<div class="row col-6">
+                            <div class="cell"><a href="${thisNetwork.explorer.href}/tx/${e.tx}" target="_blank" rel="noopener nofollow">${e.tx.slice(0,6)}...${e.tx.slice(-4)}</a></div>
+                            <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
+                            <div class="cell">${thisNetwork.name}</div>
+                            <div class="cell"><a href="${thisNetwork.explorer.href}/address/${e.fromWallet}" target="_blank" rel="noopener nofollow">${e.fromWallet.slice(0,6)}...${e.fromWallet.slice(-4)}</a></div>
+                            <div class="cell">${parseFloat(e.price).toFixed(4)}</div>
+                            <div class="cell">${(parseInt(e.value) * 0.000000001).toFixed(6)}</div>
+                        </div>`;
+                    }).join('');
+                    txs = `<div class="row head col-6">
+                        <div class="cell">Tx</div>
+                        <div class="cell">Time</div>
+                        <div class="cell">Network</div>
+                        <div class="cell">From wallet</div>
+                        <div class="cell">Token Price</div>
+                        <div class="cell">Value</div>
+                    </div>
+                    <div class="body">${tds}</div>`;
+                }
+                txs = `<div class="table">${txs}</div>`;
+                
+                return `<h2>API recharge history</h2>
+                    <p id="key-show">${key}</p>
+                    ${txs}
+                    <p id="missing">Missing tx? <a href="https://discord.gg/bHckPMw3Qu" target="_blank" rel="noopener">contact us</a>!</p>
+                `;
+            },
+
+            logs: async () => {
+                const key = api.isLogged();
+        
+                const txs = `<div class="table"><div class="empty">No requests found. Try to adjust the time range of your search.</div></div>`;
+        
+                if (!this.fromTime) {
+                    this.fromTime = parseInt(new Date(new Date().getTime() - 3600000).getTime() / 1000);
+                }
+                if (!this.toTime) {
+                    this.toTime = parseInt(new Date().getTime() / 1000);
+                }
+
+                const now = new Date(this.toTime * 1000).toISOString().slice(0,16);
+                const ago = new Date(this.fromTime * 1000).toISOString().slice(0,16);
+        
+                const modal = document.querySelector('#fog #api-window');
+                modal.classList.add('large');
+
+                let previousTable = this.content[id].querySelector('#table-container');
+                if (previousTable) {
+                    previousTable = previousTable.innerHTML;
+                }
+
+                return `<div class="title">
+                    <div class="col">
+                        <h2>API request history</h2>
+                        <p id="key-show">${key}</p>
+                    </div>                
+                    <div class="col right">
+                        <label>
+                            <span>From:</span>
+                            <input id="from-time" type="datetime-local" class="input-text time-range" value="${ ago }">
+                        </label>
+                        <label>
+                            <span>To:</span>
+                            <input id="to-time" type="datetime-local" class="input-text time-range" value="${ now }">
+                        </label>
+                    </div>    
+                </div>
+                <div id="table-container">${previousTable || txs}</div>`;
+            }
+        };
+
+        const modal = document.querySelector('#fog #api-window')
+        modal.classList.remove('large');
+
+        const container = document.createElement('div');
+        container.id = 'content';
+        container.innerHTML = contentFunctions[id] ? await contentFunctions[id]() : '';
+
+        this.content[id] = container;
+        return container;
+    },
+
+    // bind events and dynamic content for tabs
+    bindContent: function(id) {
+        const bindFunctions = {
+            info: () => {
+                const content = this.content[id];
+
+                // copy api key
+                const inputApiKey = content.querySelector('#input-apiKey');
+                inputApiKey.addEventListener('click', () => {
+                    const key = api.isLogged();
+                    if (key) {
+                        navigator.clipboard.writeText(key);
+                        new Toast(`📋 API key copied to the clipboard`, { timeOut: 3000 });
+                        inputApiKey.classList.add('blink');
+                        setTimeout(() => inputApiKey.classList.remove('blink'), 100);
+                    }
+                });
+                
+                // light. bolt button
+                content.querySelector('#recharge-key').addEventListener('click', () => {
+                    profile.show('recharge');
+                });
+
+                // create edit api key event for origin and note fields
+                const edit = async mode => {
+                    const editMode = content.querySelector(`#edit-${mode}`);
+                    const input = content.querySelector(`#input-${mode}`);
+                    const glyph = editMode.querySelector('i');
+                    let oldValue;
+    
+                    input.addEventListener('keyup', e => {
+                        if (e.key == 'Enter'){
+                            change();
+                        }
+                    });
+                
+                    editMode.addEventListener('click', () => change());
+
+                    const change = async () => {
+    
+                        if (editMode.classList.contains('green')) {
+                            glyph.classList.add('fa-pen-to-square');
+                            glyph.classList.remove('fa-check');
+                            editMode.classList.remove('green');
+    
+                            input.setAttribute('readonly', true);
+    
+                            if (input.value == oldValue) {
+                                input.value = oldValue;
+                                return;
+                            }
+                            if (mode == 'origin'){
+                                const match = input.value.match(api.regex.url);
+                                if (!match || match.length <= 1){
+                                    new Toast(`🏠 Invalid domain`, { timeOut: 5000 });
+                                    input.value = oldValue;
+                                    return;
+                                }
+                            }
+                            const secret = await this.modalSecret();
+                            if (!secret) {
+                                input.value = oldValue;
+                                return;
+                            }
+                            const args = { secret: secret };
+                            args[mode] = input.value;
+                            const data = await api.editKey(api.isLogged(), args);
+    
+                            if (data.error){
+                                new Modal(`<h2>${data.error}</h2>
+                                    <p>${data.message}</p>
+                                    <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                                );
+                                input.value = oldValue;
+                                return;
+                            }
+    
+                            new Toast(`🔑 API key changed successfully`, { timeOut: 5000 });
+                        }
+                        else {
+                            oldValue = input.value;
+                            glyph.classList.remove('fa-pen-to-square');
+                            glyph.classList.add('fa-check');
+                            editMode.classList.add('green');
+                            input.removeAttribute('readonly');
+                            input.focus();
+                        }
+    
+                    }
+                }
+                edit('origin');
+                edit('note');
+
+                // reset key button
+                content.querySelector('#reset-key').addEventListener('click', () => {
+                    const confirm = new Modal(`<h2>Reset API key hash</h2>
+                        <p>Are you sure you want to do this? If your API key hash is reset, you will receive a new hash, and the old will be unusable.</p>
+                        <div id="button-container">
+                            <button id="yes">YES</button>
+                            <button id="no">NO</button>
+                        </div>`, {
+                            buttonClose: 'no',
+                            events: [{
+                                id: 'yes',
+                                event: 'click',
+                                callback: async () => {
+                                    confirm.close();
+                                    const secret = await this.modalSecret();
+            
+                                    if (!secret) {
+                                        return;
+                                    }
+
+                                    const args = {
+                                        secret: secret,
+                                        resetKey: true,
+                                    };
+                                    const data = await api.editKey(api.isLogged(), args);
+            
+                                    if (data.error){
+                                        new Modal(`<h2>${data.error}</h2>
+                                            <p>${data.message}</p>
+                                            <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                                        );
+                                        return;
+                                    }
+            
+                                    const newHash = data.apiKey;
+                                    new Toast(`🔑 API key hash is reset`, { timeOut: 5000 });
+
+                                    api.logout({ verbose: 0 });
+                                    await api.login(newHash);
+                                    profile.show('info');
+                                },
+                            }]
+                        }
+                    );
+                });
+            },
+
+            create: () => {
+                const content = this.content[id];
+                content.querySelectorAll('#checkbox-container input').forEach(e => e.addEventListener('click', () => {
+                    const checkboxes = content.querySelectorAll('#checkbox-container input');
+                    if (checkboxes[0].checked && checkboxes[1].checked){
+                        content.querySelector('#create-key').removeAttribute('disabled');
+                    }
+                    else {
+                        content.querySelector('#create-key').setAttribute('disabled', true);
+                    }
+                }));
+
+                const urlRegex = api.regex.url;
+                content.querySelector('#origin').addEventListener('keyup', () => {
+                    const value = content.querySelector('#origin').value.trim().toLowerCase();
+                    const match = value.match(urlRegex);
+                    if (match && match.length > 1){
+                        const tip = content.querySelector('#origin-tip');
+                        tip.innerHTML = '';
+                        content.querySelector('#origin').classList.remove('red');
+                    }
+                });
+
+                content.querySelector('#create-key').addEventListener('click', async function() {
+                    const body = {};
+                    let error = false;
+                    if (content.querySelector('#origin').value.length){
+                        // make sure origin informed is only then domain name
+                        const value = content.querySelector('#origin').value.trim().toLowerCase();
+                        const match = value.match(urlRegex);
+                        if (match && match.length > 1){
+                            body.origin = value;
+                        }
+                        else{
+                            const tip = content.querySelector('#origin-tip');
+                            tip.innerHTML = 'Invalid domain';
+                            content.querySelector('#origin').classList.add('red');
+                            error = true;
+                        }
+                    }
+                    if (content.querySelector('#note').value.length){
+                        body.note = content.querySelector('#note').value.trim();
+                    }
+
+                    if (!error){
+                        this.setAttribute('disabled', true);
+                        this.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i>';
+            
+                        body.grc = await recaptcha.getToken();
+                        const data = await api.createKey(body);
+                        api.showNewAPI(data);
+                    }
+                });
+            },
+
+            recharge: () => {
+                const content = this.content[id];
+
+                let updatingUI = false;
+   
+                const checkWalletConnection = async () => {
+                    if (updatingUI) {
+                        return;
+                    }
+
+                    updatingUI = true;
+
+                    // not injected
+                    if (!this.web3 || !this.web3.injected){
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>You must get Metamask to connect to your wallet</p>
+                        <div id="button-container" class="vertical"><button>Get Metamask</button></div>`;
+
+                        const button = content.querySelector('button');
+                        button.addEventListener('click', () => {
+                            window.open('https://metamask.io/');
+                            document.querySelector('#fog').click();
+                        })
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // not connected
+                    if (!this.web3.connected) {
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>Connect your wallet to recharge your API key</p>
+                        <div id="button-container" class="vertical"><button>Connect</button></div>`;
+
+                        const button = content.querySelector('button');
+                        button.addEventListener('click', async () => {
+                            await this.web3.connect();
+                        });
+
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // unsupported network
+                    const connectedNetwork = network.getById(await this.web3.getNetworkId());
+                    if (!connectedNetwork) {
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>Network not supported</p>
+                        <div id="button-container" class="vertical"><button><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button></div>`;
+
+                        const button = content.querySelector('button');
+                        button.addEventListener('click', async () => {
+                            await this.web3.switchNetwork(network.get());
+                        });
+
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // wrong network
+                    if (connectedNetwork.id != network.get().id) {
+                        let switchButton = `<button id="switch"><img src="img/${ network.get().symbol }.png">Switch to ${ network.get().name } network</button>`;
+                        if (network.get().nonevm) {
+                            switchButton = '';
+                        }
+
+                        content.innerHTML = `<h2>API key credit recharge</h2>
+                        <p>Wrong network</p>
+                        <div id="button-container" class="vertical">
+                            ${switchButton}
+                            <a href="/${ connectedNetwork.symbol }"><button><img src="img/${ connectedNetwork.symbol }.png">Go to ${ connectedNetwork.name } app</button></a>
+                        </div>`;
+
+                        if (!network.get().nonevm) {
+                            const button = content.querySelector('#switch');
+                            button.addEventListener('click', async () => {
+                                await this.web3.switchNetwork(network.get());
+                            });
+                        }
+
+                        updatingUI = false;
+                        return;
+                    }
+
+                    // ok
+                    const account = await this.web3.getAccount();
+                    const accountSliced = `${ account.slice(0,6) }...${ account.slice(-4) }`;
+
+                    content.innerHTML = `<h2>API key credit recharge</h2>
+                    <p class="title">Connected Wallet</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="wallet" readonly value="${ accountSliced }">
+                        <div class="input-button">
+                            <span id="network-icon"><img src='img/${ network.get().symbol }.png'></span>
+                        </div>
+                    </div>
+                    <p class="title">API key</p>
+                    <input type="text" class="input-text keys" id="key" readonly value="${ api.isLogged() }">
+                    <p class="title">Recharge amount</p>
+                    <div class="input-container">
+                        <input type="text" class="input-text keys" id="amount" placeholder="0.0000">
+                        <div id="token" class="input-button">
+                            <span class="token-name">${ network.get().token }</span>
+                        </div>
+                    </div>
+                    <p class="title" id="values">
+                        <span id="usd">~$0.00</span>
+                        <span>Balance: <span id="balance">0.0000</span><span class="token-name">${ network.get().token }</span></span>
+                    </p>
+                    <div id="gasprice">
+                        <div id="title">
+                            <img src="https://owlracle.info/img/owl.webp" alt="owlracle logo">
+                            <psna>Recommended Gas Price</span>
+                        </div>
+                        <div id="body">
+                            <div class="spin"><i class="fas fa-spin fa-cog"></i></div>
+                            <span>Let me handle this </span>
+                        </div>
+                    </div>
+                    <div id="button-container"><button id="recharge-key" disabled>⚡Recharge⚡</button></div>`;
+
+                    const key = content.querySelector('#key');
+                    const apiKeyRegex = api.regex.apiKey;
+                    const button = content.querySelector('button');
+                    const amount = content.querySelector('#amount');
+
+                    // refresh TOKEN balance automatically
+                    const refreshBalance = async (loop=true) => {
+                        const balanceDOM = content.querySelector('#values #balance');
+                        if (balanceDOM) {
+                            balanceDOM.innerHTML = (await this.web3.getBalance()).slice(0,9);
+                            if (loop) {
+                                setTimeout(() => refreshBalance(), 5000);
+                            }
+                        }
+                    };
+                    await refreshBalance();
+
+                    // event for when typing on the value input
+                    const inputAmount = async () => {
+                        const value = parseFloat(amount.value);
+                        const usd = content.querySelector('#values #usd');
+                        usd.innerHTML = `~$${ (price.current.now * value).toFixed(2) }`;
+
+                        // check fi valid
+                        if (isNaN(value) || value <= 0) {
+                            usd.innerHTML = `~$0.00`;
+                        }
+
+                        // check if there is sufficient amount
+                        if (value <= parseFloat(await this.web3.getBalance()) && value > 0){
+                            button.removeAttribute('disabled');
+                            amount.classList.remove('red');
+                        }
+                    }
+                    // update usd span to reflect amount value converted to usd
+                    amount.addEventListener('keyup', inputAmount);
+
+                    // click the TOKEN button
+                    content.querySelector('#token .token-name').addEventListener('click', () => {
+                        amount.value = content.querySelector('#values #balance').innerHTML;
+                        inputAmount();
+                    });
+
+                    const gas = {
+                        init: async function() {
+                            // selected index
+                            this.selected = 2;
+                            await this.update();
+                        },
+
+                        // get the calculated selected gas price (not the index)
+                        getSelected: function() {
+                            return parseInt(this.list[this.selected] * 1000000000);
+                        },
+
+                        // update gas price on the list, dom and call timeout
+                        update: async function() {
+                            if (content){
+                                setTimeout(() => this.update(), 10000);
+                            }
+                            this.list = (await this.get()).speeds.filter((_,i) => i < 3).map(e => e.gasPrice);
+                            
+                            content.querySelectorAll('#gasprice .card .value').forEach((e,i) => e.innerHTML = `${this.list[i].toFixed(1)} ${ network.nonevm ? network.unit : 'GWei' }` );
+                        },
+
+                        // get gas price from window var
+                        get: async function() {
+                            return new Promise( resolve => {
+                                const wait = () => {
+                                    if (window.gasPrice) {
+                                        resolve(window.gasPrice);
+                                        return;
+                                    }
+                                    setTimeout(() => { wait() }, 250);
+                                };
+                                wait();
+                            });
+                        },
+                    };
+                    await gas.init();
+                    
+                    // after fetching, put three cards for the user to choose from
+                    const gasPriceContainer = content.querySelector('#gasprice #body');
+                    gasPriceContainer.innerHTML = gas.list.map((e,i) => {
+                        const speeds = [ '🛴 Slow', '🚗 Standard', '✈️ Fast'];
+                        content.querySelector('#recharge-key').removeAttribute('disabled');
+                        return `<div class="card ${ i == 2 ? 'selected' : '' }"><span>${speeds[i]}</span><span class="value">${e.toFixed(1)} GWei</span></div>`;
+                    }).join('');
+
+                    // event for selecting the gas cards
+                    const cards = gasPriceContainer.querySelectorAll('.card');
+                    cards.forEach((e,i) => e.addEventListener('click', () => {
+                        cards.forEach(e => e.classList.remove('selected'));
+                        e.classList.add('selected');
+                        gas.selected = i;
+                    }));
+
+                    // bind event to remove red tip when typying a corret api key
+                    key.addEventListener('keyup', () => {
+                        const value = key.value.trim().toLowerCase();
+                        if (value.match(apiKeyRegex)){
+                            button.removeAttribute('disabled');
+                            key.classList.remove('red');
+                        }
+                    });
+                
+                    button.addEventListener('click', async () => {
+                        // check if key doesnt match regex
+                        if (!key.value.match(apiKeyRegex)){
+                            new Toast(`🔑 Invalid API key`, { timeOut: 3000, position: 'center' });
+                            button.setAttribute('disabled', true);
+                            key.classList.add('red');
+                            return;
+                        }
+            
+                        // check if there is enough balance
+                        if (parseFloat(amount.value) > parseFloat(await this.web3.getBalance())) {
+                            new Toast(`💸 Insufficient balance`, { timeOut: 3000, position: 'center' });
+                            button.setAttribute('disabled', true);
+                            amount.classList.add('red');
+                            return;
+                        }
+                        
+                        // check if amount is a valid positive value
+                        if (isNaN(parseFloat(amount.value)) || parseFloat(amount.value) <= 0) {
+                            new Toast(`💰 Invalid token value`, { timeOut: 3000, position: 'center' });
+                            button.setAttribute('disabled', true);
+                            amount.classList.add('red');
+                            return;
+                        }
+
+                        // check if api key is valid
+                        button.setAttribute('disabled', true);
+                        button.innerHTML = '<i class="fas fa-spin fa-cog"></i>';
+                        const validKey = await (async () => {
+                            const data = await api.getKey(key.value);
+                            return !data.error;
+                        })();
+                        if (!validKey) {
+                            new Toast(`🔑 API key not found`, { timeOut: 3000, position: 'center' });
+                            key.classList.add('red');
+                            button.innerHTML = '⚡Recharge⚡';
+                            return;
+                        }
+            
+                        // start actions to send token
+            
+                        let toastConfirm = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for confirmation...</span>`, { timeOut: 0, position: 'center' });
+                        let toastAccept;
+            
+                        let stopError = false;
+                        await new Promise(resolve => {
+                            const successFlow = async (hash, { cancel=false }={}) => {
+                                toastAccept.fade(1000);
+                                new Toast(`Transaction ${ cancel ? 'Cancelled' : 'Confirmed' }. <a href="${ network.get().explorer.href }/tx/${ hash }" target="_blank" aria-label="view transaction" rel="noopener">View in explorer</a>.`, { timeOut: 15000, position: 'center' });
+
+                                // since we already tracked the tx, we remove the cookie
+                                cookies.delete('pending-tx-recharge');
+                
+                                if (!cancel) {
+                                    let toastUpdate = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Updating your API credit...</span>`, { timeOut: 0, position: 'center' });
+                                    const data = await api.updateCredit({
+                                        apiKey: key.value,
+                                        transactionHash: hash
+                                    });
+                                    toastUpdate.fade(1000);
+                    
+                                    if (data.status == 200) {
+                                        let bonus = '';
+                                        if (data.bonus) {
+                                            bonus = ` (<span class="green">+$${ parseFloat(data.bonus).toFixed(4) }</span> bonus)`;
+                                        }
+                                        new Toast(`🦉 Your API credit was increased by <span class="green">$${ parseFloat(data.amount.usd).toFixed(4) }</span>${bonus}. Thanks!`, { timeOut: 10000, position: 'center' });
+
+                                        return true;
+                                    }
+
+                                    new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://discord.gg/bHckPMw3Qu" target="_blank" aria-label="discord server" rel="noopener">Discord server</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
+                                    return false;
+                                }
+
+                                return true;
+                            };
+
+                            this.web3.send({
+                                from: account,
+                                to: wallet.address, // dont bother changing this, server wont recognize your tx
+                                value: amount.value,
+                                gasPrice: gas.getSelected(),
+                            })
+                            .on('error', error => {
+                                if (!stopError) {
+                                    new Toast(`Transaction failed. Message: <i>${ error.message }</i>`, { timeOut: 10000, position: 'center' });
+                                    toastConfirm.fade(1000);
+                                    if (toastAccept) {
+                                        toastAccept.fade(1000);
+                                    }
+                                    resolve(error);
+                                }
+                            })
+                            .on('transactionHash', async hash => {
+                                // console.log(hash)
+                                toastConfirm.fade(1000);
+                                toastAccept = new Toast(`<i class="fas fa-spin fa-cog"></i><span> Waiting for transaction...</span>`, { timeOut: 0, position: 'center' });
+
+                                // set cookie to tx so we can track even when page reload
+                                cookies.set('pending-tx-recharge', {
+                                    hash: hash,
+                                    apikey: key.value,
+                                }, {
+                                    expires: { hours: 1 },
+                                    json: true,
+                                });
+            
+                                const confirm = await this.web3.waitConfirmation(hash);
+                                if (!confirm.error && (confirm.status == 'replaced' || confirm.status == 'cancelled')) {
+                                    console.log(`Found ${ confirm.status } tx: ${ confirm.tx.hash }`);
+                                    await successFlow(confirm.tx.hash, { cancel: confirm.status == 'cancelled' });
+                                    stopError = true;
+                                    resolve(confirm.tx);
+                                }
+                            })
+                            .on('receipt', async receipt => {
+                                await successFlow(receipt.transactionHash);
+                                resolve(receipt);
+                            });
+                        });
+                        
+                        refreshBalance(false);
+                        button.removeAttribute('disabled');
+                        button.innerHTML = '⚡Recharge⚡';
+                    });
+
+                    updatingUI = false;
+                    return;
+                };
+                
+                (async () => {
+                    // import web3 from cdn
+                    await new Promise(resolve => new DynamicScript('https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.1/web3.min.js', () => resolve(true)));
+                    this.web3 = (await import('./web3.min.js')).default;
+                    this.web3.init().then(() => {
+                        this.web3.on('connect', checkWalletConnection);
+                        this.web3.on('networkChange', checkWalletConnection);
+                        this.web3.on('accountChange', checkWalletConnection);
+                
+                        // after web3 load
+                        checkWalletConnection();
+                    });
+                })();
+            },
+
+            alerts: async () => {
+                const content = this.content[id];
+
+                // content.querySelectorAll('.opt-card').forEach(e => e.addEventListener('click', () => {
+                //     content.querySelectorAll('.opt-card').forEach(e => e.classList.remove('selected'));
+                //     e.classList.add('selected');
+                // }));
+
+                const data = await api.getKey(api.isLogged());
+                if (!data.chatid) {
+                    return;
+                }
+
+                // revoke bot access
+                content.querySelector('#revoke.opt-card').addEventListener('click', async () => {
+                    const secret = await this.modalSecret();
+                    if (!secret) {
+                        return;
+                    }
+                    
+                    const data = await api.revokeAlertAuth(api.isLogged(), secret);
+                    if (data.error) {
+                        new Modal(`<h2>${data.error}</h2>
+                            <p>${data.message}</p>
+                            <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                        );
+                        return;
+                    }
+
+                    this.show('alerts');
+                    new Toast('🦉 Owlracle gas bot will no longer send you alerts. 🥹', { timeOut: 8000 });
+                });
+
+                // add/remove credit alerts
+                content.querySelector('#credit-alerts.opt-card').addEventListener('click', async () => {
+                    const key = api.isLogged();
+
+                    const existing = await api.getCreditAlert(key);
+                    // already receiving alerts
+                    let data;
+                    if (existing.apiKey) {
+                        data = await api.removeCreditAlert(key);
+                    }
+                    else {
+                        data = await api.addCreditAlert(key);
+                    }
+
+                    if (data.error) {
+                        new Modal(`<h2>${data.error}</h2>
+                            <p>${data.message}</p>
+                            <div id="button-container"><button id="close">OK</button></div>`, { buttonClose: 'close' }
+                        );
+                        return;
+                    }
+
+                    this.show('alerts');
+
+                    if (existing.apiKey) {
+                        new Toast('🦉 You will no longer receive alerts about your API credits. 💸', { timeOut: 8000 });
+                    }
+                    else {
+                        new Toast('🦉 You will now receive alerts about your API credits. 💵', { timeOut: 8000 });
+                    }
+                });
+
+                // add/remove gas alerts
+                content.querySelector('#gas-alerts.opt-card').addEventListener('click', async () => {
+                    new Toast('🦉 Coming Soon! Stay tuned. 👀', { timeOut: 3000 });
+                });
+            },
+
+            logs: () => {
+                const container = this.content[id];
+
+                const buildTable = data => {
+                    let txs = `<div class="empty">No requests found. Try to adjust the time range of your search.</div>`;
+                    if (data.length > 0){
+                        const tds = data.map(e => {
+                            const thisNetwork = network.getList()[e.network];
+            
+                            return `<div class="row col-5">
+                                <div class="cell">${new Date(e.timestamp).toISOString().replace('T', ' ').split('.')[0]}</div>
+                                <div class="cell">${thisNetwork.name}</div>
+                                <div class="cell">${e.endpoint}</div>
+                                <div class="cell">${e.ip}</div>
+                                <div class="cell" title="${e.origin}">${e.origin}</div>
+                            </div>`;
+                        }).join('');
+                        txs = `<div class="row head col-5">
+                            <div class="cell">Time</div>
+                            <div class="cell">Network</div>
+                            <div class="cell">Endpoint</div>
+                            <div class="cell">IP</div>
+                            <div class="cell">Origin</div>
+                        </div>
+                        <div class="body">${tds}</div>`;
+                    }
+                    txs = `<div class="table">${txs}</div>`;
+                    return txs;
+                };
+                
+                const start = async e => {
+                    const key = api.isLogged();
+
+                    if (e) {
+                        const pos = e.id.split('-')[0];
+                        const value = parseInt(new Date(e.value).getTime() / 1000);
+                        if (pos == 'from' || !this.fromTime) {
+                            this.fromTime = value;
+                        }
+                        else if (pos == 'to' || !this.toTime){
+                            this.toTime = value;
+                        }
+                    }
+                    const data = await api.getLogs(key, this.fromTime, this.toTime);
+                    const table = buildTable(data);
+                    container.querySelector('#table-container').innerHTML = table;
+                }
+
+                container.querySelectorAll('.time-range').forEach(e => e.addEventListener('input', () => start(e)));
+            },
+
+            logout: () => {
+                document.querySelector('#fog').click();
+                api.logout();
+            },
+        };
+
+        if (bindFunctions[id]){
+            bindFunctions[id]();
+        }
+    },
+};
 
 
-    document.body.appendChild(fog);
-    fog.appendChild(dropdown);
+const startHeaderApiSearch = () => {
+    api.login();
 
-    fog.addEventListener('click', () => fog.remove());
-});
+    // search api key button
+    const search = async () => {
+        if (!apiButton.classList.contains('loading')){
+            apiButton.classList.add('loading');
+            const data = await api.login();
+            apiButton.classList.remove('loading');
+            if (!data){
+                new Toast('😖 API key not found', { timeOut: 5000 });
+                return;
+            }
+            api.showProfile('info');
+        }
+    };
+    const apiButton = document.querySelector('#search #api-info');
+    apiButton.addEventListener('click', search);
+    
+    const input = document.querySelector('#search input');
+    input.addEventListener('keyup', e => {
+        if (e.key == 'Enter'){
+            search();
+        }
+    });
+
+    // copy api key
+    input.addEventListener('click', () => {
+        const key = api.isLogged();
+        if (key) {
+            navigator.clipboard.writeText(key);
+            new Toast(`📋 API key copied to the clipboard`, { timeOut: 3000 });
+            input.classList.add('blink');
+            setTimeout(() => input.classList.remove('blink'), 100);
+        }
+    });
+    
+    // dropdown header menu
+    document.querySelector('#search #drop').addEventListener('click', async function() {
+        const dropdown = document.createElement('div');
+        dropdown.id = 'dropdown';
+
+        const key = api.isLogged();
+    
+        const dropdownContent = [
+            '<div id="create-key" class="item">New API Key</div>',
+            `<div id="info-key" class="item">View key info</div>`,
+        ];
+        if (key) {
+            dropdownContent.push(
+                `<div id="recharge-key" class="item">Recharge Key</div>`,
+                `<div id="recharge-history" class="item">My recharges</div>`,
+                `<div id="request-logs" class="item">Usage logs</div>`,
+                `<div id="logout-key" class="item">Logout</div>`
+            );
+        }
+        dropdown.innerHTML = dropdownContent.join('');
+    
+        dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
+        dropdown.style.left = `${this.offsetLeft + this.clientWidth - 145}px`;
+    
+        dropdown.querySelector('#create-key').addEventListener('click', () => api.showProfile('create'));
+        dropdown.querySelector('#info-key').addEventListener('click', () => api.showProfile('info'));
+
+        if (key) {
+            
+            dropdown.querySelector('#recharge-key').addEventListener('click', async () => {
+                api.showProfile('recharge');
+            });
+            
+            dropdown.querySelector('#recharge-history').addEventListener('click', async () => {
+                api.showProfile('history');
+            });
+            
+            dropdown.querySelector('#request-logs').addEventListener('click', async () => {
+                api.showProfile('logs');
+            });
+            
+            dropdown.querySelector('#logout-key').addEventListener('click', () => {
+                api.logout();
+            });
+        }
+
+        const fog = document.createElement('div');
+        fog.id = 'fog';
+        fog.classList.add('invisible');
+    
+    
+        document.body.appendChild(fog);
+        fog.appendChild(dropdown);
+    
+        fog.addEventListener('click', () => fog.remove());
+    });
+};
 
 
 // tooltip class
@@ -1042,7 +1890,13 @@ class Tooltip {
     }
 }
 
-
+// Options:
+// id: put an id to the modal window
+// large: modal window will have higher width
+// fog.close: clicking the fog will remove the modal. default true
+// fog.dark: fog will be black
+// fog.invisible: fog will be invisible
+// buttonClose: id of the button that will close the modal
 class Modal {
     constructor(text, options = {}) {
         if (document.querySelector('#fog.modal')){
@@ -1061,8 +1915,8 @@ class Modal {
             this.domObject.classList.add('large');
         }
 
-        this.fogClose = options.fog && options.fog.close || true;
-        if (!this.fogClose){
+        this.fogClose = options.fog ? (options.fog.close || false) : true;
+        if (this.fogClose){
             fog.addEventListener('click', () => fog.remove());
             fog.querySelector('div').addEventListener('click', e => e.stopPropagation());
         }
@@ -1112,12 +1966,54 @@ class Modal {
     }
 }
 
+class Toast {
+    constructor(text, { timeOut, position='center' }={}) {
+        let container = document.querySelector('#toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.append(container);
+        }
+
+        this.element = document.createElement('div');
+        this.element.classList.add('toast');
+        this.element.innerHTML = text;
+        
+        this.timeOut = timeOut;
+        
+        if (position == 'center') {
+            container.classList.add('center');
+        }
+
+        container.prepend(this.element);
+
+        if (this.timeOut > 0) {
+            this.fade();
+        }
+        return this;
+    }
+
+    fade(timeOut) {
+        if (!timeOut) {
+            timeOut = this.timeOut;
+        }
+        setTimeout(() => this.element.classList.add('fade'), timeOut - 1000);
+        setTimeout(() => this.element.remove(), timeOut);
+        setTimeout(() => {
+            this.element.remove();
+
+            if (!document.querySelector('#toast-container .toast') && document.querySelector('#toast-container')) {
+                document.querySelector('#toast-container').remove();
+            }
+        }, timeOut);
+    }
+}
+
 
 const infoMessageModal = {
     show: function(message) {
         if (message){
-            this.create(message);
-            return;
+            return this.create(message);
         }
 
         fadeIn(this.container);
@@ -1139,6 +2035,7 @@ const infoMessageModal = {
             }
         });
         document.body.appendChild(this.container);
+        return this.container;
     },
 
     hide: function() {
@@ -1186,4 +2083,4 @@ const recaptcha = {
 }
 
 
-export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn, infoMessageModal };
+export { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network, Modal, recaptcha, fadeIn, infoMessageModal, startHeaderApiSearch, Toast };

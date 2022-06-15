@@ -1,14 +1,24 @@
 {
     "mysql": {
-        "user": "DB_USER",
-        "host": "DB_HOST",
-        "database": "DB_DATABASE",
-        "password": "DB_PASSWORD"
+        "connection": {
+            "user": "DB_USER",
+            "host": "DB_HOST",
+            "database": "DB_DATABASE",
+            "password": "DB_PASSWORD"
+        },
+        "replicate": {
+            "enabled": false,
+            "saveUpdates": false,
+            "writeLocal": false,
+            "sourceURL": "OLD_DB_URL"
+        }
     },
     "production": true,
     "telegram": {
         "enabled": false,
-        "token": "TELEGRAM_BOT_TOKEN",
+        "token": {
+            "@bot_id": "TELEGRAM_BOT_TOKEN"
+        },
         "chatId": "TELEGRAM_CHAT_ID"
     },
     "recaptcha": {
@@ -23,5 +33,6 @@
         "avax": "SNOWTRACE_API_KEY",
         "movr": "MOONSCAN_API_KEY",
         "cro": "CRONOSCAN_API_KEY"
-    }
+    },
+    "wallet": "RECEIVING_RECHARGE_WALLET"
 }

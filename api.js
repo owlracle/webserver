@@ -4,15 +4,16 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const fs = require('fs');
 
-const { Session, verifyRecaptcha, oracle, networkList, explorer, telegram } = require('./utils');
-const db = require('./database');
+const { Session, verifyRecaptcha, oracle, networkList, explorer, telegram, configFile } = require('./utils');
+const { db } = require('./database');
 
 const corsOptions = {
     origin: '*',
     optionsSuccessStatus: 200,
 };
 
-const sampleRespone = JSON.parse(fs.readFileSync(`${__dirname}/sampleResponse.json`));
+const sampleRespone = require(`./sampleResponse.json`);
+const { isTypedArray } = require('util/types');
 
 module.exports = app => {
     // old endpoint. will still work for now
@@ -36,7 +37,7 @@ module.exports = app => {
 
         const dataRun = async () => {
             const resp = {};
-            if (!Object.keys(networkList).includes(req.params.network)){
+            if (!Object.keys(networkList).includes(req.params.network) || networkList[req.params.network].disabled){
                 return { error: {
                     status: 404,
                     error: 'Not found',
@@ -54,7 +55,7 @@ module.exports = app => {
             const version = parseInt(req.query.version) || 2;
             const blocks = req.query.blocks && version == 2 ? Math.min(Math.max(parseInt(req.query.blocks), 0), 1000) : 200;
             const accept = req.query.accept && version == 2 ? req.query.accept.split(',').map(e => Math.min(Math.max(parseInt(e), 0), 100)) : defaultSpeeds;
-            
+
             if (req.query.nmin){
                 req.query.percentile = req.query.nmin;
                 const warning = 'nmin argument is deprecated and will be removed in future updates. Use percentile instead.';
@@ -67,26 +68,41 @@ module.exports = app => {
                 return { error: data.error };
             }
         
-            if (data.minGwei) {
+            
+            const minInfo = data.minGwei ? data.minGwei : data.minFee;
+
+            if (minInfo) {
                 resp.timestamp = new Date().toISOString();
+
+                api.checkLag(req.params.network, data.lastTime);
 
                 const avgTx = data.ntx.reduce((p, c) => p + c, 0) / data.ntx.length;
                 const avgTime = (data.timestamp.slice(-1)[0] - data.timestamp[0]) / (data.timestamp.length - 1);
 
                 // sort gwei array ascending so I can pick directly by index
-                const sortedGwei = data.minGwei.sort((a, b) => parseFloat(a) - parseFloat(b));
+                const sortedGwei = minInfo.sort((a, b) => parseFloat(a) - parseFloat(b));
 
                 let speeds = accept.map(speed => {
                     // get gwei corresponding to the slice of the array
-                    const poolIndex = parseInt(speed / 100 * sortedGwei.length) - 1;
+                    const poolIndex = Math.ceil(speed / 100 * sortedGwei.length) - 1;
                     return sortedGwei[poolIndex];
                 });
                 
                 // avg gas and estimated gas fee price (in $)
                 const avgGas = data.avgGas.reduce((p, c) => p + c, 0) / data.avgGas.length;
-                const tokenPrice = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[network.token].price;
+                const tokenPrice = JSON.parse(fs.readFileSync(`./tokenPrice.json`))[network.token].price;
 
                 speeds = speeds.map(speed => {
+                    // cosmos
+                    if (data.minFee) {
+                        return {
+                            acceptance: sortedGwei.filter(e => e <= speed).length / sortedGwei.length,
+                            fee: speed,
+                            estimatedGasPrice: speed / avgGas * 1000, // speed (1e-6) / gas * 1gwei (1e9) == speed / gas * 1000
+                            feeUSD: (speed * 0.000001) * tokenPrice,
+                        };
+                    }
+
                     return {
                         acceptance: sortedGwei.filter(e => e <= speed).length / sortedGwei.length,
                         gasPrice: speed,
@@ -109,6 +125,25 @@ module.exports = app => {
                     resp.avgTx = avgTx;
                     resp.avgGas = avgGas;
                     resp.speeds = speeds;
+
+                    // report base fee if available and not opted out
+                    if (data.baseFee) {
+                        // remove null
+                        resp.baseFee = data.baseFee.filter(e => e);
+                        resp.baseFee = resp.baseFee.reduce((p, c) => p + c, 0) / resp.baseFee.length;
+                    }
+                }
+
+                // calculate advisor cost
+                if (req.query.source && (req.query.source == 'advisor' || (req.query.source == 'extension' && req.query.queryadvisor))) {
+                    const fee = 0.1;
+                    const maxFee = 0.1;
+                    resp.advice = {
+                        fee: Math.min(maxFee, speeds[0].estimatedFee * fee),
+                        accept: accept[0],
+                        free: req.query.queryadvisor,
+                        free: true, // for a limited time
+                    };
                 }
             }
     
@@ -153,6 +188,7 @@ module.exports = app => {
             endpoint: 'gas',
             version: parseInt(req.query.version) || 2,
             network: req.params.network,
+            source: req.query.source || 'api',
             action: {
                 data: {},
                 run: dataRun,
@@ -182,7 +218,7 @@ module.exports = app => {
         }
 
         const dataRun = async ({ timeframe, candles, page, from, to }) => {
-            if (!Object.keys(networkList).includes(req.params.network)){
+            if (!Object.keys(networkList).includes(req.params.network) || networkList[req.params.network].disabled){
                 return { error: {
                     status: 404,
                     error: 'Not found',
@@ -204,52 +240,116 @@ module.exports = app => {
             timeframe = Object.keys(listTimeframes).includes(timeframe) ? listTimeframes[timeframe] : 
                 (Object.values(listTimeframes).map(e => e.toString()).includes(timeframe) ? timeframe : 30);
         
-            candles = Math.max(Math.min(candles || 100, 1000), 1);
-            const offset = (parseInt(page) - 1) * candles || 0;
+            const limit = Math.max(Math.min(candles || 100, 1000), 1);
+            const offset = (parseInt(page) - 1) * limit || 0;
 
-            const data = [
-                networkList[network].dbid,
-                from || 0,
-                to || new Date().getTime() / 1000,
-                timeframe * 60,
-                candles,
-                offset,
-            ];
+            const errorObj = error => ({ error: {
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving price history information from database.',
+                serverMessage: error,
+            }});
 
-            if (!from || !to){
-                // discover lower and upper timestamp limits to improve search performance
-                const sql = `SELECT MIN(UNIX_TIMESTAMP(timestamp)) AS 'min', MAX(UNIX_TIMESTAMP(timestamp)) AS 'max' FROM price_history WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?;`;
+            // this is the old slow method
+            const getCandlesLegacy = async () => {
+                const data = [
+                    networkList[network].dbid,
+                    from || 0,
+                    to || new Date().getTime() / 1000,
+                    timeframe * 60,
+                    limit,
+                    offset,
+                ];
+
+                const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(*) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
+
                 const [rows, error] = await db.query(sql, data);
 
-                if (error){
-                    return { error: {
-                        status: 500,
-                        error: 'Internal Server Error',
-                        message: 'Error while retrieving price history information from database.',
-                        serverMessage: error,
-                    }};
+                if (error) return errorObj(error);
+                
+                return rows;
+            }
+
+            // new fast and shining method. It makes a very simple query, then process thing on the server
+            const getCandles = async () => {
+                let toTime = to || new Date().getTime() / 1000;
+                toTime -= timeframe * 60 * offset;
+    
+                let fromTime = toTime - timeframe * 60;
+                const candleArray = [];
+                let breakCounter = 0;
+    
+                // this while fetch one candle per iteration
+                while( candleArray.length < limit ) {   
+                    // check how many samples there are
+                    let sql = `SELECT id FROM price_history WHERE network2 = ? AND timestamp BETWEEN ? AND ? ORDER BY timestamp DESC`;
+                    let data = [ 
+                        networkList[network].dbid,
+                        new Date(fromTime * 1000).toISOString().replace('T',' ').replace('Z',''),
+                        new Date(toTime * 1000).toISOString().replace('T',' ').replace('Z',''),
+                    ];
+                    // console.log(data)
+                    // console.log(db.format(sql, data))
+                    let [rows, error] = await db.query(sql, data);
+
+                    if (error) return errorObj(error);
+
+                    if (rows.length) {
+                        // get ids from samples
+                        const ids = (a => {
+                            const maxSamples = 100;
+                            // if there are more than maxSamples samples, we limit how many sample we get. Do we really need more than 100 samples for a single candle?
+                            // samples are evenly spread out
+                            if (a.length > maxSamples) {
+                                const temp = [];
+                                const ratio = a.length / maxSamples;
+                                for (let i=0 ; i < 100 ; i++){
+                                    const index = Math.floor(i * ratio);
+                                    temp.push(a[index]);
+                                }
+                                return temp;
+                            }
+                            return a;
+                        })(rows.map(e => e.id));
+    
+                        sql = `SELECT open, close, low, high, token_price, avg_gas, timestamp FROM price_history WHERE id IN (${ ids.map(() => '?').join(',') }) ORDER BY timestamp DESC`;
+                        [rows, error] = await db.query(sql, [ ...ids ]);
+        
+                        if (error) return errorObj(error);
+            
+                        // aggregate candle value
+                        candleArray.push({
+                            open: rows.map(e => e.open).join(','),
+                            close: rows.map(e => e.close).join(','),
+                            low: rows.map(e => e.low).join(','),
+                            high: rows.map(e => e.high).join(','),
+                            tokenprice: rows.map(e => e.token_price).join(','),
+                            avg_gas: rows.map(e => e.avg_gas).join(','),
+                            timestamp: rows.slice(-1)[0].timestamp,
+                            samples: rows.length,
+                        });
+                    }
+                    // breakCounter will make the while break if offset is high, and there is nothing more to fetch
+                    else {
+                        breakCounter++;
+                        if (breakCounter >= 10) {
+                            break;
+                        }
+                    }
+                    
+                    // update toTime and fromTime
+                    toTime = fromTime;
+                    fromTime = toTime - timeframe * 60;
                 }
 
-                data[1] = rows.slice(-1)[0].min; // from
-                data[2] = rows[0].max; // to
-                data.pop();
+                return candleArray; 
             }
 
-            const sql = `SELECT GROUP_CONCAT(p.open) AS 'open', GROUP_CONCAT(p.close) AS 'close', GROUP_CONCAT(p.low) AS 'low', GROUP_CONCAT(p.high) AS 'high', GROUP_CONCAT(p.token_price) AS 'tokenprice', MAX(p.timestamp) AS 'timestamp', count(*) AS 'samples', GROUP_CONCAT(p.avg_gas) AS 'avg_gas' FROM price_history p WHERE network2 = ? AND timestamp >= FROM_UNIXTIME(?) AND timestamp < FROM_UNIXTIME(?) GROUP BY timestamp DIV ? ORDER BY timestamp DESC LIMIT ?`;
-            // console.log(sql)
-            
-            const [rows, error] = await db.query(sql, data);
-        
-            if (error){
-                return { error: {
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while retrieving price history information from database.',
-                    serverMessage: error,
-                }};
-            }
-    
-            return rows.map(row => {
+            // const t = new Date().getTime();
+            const rows = await getCandles();
+            // console.log(`T: ${ new Date().getTime() - t }`);
+            return rows.error ? rows : 
+            rows.map(row => {
                 const open = row.open.split(',').map(e => parseFloat(e));
                 const close = row.close.split(',').map(e => parseFloat(e));
                 const low = row.low.split(',').map(e => parseFloat(e));
@@ -334,6 +434,7 @@ module.exports = app => {
             endpoint: 'history',
             version: parseInt(req.query.version) || 2,
             network: req.params.network,
+            source: req.query.source || 'api',
             action: {
                 data: {
                     timeframe: timeframe,
@@ -385,59 +486,41 @@ module.exports = app => {
         const keyCryptPromise = bcrypt.hash(key, 10); 
         const secretCryptPromise = bcrypt.hash(secret, 10);
     
-        
         const hash = await Promise.all([keyCryptPromise, secretCryptPromise]);
         
-        try {
-            // create new wallet for deposits
-            const wallet = await (await fetch('https://api.blockcypher.com/v1/eth/main/addrs', { method: 'POST' })).json();
-            
-            const data = {
-                apiKey: hash[0],
-                secret: hash[1],
-                wallet: `0x${wallet.address}`,
-                private: wallet.private,
-                peek: key.slice(-4),
-            };
-        
-            if (req.body.origin){
-                const origin = api.getOrigin(req.body.origin);
-                if (origin){
-                    data.origin = origin;
-                }
-            }
-            if (req.body.note){
-                data.note = req.body.note;
-            }
+        const data = {
+            apiKey: hash[0],
+            secret: hash[1],
+            peek: key.slice(-4),
+        };
     
-            const [rows, error] = await db.insert('api_keys', data);
-        
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to insert new api key to database',
-                    serverMessage: error,
-                });
-            }
-            else {
-                res.send({
-                    apiKey: key,
-                    secret: secret,
-                    wallet: data.wallet,
-                });
+        if (req.body.origin){
+            const origin = api.getOrigin(req.body.origin);
+            if (origin){
+                data.origin = origin;
             }
         }
-        catch (error) {
+        if (req.body.note){
+            data.note = req.body.note;
+        }
+
+        const [rows, error] = await db.insert('api_keys', data);
+    
+        if (error){
             res.status(500);
             res.send({
                 status: 500,
                 error: 'Internal Server Error',
-                message: 'Error creating new wallet. Try again in a few minutes.',
+                message: 'Error while trying to insert new api key to database',
                 serverMessage: error,
             });
+            return;
         }
+
+        res.send({
+            apiKey: key,
+            secret: secret,
+        });
     });
     
     
@@ -445,98 +528,136 @@ module.exports = app => {
     app.put('/keys/:key', async (req, res) => {
         const key = req.params.key;
         const secret = req.body.secret;
-    
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
+
+        const row = await api.validateKey(key);
+        if (row.status != 200) {
+            res.status(row.status).send(row.send);
+            return;
         }
-        else if (!secret){
+        const keyInfo = row.send;
+
+        if (!secret){
             res.status(400);
             res.send({
                 status: 400,
                 error: 'Bad Request',
                 message: 'The api secret was not provided.'
             });
+            return;
         }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else{
-                const rowsPromise = rows.map(row => Promise.all([
-                    bcrypt.compare(key, row.apiKey),
-                    bcrypt.compare(secret, row.secret)
-                ]));
-                const row = (await Promise.all(rowsPromise)).map((e,i) => e[0] && e[1] ? rows[i] : false).filter(e => e);
-    
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find an api key matching the provided secret key.'
-                    });
-                }
-                else {
-                    const data = {};
-                    const id = row[0].id;
-        
-                    let newKey = key;
-        
-                    // fields to edit
-                    if (req.body.resetKey){
-                        newKey = uuidv4().split('-').join('');
-                        data.peek = newKey.slice(-4);
-                        data.apiKey = await bcrypt.hash(newKey, 10);
-                    }
-                    if (req.body.origin){
-                        data.origin = req.body.origin;
-                    }
-                    if (req.body.note){
-                        data.note = req.body.note;
-                    }
-        
-                    if (Object.keys(data).length == 0){
-                        res.send({ message: 'No information was changed.' });
-                    }
-                    else {
-                        const [rows, error] = await db.update('api_keys', data, `id = ?`, [id]);
-                        
-                        if (error){
-                            res.status(500);
-                            res.send({
-                                status: 500,
-                                error: 'Internal Server Error',
-                                message: 'Error while trying to update api key information.',
-                                serverMessage: error,
-                            });
-                        }
-                        else{
-                            data.apiKey = newKey;
-                            delete data.peek;
-            
-                            res.send({
-                                message: 'api key ionformation updated.',
-                                ...data
-                            });
-                        }
-                    }
-        
-                }
-            }
+
+        const secretCheck = await bcrypt.compare(secret, keyInfo.secret);
+        if (!secretCheck){
+            res.status(403).send({
+                status: 403,
+                error: 'Forbidden',
+                message: 'The provided api key and secret does not match.',
+            });
+            return;
         }
+
+        const data = {};
+        const id = keyInfo.id;
+
+        let newKey = key;
+
+        // fields to edit
+        if (req.body.resetKey){
+            newKey = uuidv4().split('-').join('');
+            data.peek = newKey.slice(-4);
+            data.apiKey = await bcrypt.hash(newKey, 10);
+        }
+        if (req.body.origin){
+            data.origin = req.body.origin;
+        }
+        if (req.body.note){
+            data.note = req.body.note;
+        }
+
+        if (Object.keys(data).length == 0){
+            res.status(304).send({ message: 'No information was changed.' });
+            return;
+        }
+
+        const [rows, error] = await db.update('api_keys', data, `id = ?`, [id]);
+        
+        if (error){
+            res.status(500).send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to update api key information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        data.apiKey = newKey;
+        delete data.peek;
+
+        res.send({
+            message: 'api key information updated.',
+            ...data
+        });
+    });
+    
+    
+    // get api key info
+    app.get('/keys/:key', cors(corsOptions), async (req, res) => {
+        const key = req.params.key;
+    
+        if (key == sampleRespone.apiPlaceholder){
+            res.send(sampleRespone.endpoints.keys);
+            return;
+        }
+
+        let keyRow = await api.validateKey(key);
+        if (keyRow.status != 200) {
+            res.status(keyRow.status).send(keyRow.send);
+            return;
+        }
+        keyRow = keyRow.send;
+
+        const id = keyRow.id;
+
+        const data = {
+            apiKey: key,
+            creation: keyRow.creation,
+            credit: keyRow.credit,
+        };
+
+        if (keyRow.chatid && keyRow.chatid.length) {
+            data.chatid = keyRow.chatid;
+        }
+
+        if (keyRow.origin){
+            data.origin = keyRow.origin;
+        }
+        if (keyRow.note){
+            data.note = keyRow.note;
+        }
+
+        const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
+        const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ?`;
+
+        [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, [ id, id ]);
+
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        data.usage = {
+            apiKeyHour: rows[0].hourapi,
+            apiKeyTotal: rows[0].totalapi,
+        };
+
+        res.send(data);
     });
     
     
@@ -612,106 +733,6 @@ module.exports = app => {
     });
     
     
-    // get api key info
-    app.get('/keys/:key', cors(corsOptions), async (req, res) => {
-        const key = req.params.key;
-    
-        if (key == sampleRespone.apiPlaceholder){
-            res.send(sampleRespone.endpoints.keys);
-            return;
-        }
-
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
-            return;
-        }
-
-        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
-
-        if (row.length == 0){
-            res.status(401);
-            res.send({
-                status: 401,
-                error: 'Unauthorized',
-                message: 'Could not find your api key.'
-            });
-            return;
-        }
-
-        const id = row[0].id;
-
-        const data = {
-            apiKey: key,
-            creation: row[0].creation,
-            wallet: row[0].wallet,
-            credit: row[0].credit
-        };
-
-        if (row[0].origin){
-            data.origin = row[0].origin;
-        }
-        if (row[0].note){
-            data.note = row[0].note;
-        }
-
-        const hourApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id} AND timestamp >= now() - INTERVAL 1 HOUR`;
-        const totalApi = `SELECT count(*) FROM api_requests WHERE apiKey = ${id}`;
-        // let hourIp = 'SELECT 0';
-        // let totalIp = 'SELECT 0';
-
-        const queryData = [];
-
-        // if (req.header('x-real-ip')){
-        //     const ip = req.header('x-real-ip');
-        //     hourIp = `SELECT count(*) FROM api_requests WHERE ip = ? AND timestamp >= now() - INTERVAL 1 HOUR`;
-        //     totalIp = `SELECT count(*) FROM api_requests WHERE ip = ?`;
-        //     queryData.push(ip, ip);
-        // }
-
-
-        // const [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${hourIp}) AS hourip, (${totalApi}) AS totalapi, (${totalIp}) AS totalip`, queryData);
-        [rows, error] = await db.query(`SELECT (${hourApi}) AS hourapi, (${totalApi}) AS totalapi`, queryData);
-
-        if (error){
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to search the database for your api key.',
-                serverMessage: error,
-            });
-            return;
-        }
-
-        data.usage = {
-            apiKeyHour: rows[0].hourapi,
-            // ipHour: rows[0].hourip,
-            apiKeyTotal: rows[0].totalapi,
-            // ipTotal: rows[0].totalip,
-        };
-
-        res.send(data);
-    });
-    
-    
     // request credit info
     app.get('/credit/:key', cors(corsOptions), async (req, res) => {
         const key = req.params.key;
@@ -779,62 +800,141 @@ module.exports = app => {
     // update credit
     app.put('/credit/:key', async (req, res) => {
         const key = req.params.key;
-    
-        if (!key.match(/^[a-f0-9]{32}$/)){
-            res.status(400);
-            res.send({
-                status: 400,
-                error: 'Bad Request',
-                message: 'The informed api key is invalid.'
-            });
+        const tx = req.body.transactionHash;
+        const network = req.body.network;
+        const row = await api.validateKey(key);
+
+        if (row.status != 200) {
+            res.status(row.status).send(row.send);
+            return;
         }
-        else {
-            const [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
-    
-            if (error){
-                res.status(500);
-                res.send({
-                    status: 500,
-                    error: 'Internal Server Error',
-                    message: 'Error while trying to search the database for your api key.',
-                    serverMessage: error,
-                });
-            }
-            else {
-                const row = (await Promise.all(rows.map(row => bcrypt.compare(key, row.apiKey)))).map((e,i) => e ? rows[i] : false).filter(e => e);
-        
-                if (row.length == 0){
-                    res.status(401);
-                    res.send({
-                        status: 401,
-                        error: 'Unauthorized',
-                        message: 'Could not find your api key.'
-                    });
-                }
-                else {
-                    const txs = await api.updateCredit(row[0]);
-                    res.send(txs);
-                }
-            }
-        }
+
+        const txs = await api.updateCredit(row.send, tx, network);
+        res.send(txs);
     });
 
 
     app.get('/tokenprice/:token', async (req, res) => {
-        const token = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[req.params.token.toUpperCase()];
+        try {
+            const token = JSON.parse(fs.readFileSync(`${__dirname}/tokenPrice.json`))[req.params.token.toUpperCase()];
+    
+            if (!token){
+                res.status(404).send({
+                    status: 404,
+                    error: 'Not Found',
+                    message: 'The token you are looking for could not be found.',
+                });
+                return;
+            }
+    
+            res.send(token);
+        }
+        catch (error) {
+            console.log('Error getting token price');
+            res.status(500).send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error getting token price.',
+            });
+            return;
+    }
+    });
 
-        if (!token){
-            res.status(404).send({
-                status: 404,
-                error: 'Not Found',
-                message: 'The token you are looking for could not be found.',
+
+    // get info about all rpcs
+    app.get('/rpc', cors(corsOptions), async (req, res) => {
+        res.send(await Promise.all(Object.entries(networkList).map(async ([k,v]) => {
+            const data = await oracle.getNetInfo(v.name, blocks=1);
+            return {
+                network: k,
+                rpc: data.rpc,
+                lastTime: data.lastTime,
+            };
+        })));
+    });
+
+
+    // get info about a single rpc
+    app.get('/rpc/:network', cors(corsOptions), async (req, res) => {
+        const network = networkList[req.params.network];
+        const data = await oracle.getNetInfo(network.name, blocks=1);
+        res.send({
+            network: req.params.network,
+            rpc: data.rpc,
+            lastTime: data.lastTime,
+        });
+    });
+
+
+    // bind a telegram chat id to your apikey
+    app.post('/authbot/:apikey', cors(corsOptions), async (req, res) => {
+        let keyRow = await api.validateKey(req.params.apikey);
+        if (keyRow.status != 200) {
+            res.status(keyRow.status).send(keyRow.send);
+            return;
+        }
+        keyRow = keyRow.send;
+
+        // chat id is already set, forbid
+        if (keyRow.chatid && keyRow.chatid.length > 0) {
+            res.status(403).send({
+                status: 403,
+                error: 'Forbidden',
+                message: 'There is already a telegram chatid bound to this apikey. Remove it first.',
             });
             return;
         }
 
-        res.send(token);
+        [rows, error] = await db.update('api_keys', { chatid: req.body.chatid }, `id = ?`, [ keyRow.id ]);
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving your credit information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        res.send({ message: 'success' });
     });
-    
+
+
+    // delete previously set chatid
+    app.delete('/authbot/:apikey', cors(corsOptions), async (req, res) => {
+        let keyRow = await api.validateKey(req.params.apikey);
+        if (keyRow.status != 200) {
+            res.status(keyRow.status).send(keyRow.send);
+            return;
+        }
+        keyRow = keyRow.send;
+
+        // chat id is already set, request secret key
+        if (!(await bcrypt.compare(req.body.secret, keyRow.secret))) {
+            res.status(401).send({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Your secret key does not match.',
+            });
+            return;
+        }
+
+        [rows, error] = await db.update('api_keys', { chatid: '' }, `id = ?`, [ keyRow.id ]);
+        if (error){
+            res.status(500);
+            res.send({
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving your credit information.',
+                serverMessage: error,
+            });
+            return;
+        }
+
+        res.send({ message: 'success' });
+    });
+
 
     return api;
 }
@@ -844,6 +944,7 @@ const api = {
     USAGE_LIMIT: 100,
     GUEST_LIMIT: 10,
     REQUEST_COST: 0.00005,
+    lagAlert: {},
 
     getUsage: async function(keyId, ip) {
         const usage = { ip: 0, apiKey: 0 };
@@ -950,7 +1051,7 @@ const api = {
         return true;
     },
 
-    authorizeKey: function(key, ip, usage, credit){
+    authorizeKey: function(key, ip, usage, credit, needCredit){
         if (!ip && !key){
             return { error: {
                 status: 401,
@@ -965,7 +1066,7 @@ const api = {
                 message: 'You have reached the guest limit. Use an api key to increase your request limit.'
             }};
         }
-        else if (key && credit < 0 && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
+        else if (key && credit < 0 && (needCredit || usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
             return { error: {
                 status: 403,
                 error: 'Forbidden',
@@ -976,11 +1077,22 @@ const api = {
         return true;
     },
 
-    reduceCredit: async function(keyId, usage, credit) {
-        if (keyId && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)){
+    reduceCredit: async function(keyId, usage, credit, fixedCost) {
+        let valueChanged = false;
+
+        if (keyId && (usage.apiKey >= this.USAGE_LIMIT || usage.ip >= this.USAGE_LIMIT)) {
             // reduce credits
             credit -= this.REQUEST_COST;
-            const [rows, error] = await db.update('api_keys', {credit: credit}, `id = ?`, [keyId]);
+            valueChanged = true;
+        }
+
+        if (fixedCost) {
+            credit -= fixedCost;
+            valueChanged = true;
+        }
+
+        if (keyId && valueChanged) {
+            const [rows, error] = await db.update('api_keys', {credit: credit}, `id = ?`, [ keyId ]);
     
             if (error){
                 return { error: {
@@ -995,7 +1107,7 @@ const api = {
         return true;    
     },
 
-    automate: async function({ key, origin, ip, endpoint, action, version, network }) {
+    automate: async function({ key, origin, ip, endpoint, action, version, network, source }) {
         let resp = {};
         const sqlData = {};
         let credit = 0;
@@ -1020,7 +1132,8 @@ const api = {
             return { error: usage.error };
         }
     
-        resp = this.authorizeKey(key, ip, usage, credit);
+        // resp = this.authorizeKey(key, ip, usage, credit, source == 'advisor');
+        resp = this.authorizeKey(key, ip, usage, credit, false);
         if (resp.error){
             return { error: resp.error };
         }
@@ -1030,8 +1143,24 @@ const api = {
             return { error: actionResp.error };
         }
 
-        if (key) {
-            resp = await this.reduceCredit(sqlData.apiKey, usage, credit);
+        // the fixed cost is meant to set a price for advisor work
+        const adviceSettings = (action => {
+            if (!action.advice) {
+                return {};
+            }
+
+            const settings = {
+                fee: action.advice.free ? false : action.advice.fee,
+                accept: action.advice.accept,
+            };
+
+            return settings;
+        })(actionResp);
+
+        // check if ANY of the args in the list are whitelisted (in the config file)
+        const isWhitelist = list => list.map(e => configFile.whitelist.includes(e)).filter(e => e).length > 0;
+        if (key && !isWhitelist([ip, sqlData.apiKey, origin])) {
+            resp = await this.reduceCredit(sqlData.apiKey, usage, credit, adviceSettings.fee);
             if (resp.error){
                 return { error: resp.error };
             }
@@ -1041,6 +1170,9 @@ const api = {
         sqlData.version = version;
         sqlData.network2 = networkList[network].dbid;
 
+        const sourceId = { api: 0, extension: 1, bot: 2, advisor: 3 };
+        sqlData.source = sourceId[source] || 0;
+
         if (ip){
             sqlData.ip = ip;
         }
@@ -1048,22 +1180,35 @@ const api = {
             sqlData.origin = origin;
         }
     
-        resp = await this.recordRequest(sqlData);
+        resp = await this.recordRequest('api_requests', sqlData);
         if (resp.error){
             return { error: resp.error };
+        }
+
+        // record advice
+        if (adviceSettings.fee) {
+            const requestId = resp.insertId;
+            resp = await this.recordRequest('advice', {
+                fee: adviceSettings.fee,
+                accept: adviceSettings.accept,
+                request: requestId,
+            });
+            if (resp.error){
+                return { error: resp.error };
+            }            
         }
 
         return actionResp;
     },
 
-    recordRequest: async function(data) {
+    recordRequest: async function(table, data) {
         // save API request to DB for statistics purpose
-        const [rows, error] = await db.insert('api_requests', data);
+        const [rows, error] = await db.insert(table, data);
         if (error){
             return { error: {
                 status: 500,
                 error: 'Internal Server Error',
-                message: 'Error while trying to record api request into the database.',
+                message: 'Error while trying to record request into the database.',
                 serverMessage: error,
             }};
         }
@@ -1071,29 +1216,25 @@ const api = {
         return rows;
     },
 
-    updateCredit: async function({id, wallet, timeChecked, credit}){
-        const now = parseInt(new Date().getTime() / 1000);
-        const then = parseInt(new Date(timeChecked).getTime() / 1000 - 3600);
+    updateCredit: async function({ id, credit }, transactionHash, network){
         const data = {};
         data.api_keys = { credit: credit };
         data.api_keys.timeChecked = new Date();
+        const wallet = configFile.wallet;
 
-        // const txs = await oracle.getTx(wallet, parseInt(new Date(timeChecked).getTime() / 1000), now);
-        const txsn = [
-            // get normal txs
-            ...await Promise.all(Object.keys(networkList).map(async network => {
-                const tx = await explorer.getTx(wallet, then, now, network);
-                tx.network2 = networkList[network].dbid;
-                return tx;
-            })),
-            // get internal txs
-            ...await Promise.all(Object.keys(networkList).map(async network => {
-                const tx = await explorer.getTx(wallet, then, now, network, true);
-                tx.network2 = networkList[network].dbid;
-                return tx;
-            }))
-        ];
-        // if (txsn.map(e => e.result.length).reduce((p,c) => p+c, 0) > 0){
+        let tx = await explorer.getTx({
+            transactionHash: transactionHash,
+            network: network,
+        });
+
+        if (!tx.result || !tx.result.hash){
+            return { error: {
+                status: 404,
+                error: 'Not Found',
+                message: 'The informed transaction could not be found.',
+                serverMessage: tx,
+            }};
+        }
 
         data.credit_recharges = {};
         data.credit_recharges.fields = [
@@ -1101,85 +1242,162 @@ const api = {
             'tx',
             'value',
             'price',
-            'timestamp',
             'fromWallet',
             'apiKey',
         ];
         data.credit_recharges.values = [];
     
-        await Promise.all(txsn.map(async txs => {
-            if (txs.status == "1"){
-                // check for existing txs
-                const hashes = txs.result.map(tx => tx.hash);
-                const sql = `SELECT tx FROM credit_recharges WHERE tx IN(${hashes.map(() => '?').join(',')})`;
-                const [rows, error] = await db.query(sql, hashes);
+        tx = tx.result;
+        // check for existing txs
+        const sql = `SELECT tx FROM credit_recharges WHERE tx = ?`;
+        const [rows, error] = await db.query(sql, [ tx.hash ]);
 
-                if (error){
-                    return { error: {
-                        status: 500,
-                        error: 'Internal Server Error',
-                        message: 'Error while retrieving transactions from database.',
-                        serverMessage: error,
-                    }};
+        if (error){
+            return { error: {
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while retrieving transaction from database.',
+                serverMessage: error,
+            }};
+        }
+
+        if (rows.length > 0) {
+            return { error: {
+                status: 405,
+                error: 'Not allowed',
+                message: 'Transaction already in the database.',
+                serverMessage: error,
+            }};
+        }
+
+        const priceThen = await (async () => {
+            const blockNumber = parseInt(tx.blockNumber);
+
+            const checkError = error => {
+                if (!error){
+                    return false;
+                }    
+                return { error: {
+                    status: 500,
+                    error: 'Internal Server Error',
+                    message: 'Error while retrieving price history information from database.',
+                    serverMessage: error,
+                }};
+            };
+
+            // this will check if there is no newer block then target. Most cases this is true. then return last token price
+            const checkNew = async () => {
+                const sql = `SELECT last_block, token_price FROM price_history WHERE network2 = ? ORDER BY last_block DESC LIMIT 1;
+                `;
+                const [rows, error] = await db.query(sql, [ networkList[network].dbid ]);
+                if (error) return checkError(error);
+
+                return rows[0].last_block < blockNumber ? parseFloat(rows[0].token_price) : false;
+            };
+
+            // this function check for exact block and start expand search until a block is found
+            const loopSearch = async blockWalk => {
+                if (!blockWalk) {
+                    blockWalk = 0;
                 }
 
-                // remove existing txs
-                txs.result = txs.result.filter(e => !rows.map(r => r.tx).includes(e.hash));
+                const sql = `SELECT token_price FROM price_history WHERE network2 = ? AND last_block IN (?, ?);`;
+                const [rows, error] = await db.query(sql, [ networkList[network].dbid, blockNumber - blockWalk, blockNumber + blockWalk ]);
+                if (error) return checkError(error);
 
-                return Promise.all(txs.result.map(async tx => {
-                    // get closest block available on history. get token_price from it
-                    const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
-                    const [rows, error] = await db.query(sql, [ tx.blockNumber, txs.network2, tx.blockNumber ]);
-            
-                    if (error){
-                        return { error: {
-                            status: 500,
-                            error: 'Internal Server Error',
-                            message: 'Error while retrieving price history information from database.',
-                            serverMessage: error,
-                        }};
-                    }
-    
-                    const priceThen = parseFloat(rows[0].token_price);
-    
-                    if (tx.isError == "0" && tx.to.toLowerCase() == wallet.toLowerCase()){
-                        // update price using tx value (it is in gwei, convert to ether) * price value at that time.
-                        const value = parseInt(tx.value.slice(0,-9));
-                        data.api_keys.credit = parseFloat(credit) + (value * 0.000000001 * priceThen);
+                if (blockWalk > 10000) {
+                    return false;
+                }
 
-                        // insert only if tx not duplicate in the array (internal and regular)
-                        if (!data.credit_recharges.values.map(e => e[1]).includes(tx.hash)){
-                            data.credit_recharges.values.push([
-                                txs.network2,
-                                tx.hash,
-                                value,
-                                priceThen,
-                                db.raw(`FROM_UNIXTIME(${tx.timeStamp})`),
-                                tx.from,
-                                id
-                            ]);
-                        }
-                    }
-                }));
+                return rows.length ? parseFloat(rows[0].token_price) : await loopSearch(blockWalk + 1);
             }
-            return false;
-        }));
+
+            const fallback = async () => {
+                // get closest block available on history. get token_price from it
+                const sql = `SELECT token_price, ABS(last_block - ?) AS "block_diff" FROM price_history WHERE network2 = ? ORDER BY ABS(last_block - ?) LIMIT 1`;
+                const [rows, error] = await db.query(sql, [ blockNumber, networkList[network].dbid, blockNumber ]);
+                if (error) return checkError(error);
+    
+                return parseFloat(rows[0].token_price);
+            }
+
+            return await checkNew() || await loopSearch() || await fallback();
+        })();
+
+        if (priceThen.error){
+            return priceThen;
+        }
+        
+        if (tx.to.toLowerCase() != wallet.toLowerCase()){
+            return { error: {
+                status: 403,
+                error: 'Forbidden',
+                message: 'The informed transaction interact with an unknown wallet address.',
+                serverMessage: error,
+            }};
+        }
+
+        // update price using tx value (it is in gwei, convert to ether) * price value at that time.
+        const value = parseInt(parseInt(tx.value).toString().slice(0,-9));
+        const tokenAmount = value * 0.000000001;
+        const usdAmount = tokenAmount * priceThen;
+        const bonus = 0; // no bonus
+        data.api_keys.credit = parseFloat(credit) + usdAmount + bonus;
+
+        data.credit_recharges.values.push([
+            networkList[network].dbid,
+            tx.hash,
+            value,
+            priceThen,
+            tx.from,
+            id
+        ]);
         
         db.update('api_keys', data.api_keys, `id = ?`, [id]);
         if (data.credit_recharges.values.length){
             db.insert('credit_recharges', data.credit_recharges.fields, data.credit_recharges.values);
             telegram.alert({
                 message: 'Credit recharge',
-                token: data.credit_recharges.values.map(e => Object.values(networkList).filter(n => n.dbid == e[0])[0].token), // network
-                hash: data.credit_recharges.values.map(e => e[1]), // hash
-                value: data.credit_recharges.values.map(e => e[2] * e[3] * 0.000000001), // value * tokenprice
-                amount: data.credit_recharges.values.map(e => e[2] * 0.000000001), // value
-                fromWallet: data.credit_recharges.values.map(e => e[5]), // from
-                toWallet: wallet.toLowerCase(),
+                token: networkList[network].token,
+                hash: tx.hash,
+                usdAmount: usdAmount,
+                tokenAmount: tokenAmount,
+                fromWallet: tx.from,
+                toWallet: wallet,
             });
+
+            // reset alert status
+            const [rows, error] = await db.query(`SELECT a.id, k.chatid FROM credit_alerts a INNER JOIN api_keys k ON k.id = a.apikey WHERE a.active = 1 AND a.apikey = ?`, [ id ]);
+
+            const chats = [];
+            if (!error) {
+                rows.forEach(row => {
+                    db.update('credit_alerts', { status: '{}' }, `id = ?`, [ row.id ]);
+
+                    if (row.chatid && row.chatid.length && !chats.includes(row.chatid)) {
+                        chats.push(row.chatid);
+                    }
+                });
+
+                chats.forEach(c => telegram.alert(`✅ Your api key was recharged for $${ usdAmount.toFixed(6) }. Thanks!`, { chatId: c, bot: '@owlracle_gas_bot' }) );
+            }
         }
 
-        return txsn;
+        const resp = {
+            status: 200,
+            message: 'Recharge success',
+            amount: {
+                token: tokenAmount,
+                usd: usdAmount,
+            },
+            tx: tx
+        };
+
+        if (bonus > 0) {
+            resp.bonus = bonus;
+        }
+
+        return resp;
     },
 
     // get old blocks
@@ -1306,5 +1524,74 @@ const api = {
         console.log('DONE');
 
         return result;
+    },
+
+    validateKey: async function(key) {
+        const res = {};
+
+        if (!key.match(/^[a-f0-9]{32}$/)){
+            res.status = 400;
+            res.send = {
+                status: 400,
+                error: 'Bad Request',
+                message: 'The informed api key is invalid.'
+            };
+            return res;
+        }
+
+        let [rows, error] = await db.query(`SELECT * FROM api_keys WHERE peek = ?`, [ key.slice(-4) ]);
+    
+        if (error){
+            res.status = 500;
+            res.send = {
+                status: 500,
+                error: 'Internal Server Error',
+                message: 'Error while trying to search the database for your api key.',
+                serverMessage: error,
+            };
+            return res;
+        }
+
+        const rowsPromise = rows.map(row => bcrypt.compare(key, row.apiKey));
+        const row = (await Promise.all(rowsPromise)).map((e,i) => e ? rows[i] : false).filter(e => e);
+
+        if (row.length == 0){
+            res.status = 401;
+            res.send = {
+                status: 401,
+                error: 'Unauthorized',
+                message: 'Could not find the provided api key.'
+            };
+            return res;
+        }
+
+        res.status = 200;
+        res.send = row[0];
+
+        return res;
+    },
+
+    // create alert if lag if greater than 5 minutes
+    checkLag(network, lastTime) {
+        const timeLimit = 300; // 5 minutes
+        const warmupTime = 1800; // 30 minutes between alerts
+        
+        const nowTime = new Date().getTime() / 1000;
+        const lastAlert = this.lagAlert[network] || 0;
+
+        // it is between warmups
+        if (nowTime - lastAlert < warmupTime) {
+            return;
+        }
+
+        const timeDiff = nowTime - lastTime;
+        if (timeDiff > timeLimit) {
+            this.lagAlert[network] = nowTime;
+            telegram.alert({
+                message: 'Oracle is lagging',
+                network: network,
+                timeDiff: timeDiff,
+            });
+        }
     }
 }

@@ -70,6 +70,8 @@ header {
             
                 #timeframe-switcher {
                     margin-bottom: 10px;
+                    display: flex;
+                    justify-content: center;
                 }
 
                 #network-switcher {
@@ -101,7 +103,11 @@ header {
                     color: var(--text-color);
                     cursor: pointer;
                     transition: 0.3s all;
-                    width: 45px;
+                    width: 50px;
+                    font-size: 1.3rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
         
                     &:hover {
                         background-color: var(--bg-color);
@@ -125,119 +131,7 @@ header {
             }
         }
 
-        #wallets {
-            #wallet-table {
-                margin: auto;
-                max-width: 600px;
-
-                .row {
-                    display: flex;
-                    flex-direction: column;
-                    margin: 15px 0;
-
-                    &.placeholder {
-                        border-radius: 3px;
-                        background-color: var(--bg-intense-color);
-                        height: 70px;
-                    }
-
-                    .title {
-                        display: flex;
-                        align-items: center;
-                        background-color: var(--bg-intense-color);
-                        padding: 15px 20px;
-                        box-sizing: border-box;
-                        border-radius: 3px;
-                        cursor: pointer;
-                        transition: 0.3s all;
-                        height: 70px;
-    
-                        &:hover {
-                            filter: brightness(1.05);
-                        }
-    
-                        .cell {
-                            flex-grow: 1;
-                            flex-basis: 0;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-    
-                            .info {
-                                color: var(--text-intense-color);
-                            }
-    
-                            .text {
-                                font-size: 0.8rem;
-                                opacity: 0.7;
-                                margin-top: 5px;
-                            }
-                        }
-                    }
-
-                    .details {
-                        display: none;
-                        flex-direction: column;
-                        background-color: var(--bg-intense-color);
-                        border-radius: 0 0 3px 3px;
-                        border-top: 1px solid var(--border-color);
-                        padding: 15px 0;
-
-                        &.open {
-                            display: flex;
-                        }
-
-                        .row {
-                            flex-direction: row;
-                            height: auto;
-                            margin: 10px 0;
-
-                            .cell {
-                                flex-basis: 0;
-                                flex-grow: 1;
-                                text-align: center;
-                                color: var(--text-intense-color);
-
-                                .token {
-                                    font-size: 0.8rem;
-                                    opacity: 0.7;    
-                                }
-                            }
-                        }
-
-                        .private-container {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            cursor: pointer;
-                            margin-top: 25px;
-
-                            .private {
-                                padding: 10px 30px;
-                                transition: 0.3s all;
-                                color: var(--text-intense-color);
-                                font-size: 1.2rem;
-
-                                &:hover {
-                                    background-color: var(--main-color);
-                                    border-radius: 3px;
-                                }
-                            }
-
-                            .text {
-                                font-size: 0.8rem;
-                                opacity: 0.7;
-                                margin-top: 5px;
-                                margin-top: -5px;
-                                margin-bottom: 15px;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        #credit {
+        #key {
             max-width: 1200px;
             display: none;
             flex-direction: column;
@@ -248,7 +142,7 @@ header {
             }
 
             input {
-                width: 100%;
+                flex-grow: 1;
                 padding: 10px 20px;
                 outline: none;
                 border-radius: 3px;
@@ -268,8 +162,7 @@ header {
                     border: 1px solid var(--border-color);
                     background-color: var(--main-color);
                     color: var(--text-dark-color);
-                    width: 50%;
-                    max-width: 300px;
+                    width: 200px;
                     margin: 0 5px;
                     padding: 10px 20px;
                     font-size: 1.2rem;
@@ -291,7 +184,7 @@ header {
 
             #wallet-table {
                 display: grid;
-                grid-template-columns: 50px 1fr 1fr 2fr 1fr 100px 2fr;
+                grid-template-columns: 50px 1fr 1fr 1fr 100px 250px;
                 grid-auto-rows: 1fr;
                 grid-row-gap: 5px;
                 margin-top: 25px;
@@ -310,6 +203,7 @@ header {
                     font-family: monospace;
                     
                     &.head {
+                        padding: 5px 0px;
                         font-size: 1rem;
                         color: var(--text-intense-color);
                         font-family: inherit;
@@ -327,29 +221,6 @@ header {
                     }
                 }
             }
-
-            #page-container {
-                display: flex;
-                justify-content: flex-end;
-                align-items: center;
-                margin-top: 10px;
-
-                .page {
-                    font-size: 1.4rem;
-                    margin: 0 15px;
-                    cursor: pointer;
-                    background-color: transparent;
-                    border: 1px solid var(--border-color);
-                    border-radius: 3px;
-                    padding: 3px 20px;
-                    transition: 0.3s all;
-
-                    &:hover {
-                        background-color: var(--main-color);
-                    }
-                }
-            }
-
         }
     }
 }

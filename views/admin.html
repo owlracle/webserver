@@ -21,8 +21,7 @@
         <div id="fog" class="invisible hidden menu">
             <div id="side-menu">
                 <div id="requests" class="item">API requests</div>
-                <div id="wallets" class="item">Check Wallets</div>
-                <div id="credit" class="item">Update Credit</div>
+                <div id="key" class="item">Key check</div>
             </div>
         </div>
         <div id="content">
@@ -32,10 +31,10 @@
         
                 <div id="chart-container">
                     <div id="timeframe-switcher">
-                        <button id="tf-M">M</button>
-                        <button id="tf-d">D</button>
-                        <button id="tf-h" class="active">H</button>
-                        <button id="tf-m">M</button>
+                        <button id="tf-M">📅</button>
+                        <button id="tf-d">☀️</button>
+                        <button id="tf-h" class="active">⌛</button>
+                        <button id="tf-m">⏱️</button>
                     </div>
                     <div id="chart"></div>
                     <div id="network-switcher">
@@ -47,27 +46,20 @@
                         <button id="ntw-eth"><img src="img/eth.png"></button>
                         <button id="ntw-cro"><img src="img/cro.png"></button>
                         <button id="ntw-movr"><img src="img/movr.png"></button>
+                        <button id="ntw-one"><img src="img/one.png"></button>
+                        <button id="ntw-celo"><img src="img/celo.png"></button>
+                        <button id="ntw-ht"><img src="img/ht.png"></button>
+                        <button id="ntw-fuse"><img src="img/fuse.png"></button>
                     </div>
                 </div>
             </div>
     
-            <div id="wallets" class="menu-content">
-                <h1>Check Wallets</h1>
+            <div id="key" class="menu-content">
+                <h1>Key check</h1>
 
-                <div id="wallet-table"></div>
-            </div>
-
-            <div id="credit" class="menu-content">
-                <h1>Update Credit</h1>
-
-                <input type="text" id="input-wallet" placeholder="ID or WALLET">
                 <div id="button-container">
-                    <button id="update">Update all</button>
+                    <input type="text" id="input-wallet" placeholder="ID">
                     <button id="check">Check all</button>
-                </div>
-                <div id="page-container">
-                    <div class="page" id="left"><i class="fa-solid fa-angle-left"></i></div>
-                    <div class="page" id="right"><i class="fa-solid fa-angle-right"></i></div>
                 </div>
                 <div id="wallet-table"></div>
             </div>

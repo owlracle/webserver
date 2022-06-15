@@ -2,7 +2,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const fetch = require('node-fetch');
 
-const configFile = JSON.parse(fs.readFileSync(`${__dirname}/config.json`));
+const configFile = require(`./config.json`);
 
 
 // manage session tokens
@@ -61,7 +61,7 @@ async function verifyRecaptcha(token){
 
 
 const oracle = {
-    url: configFile.production ? `http://owlracle.tk:8080` : `http://127.0.0.1:4220`,
+    url: configFile.production ? `http://127.0.0.1:8080` : `http://127.0.0.1:4220`,
 
     getTx: async function(address, fromTime, toTime){
         try {
@@ -77,7 +77,7 @@ const oracle = {
         }
     },
 
-    getNetInfo: async function(network='bsc', blocks=200, nmin=0.3){
+    getNetInfo: async function(network='ethereum', blocks=200, nmin=0.3){
         try{        
             return await (await fetch(`${this.url}/${network}?blocks=${blocks}&nth=${nmin}`)).json();
         }
@@ -119,12 +119,19 @@ const networkList = {
     one: { name: 'harmony', token: 'ONE', cgid: 'harmony', dbid: 8 },
     ht: { name: 'heco', token: 'HT', cgid: 'huobi-token', dbid: 9 },
     celo: { name: 'celo', token: 'CELO', cgid: 'celo', dbid: 10 },
+    fuse: { name: 'fuse', token: 'FUSE', cgid: 'fuse-network-token', dbid: 11 },
+    atom: { name: 'cosmoshub', token: 'ATOM', cgid: 'cosmos', dbid: 12, disabled: true },
+    juno: { name: 'juno', token: 'JUNO', cgid: 'juno-network', dbid: 13, disabled: true },
+    osmo: { name: 'osmosis', token: 'OSMO', cgid: 'osmosis', dbid: 14, disabled: true },
+    aurora: { name: 'aurora', token: 'ETH', cgid: 'ethereum', dbid: 15 },
 };
+// use this to get cg's token list
+// https://api.coingecko.com/api/v3/coins/list
 
 
 const explorer = {
     apiKey: configFile.explorer,
-    url: {
+    url: { // here goes only networks having an api
         eth: `https://api.etherscan.io`,
         bsc: `https://api.bscscan.com`,
         poly: `https://api.polygonscan.com`,
@@ -132,9 +139,7 @@ const explorer = {
         avax: `https://api.snowtrace.io`,
         movr: `https://api-moonriver.moonscan.io`,
         cro: `https://api.cronoscan.com`,
-        one: `https://explorer.harmony.one`,
-        ht: `https://hecoinfo.com`,
-        celo: `https://explorer.celo.org`,
+        ht: `https://api.hecoinfo.com`,
     },
 
     getBlockNumber: async function(timestamp, network) {
@@ -154,7 +159,12 @@ const explorer = {
         }
 
         try {
-            const request = await fetch(`${this.url[network]}/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${this.apiKey[network]}`);
+            if (!this.apiKey[network] || !this.url[network]){
+                return { status: '0', message: 'NOTOK', result: 'No api for this network' };
+            }
+
+            const url = `${this.url[network]}/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${this.apiKey[network]}`;
+            const request = await fetch(url);
             // snowtrace sometimes return an html, so we must make sure response is json
             const block = (data => {
                 try {
@@ -182,11 +192,43 @@ const explorer = {
         // {"status":"1","message":"OK-Missing/Invalid API Key, rate limit of 1/5sec applied","result":"946206"}
     },
 
-    getTx: async function(wallet, fromTime, toTime, network, internal=false){
+    getTx: async function({ wallet, fromTime, toTime, network, internal=false, transactionHash }){
         // console.log(wallet, from, to)
-        if (!this.url[network]){
-            return { status: "0", message: "INVALID NETWORK", result: [] };
+        if (!this.apiKey[network] || !this.url[network]){
+            return { status: "0", message: "THERE IS NO API FOR THIS NETWORK", result: [] };
         }
+
+        if (transactionHash) {
+            try {
+                const url = `${ this.url[network] }/api?module=proxy&action=eth_getTransactionByHash&txhash=${ transactionHash }&apikey=${ this.apiKey[network] }`;
+                const request = await fetch(url);
+                const txs = (data => {
+                    try {
+                        return JSON.parse(data);
+                    }
+                    catch (error) {
+                        return { status: '0', message: 'NOTOK', result: 'Explorer returned non JSON response' };
+                    }
+                })(await request.text());
+    
+                if (txs.status == '0' && txs.result == 'Explorer returned non JSON response'){
+                    await new Promise(resolve => setTimeout(() => resolve(true), 500));
+                    return await this.getTx({
+                        transactionHash: transactionHash,
+                        network: network,
+                    });
+                }
+    
+                return txs;
+            }
+            catch (error) {
+                console.log(error);
+                return error;
+            }
+
+            // {"jsonrpc":"2.0","id":1,"result":{"blockHash":"0x00016d8f000003d162312a4bca23b4fb01760509dac7030481dbe4b8abba81cf","blockNumber":"0x200d45a","from":"0x7f5d7e00d82dfeb7e83a0d4285cb21b31feab2b4","gas":"0x5208","gasPrice":"0x9cb0b8cfc0","hash":"0x1a841fb6c066d5477766424a49d840f2ea6cfb29ae2e1aedf17e0119eb441831","input":"0x","nonce":"0x439","to":"0x809aef7f5d8d1dc63b9b453bf2ebaa6fccf2a912","transactionIndex":"0x4","value":"0x11e473e8a7f4a78","type":"0x0","v":"0x217","r":"0xe91ff13a6a564a6f39e9c4c94b8f6caeb085d007c3b4d996e0621ddd328644da","s":"0x4121e4b27c50a53fef982a4ffcc32a026aa9f1357a2038dfc0d7c53fa9123018"}}
+        }
+
         const fromBlock = await this.getBlockNumber(parseInt(fromTime), network);
         const toBlock = await this.getBlockNumber(parseInt(toTime), network);
 
@@ -204,7 +246,7 @@ const explorer = {
 
             if (txs.status == '0' && txs.result == 'Explorer returned non JSON response'){
                 await new Promise(resolve => setTimeout(() => resolve(true), 500));
-                return await this.getTx(wallet, fromTime, toTime, network);
+                return await this.getTx({ wallet: wallet, fromTime: fromTime, toTime: toTime, network: network });
             }
 
             return txs;
@@ -254,19 +296,29 @@ const explorer = {
 const telegram = {
     url: `https://api.telegram.org/bot{{token}}/sendMessage?chat_id={{chatId}}&text=`,
 
-    alert: async function(message){
+    alert: async function(message, opt){
         if (configFile.telegram.enabled){
-            if (!this.token){
-                this.token = configFile.telegram.token;
-                this.chatId = configFile.telegram.chatId;
-    
-                this.url = this.url.replace(`{{token}}`, this.token).replace(`{{chatId}}`, this.chatId);
+            let token = configFile.telegram.token['@owlracle_bot'];
+            let chatId = configFile.telegram.chatId;
+
+            if (opt && opt.chatId){
+                chatId = opt.chatId;
             }
+
+            if (opt && opt.bot){
+                token = configFile.telegram.token[opt.bot];
+            }
+            else if (opt && opt.token){
+                token = opt.token;
+            }
+            
+            const url = this.url.replace(`{{token}}`, token).replace(`{{chatId}}`, chatId);
+
             if (typeof message !== 'string'){
                 message = JSON.stringify(message);
             }
     
-            const resp = configFile.production ? await (await fetch(this.url + encodeURIComponent(message))).json() : true;
+            const resp = configFile.production ? await (await fetch(url + encodeURIComponent(message))).json() : true;
             return resp;
         }
         return false;

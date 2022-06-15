@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{{networkName}} Gas Price Tracker API - Owlracle</title>
+    <title>{{networkName}} Gas Tracker API - Owlracle</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta name="description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, and Cronos.">
-    <meta name="keywords" content="gas price api, binance smart chain, avalanche, polygon, ethereum, fantom, moonriver, cronos, crypto, ETH, MATIC, FTM, AVAX, BNB, MOVR, CRO, defi, gas, gas fee, gas price, oracle, bsc, gas api">
+    <meta name="description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse.">
+    <meta name="keywords" content="gas price api, binance smart chain, avalanche, polygon, ethereum, fantom, moonriver, cronos, harmony, celo, heco, fuse, crypto, harmony, heco, celo, fuse, ETH, MATIC, FTM, AVAX, BNB, MOVR, CRO, HT , defi, gas, gas fee, gas price, oracle, bsc, gas api">
     <meta name="robots" content="index, follow">
     <meta property="og:image" content="https://owlracle.info/img/owl.webp">
     <meta property="og:title" content="Owlracle - Multichain Gas Oracle">
     <meta property="og:url" content="https://owlracle.info">
-    <meta property="og:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, and Cronos.">
+    <meta property="og:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse.">
     <meta property="og:site_name" content="owlracle.info">
     <meta name="twitter:image" content="https://owlracle.info/img/owl.webp">
-    <meta name="twitter:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, and Cronos.">
+    <meta name="twitter:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse.">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Owlracle - Multichain Gas Oracle">
     <meta name="twitter:site" content="https://owlracle.info">
@@ -42,15 +42,18 @@
         <div id="content">
             <div id="toggle-bg"><i class="fas fa-fan"></i></div>
             <div id="title">
-                <img src="img/owl.webp" alt="Polygon Fantom BSC Ethereum Avalanche Moonriver Cronos Gas price fee tracker API">
+                <img src="img/owl.webp" alt="Polygon Fantom BSC Ethereum Avalanche Moonriver Cronos Harmony Heco Celo Fuse Gas price fee tracker API">
                 <h1 id="text">
-                    <span class="subtitle" id="network-name">{{networkName}}'s</span>
+                    <span>
+                        <span class="subtitle" id="network-name">{{networkName}}'s</span>
+                        <div id="time-sign"></div>
+                    </span>
                     <span id="site-name">OWLRACLE</span>
-                    <span class="subtitle">The multichain Gas Price tracker API</span>
+                    <span class="subtitle">The multichain Gas tracker API</span>
                 </h1>
             </div>
     
-            <p id="intro">Owlracle says you should pay no more than this for <b>Gas Price</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
+            <p id="intro">Owlracle says you should pay no more than this for <b>Gas</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
     
             <div id="gas-container"></div>
     
@@ -82,20 +85,20 @@
                 </div>
             </div>
 
-            <p>If you are a software developer, and want to integrate your application with our gas price oracle, you can use our endpoints.</p>
+            <p>If you are a software developer, and want to integrate your application with our gas oracle, you can use our endpoints.</p>
     
-            <h2 id="endpoint-gas">Gas price estimation</h2>
+            <h2 id="endpoint-gas">Gas fee estimation</h2>
     
             <div id="url-gas" class="url"></div>
     
-            <p>Retrieve gas prices for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
+            <p>Retrieve gas for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
 
-            <p>Owlracle scans recent past blocks (<code class="code inline">blocks</code> param) to build an estimative of required gas price to be paid. It looks for the minimum gas price accepted on a transaction for every scanned block (based on the chosen <code class="code inline">percentile</code>). Then it shows you the minimum gas price you should pay to be accepted on a percentage of your choice (<code class="code inline">accept</code> param) of those blocks.</p>
+            <p>Owlracle scans recent past blocks (<code class="code inline">blocks</code> param) to build an estimative of required gas fee to be paid. It looks for the minimum gas accepted on a transaction for every scanned block (based on the chosen <code class="code inline">percentile</code>). Then it shows you the minimum gas you should pay to be accepted on a percentage of your choice (<code class="code inline">accept</code> param) of those blocks.</p>
 
             <div id="table-gas"></div>
 
 
-            <h2>Gas price history</h2>
+            <h2>Gas history</h2>
 
             <div id="url-history" class="url"></div>
     
@@ -108,11 +111,11 @@
     
             <h2 id="api-keys-sec">API keys</h2>
     
-            <p>When you access our endpoints, it is reccomended that you need to use an API key. You can request our data up to <code class="code inline request-limit"></code> times per hour for free. After reaching that limit, you can continue to make requests either waiting a few minutes or using your api credit. You can also make requests without an api key for testing purposes, up to <code class="code inline guest-limit"></code> times per hour.</p>
+            <p>When you access our endpoints, it is reccomended that you use an API key. You can request our data up to <code class="code inline request-limit"></code> times per hour for free. After reaching that limit, you can continue to make requests either waiting a few minutes or using your api credit. You can also make requests without an api key for testing purposes, up to <code class="code inline guest-limit"></code> times per hour.</p>
     
-            <h3>API key management window</h3>
+            <h3>Profile window</h3>
     
-            <p>You can use the button below or the one <a href="#search">in the header</a> of this page to create, edit, and get information about your API keys. You can also use it to update your credit recharges in real-time.</p>
+            <p>You can use the button below or the <a href="#search">header section</a> of this page to create new API keys, get information, logs, update, or even recharge your key should you need to use more than the free limit per hour.</p>
     
             <div id="apikey-container"><button id="manage-apikey" class="button-main"><i class="fas fa-key"></i>Manage API keys</button></div>
             
@@ -129,9 +132,9 @@
 
             <p>After reaching the free request limit (<code class="code inline request-limit"></code> requests in the last hour), each new request will subtract $<code class="code inline request-cost"></code> USD from your API account.</p>
             
-            <p>Any time you want to recharge your API credit, you can make a <span class="token-name"></span> transfer of any amount to your API wallet on <span class="chain-name"></span> network. The amount transferred will be converted to USD and credited in your account. After the transfer, our server will update your api credit automatically within one hour. If you want to be credited instantly, you can click the update button on the API key information window. Keep in mind that the amount credited may vary depending of the token exchange rate.</p>
+            <p>Any time you want to recharge your API credit, you can use the same <a href="#manage-apikey">Manage API keys</a> button above or the header to open the <a href="?action=recharge">Recharge key</a> tab. You will be asked to connect your wallet using <a href="https://metamask.io/" target="_blank" rel="noopener">Metamask</a> extension. This window will let you transfer to Owlracle's wallet any amount of <span class="token-name"></span> while using the <span class="chain-name"></span> network. The amount transferred will be converted to USD and credited in your account. After the transfer confirmation, our server will update your API credit automatically. Keep in mind that the amount credited may vary depending of the token exchange rate.</p>
 
-            <p id="nav-network"><b>WARNING: Deposits on <span class="chain-name"></span> network will not be credited automatically. You may either make a deposit using the same wallet on another supported network, or <a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener">reach us on telegram</a> providing your transaction hash.</b></p>
+            <p id="nav-network"><b>WARNING: Deposits on <span class="chain-name"></span> network will not be credited automatically. You may either make a deposit using the same wallet on another supported network, or <a href="https://discord.gg/bHckPMw3Qu" target="_blank" aria-label="telegram" rel="noopener">reach us on Discord</a> providing your transaction hash.</b></p>
             
     
             <h3>API key information</h3>
@@ -168,7 +171,7 @@
     
             <div id="faq"></div>
     
-            <p>Didn't find what you were looking for? <a href="https://t.me/owlracle" target="_blank" rel="noopener">Ask us on telegram</a>.</p>
+            <p>Didn't find what you were looking for? <a href="https://discord.gg/zYS4f8eRbC" target="_blank" rel="noopener">Ask us on Discord</a>.</p>
     
         
             <h2>Donations</h2>
@@ -179,7 +182,7 @@
                     
             <p>Don't want or can't donate. No problem! You can help us by providing your feedback. If there is something wrong,
                 missing, or you wish to see here, reach us on our <a href="https://twitter.com/owlracleapi" target="_blank" rel="noopener">Twitter</a> page or <a
-                href="https://t.me/owlracle" target="_blank" rel="noopener">Telegram</a> group.</p>
+                href="https://discord.gg/zYS4f8eRbC" target="_blank" rel="noopener">Discord</a> server.</p>
         </div>
 
         <div class="section" id="section-1">

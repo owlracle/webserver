@@ -3,6 +3,7 @@
     "endpoints": {
         "gas": {
             "timestamp": "0000-00-00T00:00:00.000Z",
+            "baseFee": 0.0,
             "lastBlock": 0,
             "avgTime": 0.0,
             "avgTx": 0.0,

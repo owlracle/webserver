@@ -120,9 +120,9 @@ const networkList = {
     ht: { name: 'heco', token: 'HT', cgid: 'huobi-token', dbid: 9 },
     celo: { name: 'celo', token: 'CELO', cgid: 'celo', dbid: 10 },
     fuse: { name: 'fuse', token: 'FUSE', cgid: 'fuse-network-token', dbid: 11 },
-    atom: { name: 'cosmoshub', token: 'ATOM', cgid: 'cosmos', dbid: 12 },
-    juno: { name: 'juno', token: 'JUNO', cgid: 'juno-network', dbid: 13 },
-    osmo: { name: 'osmosis', token: 'OSMO', cgid: 'osmosis', dbid: 14 },
+    atom: { name: 'cosmoshub', token: 'ATOM', cgid: 'cosmos', dbid: 12, disabled: true },
+    juno: { name: 'juno', token: 'JUNO', cgid: 'juno-network', dbid: 13, disabled: true },
+    osmo: { name: 'osmosis', token: 'OSMO', cgid: 'osmosis', dbid: 14, disabled: true },
 };
 // use this to get cg's token list
 // https://api.coingecko.com/api/v3/coins/list

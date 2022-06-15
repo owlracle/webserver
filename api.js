@@ -37,7 +37,7 @@ module.exports = app => {
 
         const dataRun = async () => {
             const resp = {};
-            if (!Object.keys(networkList).includes(req.params.network)){
+            if (!Object.keys(networkList).includes(req.params.network) || networkList[req.params.network].disabled){
                 return { error: {
                     status: 404,
                     error: 'Not found',
@@ -218,7 +218,7 @@ module.exports = app => {
         }
 
         const dataRun = async ({ timeframe, candles, page, from, to }) => {
-            if (!Object.keys(networkList).includes(req.params.network)){
+            if (!Object.keys(networkList).includes(req.params.network) || networkList[req.params.network].disabled){
                 return { error: {
                     status: 404,
                     error: 'Not found',

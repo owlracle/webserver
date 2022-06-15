@@ -72,20 +72,11 @@ process.argv.forEach((val, index, array) => {
 
 
 app.get('/', indexRoute);
-app.get('/bsc', indexRoute);
-app.get('/poly', indexRoute);
-app.get('/avax', indexRoute);
-app.get('/ftm', indexRoute);
-app.get('/eth', indexRoute);
-app.get('/movr', indexRoute);
-app.get('/cro', indexRoute);
-app.get('/ht', indexRoute);
-app.get('/celo', indexRoute);
-app.get('/one', indexRoute);
-app.get('/fuse', indexRoute);
-app.get('/atom', indexRoute);
-app.get('/juno', indexRoute);
-app.get('/osmo', indexRoute);
+Object.keys(networkList).forEach(e => {
+    if (!networkList[e].disabled) {
+        app.get(`/${e}`, indexRoute)
+    }
+});
 
 function indexRoute(req, res) {
     const network = req.url.split('/')[1];

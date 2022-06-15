@@ -1,7 +1,7 @@
 import { network } from './utils.min.js';
 
 const container = document.querySelector('#card-container');
-Object.values(network.getList()).forEach(e => {
+Object.values(network.getList()).filter(e => !e.disabled).forEach(e => {
     container.insertAdjacentHTML('beforeend', `<a class="item" href="/${ e.symbol }">
         <div class="time-sign"></div>
         <div class="col">
@@ -21,7 +21,7 @@ const refresh = async () => {
     const now = parseInt(new Date().getTime() / 1000);
     const maxTime = 300;
 
-    Object.values(network.getList()).forEach((e,i) => {
+    Object.values(network.getList()).filter(e => !e.disabled).forEach((e,i) => {
         const dataNet = data.find(d => d.network == e.symbol);
         const timeDiff = now - (dataNet.lastTime || 0);
 

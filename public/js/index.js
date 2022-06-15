@@ -82,7 +82,7 @@ const network = (symbol => {
         const dropdown = document.createElement('div');
         dropdown.id = 'dropdown';
     
-        dropdown.innerHTML = Object.entries(Network.getList()).filter(([k,v]) => k != symbol).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png" alt="${v.name} icon"><span class="name">${v.name}</span></a></div>`).join('');
+        dropdown.innerHTML = Object.entries(Network.getList()).filter(([k,v]) => k != symbol && !v.disabled).map(([k,v]) => `<div id="${k}" class="item"><a href="/${k}"><img class="icon" src="img/${k}.png" alt="${v.name} icon"><span class="name">${v.name}</span></a></div>`).join('');
     
         dropdown.style.top = `${this.offsetTop + this.clientHeight}px`;
         dropdown.style.left = `${this.offsetLeft + this.clientWidth - 130}px`;

@@ -13,6 +13,7 @@ const corsOptions = {
 };
 
 const sampleRespone = require(`./sampleResponse.json`);
+const { isTypedArray } = require('util/types');
 
 module.exports = app => {
     // old endpoint. will still work for now
@@ -1156,7 +1157,9 @@ const api = {
             return settings;
         })(actionResp);
 
-        if (key && !configFile.whitelist.includes(ip)) {
+        // check if ANY of the args in the list are whitelisted (in the config file)
+        const isWhitelist = list => list.map(e => configFile.whitelist.includes(e)).filter(e => e).length > 0;
+        if (key && !isWhitelist([ip, sqlData.apiKey, origin])) {
             resp = await this.reduceCredit(sqlData.apiKey, usage, credit, adviceSettings.fee);
             if (resp.error){
                 return { error: resp.error };

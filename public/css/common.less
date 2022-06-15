@@ -20,6 +20,7 @@
 .atom { @chain-color: #2f3148; }
 .juno { @chain-color: #d67f78; }
 .osmo { @chain-color: #ba07d1; }
+.aurora { @chain-color: #6ed24b; }
 
 @import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@1,700&family=Roboto&display=swap');
 
@@ -553,6 +554,12 @@ header {
                 border-color: @chain-color;
             }
 
+            &.aurora {
+                .aurora();
+                background-color: darken(@chain-color, 20%);
+                border-color: @chain-color;
+            }
+
             .name {
                 display: none;
 
@@ -773,6 +780,17 @@ header {
         &.osmo {
             #title, #colored {
                 .osmo();
+                background-color: @chain-color;
+
+                #copy {
+                    background-color: fade(@chain-color, 30%);
+                }
+            }
+        }
+
+        &.aurora {
+            #title, #colored {
+                .aurora();
                 background-color: @chain-color;
 
                 #copy {

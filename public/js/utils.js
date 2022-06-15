@@ -311,6 +311,9 @@ const network = {
         fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
             icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
         }, rpc: 'https://rpc.fuse.io',  },
+        aurora: { symbol: 'aurora', name: 'Aurora', token: 'ETH', id: 1313161554, explorer: {
+            icon: 'https://aurorascan.dev/images/favicon.ico', href: 'https://aurorascan.dev/', name: 'Aurora Block Explorer', apiAvailable: true,
+        }, rpc: 'https://mainnet.aurora.dev',  },
         atom: { symbol: 'atom', name: 'Cosmos', token: 'ATOM', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/cosmos', name: 'Mintscan', apiAvailable: false,
         }, nonevm: true, unit: 'µATOM', disabled: true },
@@ -1279,7 +1282,7 @@ const profile = {
                             <a href="/${ connectedNetwork.symbol }"><button><img src="img/${ connectedNetwork.symbol }.png">Go to ${ connectedNetwork.name } app</button></a>
                         </div>`;
 
-                        if (network.get().nonevm) {
+                        if (!network.get().nonevm) {
                             const button = content.querySelector('#switch');
                             button.addEventListener('click', async () => {
                                 await this.web3.switchNetwork(network.get());

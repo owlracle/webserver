@@ -18,8 +18,7 @@
     margin: auto;
     box-sizing: border-box;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
     padding-top: 50px;
     
     .tsparticles-canvas-el {
@@ -495,27 +494,6 @@
             color: red;
         }
 
-        .button-main {
-            background-color: var(--main-color);
-            color: var(--text-dark-color);
-            border-radius: 3px;
-            border: 1px solid var(--border-color);
-            outline: none;
-            transition: 0.3s;
-            cursor: pointer;
-            box-shadow: 0px 0px 5px 2px #74747424;
-            font-size: 1.2rem;
-
-            &:hover {
-                color: var(--text-dark-intense-color);
-                filter: brightness(1.2);
-            }
-
-            i {
-                margin-right: 10px;
-            }
-        }
-
         #apikey-container {
             display: flex;
             justify-content: center;
@@ -525,6 +503,24 @@
                 height: 50px;
                 width: 100%;
                 max-width: 300px;
+                background-color: var(--main-color);
+                color: var(--text-dark-color);
+                border-radius: 3px;
+                border: 1px solid var(--border-color);
+                outline: none;
+                transition: 0.3s;
+                cursor: pointer;
+                box-shadow: 0px 0px 5px 2px #74747424;
+                font-size: 1.2rem;
+
+                &:hover {
+                    color: var(--text-dark-intense-color);
+                    filter: brightness(1.2);
+                }
+
+                i {
+                    margin-right: 10px;
+                }
             }
         }
 
@@ -849,108 +845,47 @@
         }
     }
 
-    #section-1 {
-        background-color: #1e1e1e;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 0 15px #74747424;
-        color: var(--text-dark-color);
+    .ad {
+        background-color: #ff000010;
+        justify-content: center;
 
-        h2 {
-            color: var(--text-dark-intense-color);
+        &.hidden {
+            display: none !important;
         }
-    }
-    
-    #section-2 {
-        .col.video {
-            margin: 80px;
 
-            video {
-                border-radius: 10px;
-                border: 1px solid var(--border-color);
-                padding: 3px;
-                background-color: var(--bg-intense-color);
-                box-shadow: 0 0 15px #74747424;
-                max-height: 700px;
-            }
-        }
-    }
-    
-    #section-3 {
-    }
-
-    .section { 
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        min-height: 50vh;
-        
-        .col {
+        &.horizontal {
             display: flex;
-            justify-content: center;
-            flex-basis: 0;
+            width: 100%;
+            height: 150px;
+            margin: 20px 0;
 
-            &.text {
-                flex-grow: 1;
-            }
-
-            &.left {
-                text-align: right;
-            }
-
-            .box {
-                max-width: 400px;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            h2 {
-                font-family: 'Grandstander',sans-serif;
-                text-transform: uppercase;
-                font-size: 2rem;
-                color: var(--text-intense-color);
-                margin: 0 0 20px 0;
-                text-shadow: 0px 0px 3px var(--main-color);
-            }
-            
-            span {
-                opacity: 0.7;
-                font-size: 1.3rem;
-                margin-bottom: 35px;
-                text-shadow: 0px 0px 3px var(--main-color);
-            }
-
-            button {
-                padding: 10px 30px;
-                margin: auto;
-                width: 300px;
-                margin-bottom: 10px;
-
-                background-color: var(--main-color);
-                color: var(--text-dark-color);
-                border-radius: 3px;
-                border: 1px solid var(--border-color);
-                outline: none;
-                transition: 0.3s;
-                cursor: pointer;
-                font-size: 1.2rem;
-    
-                &:hover {
-                    color: var(--text-dark-intense-color);
-                    filter: brightness(1.2);
-                }
-    
-                i {
-                    margin-right: 10px;
-                }
-            }
-
-            video {
-                height: 80vh;
-                filter: blur(1px);
+            @media @size-1400 {
+                display: none;
             }
         }
+
+        &.vertical {
+            display: none;
+            flex-grow: 1;
+            max-width: 400px;
+
+            &#right-space {
+                @media @size-1400 {
+                    display: flex;
+                }
+    
+            }
+
+            &#left-space {
+                @media @size-1600 {
+                    display: flex;
+                }
+    
+            }
+        }
+
     }
+    
 }
 
 #fog .modal {

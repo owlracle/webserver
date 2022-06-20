@@ -1363,7 +1363,7 @@ const api = {
                 usdAmount: usdAmount,
                 tokenAmount: tokenAmount,
                 fromWallet: tx.from,
-                toWallet: wallet,
+                apiKey: id,
             });
 
             // reset alert status

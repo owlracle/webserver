@@ -294,34 +294,57 @@ const explorer = {
 
 
 const telegram = {
-    url: `https://api.telegram.org/bot{{token}}/sendMessage?chat_id={{chatId}}&text=`,
+    url: `https://api.telegram.org`,
 
-    alert: async function(message, opt){
-        if (configFile.telegram.enabled){
-            let token = configFile.telegram.token['@owlracle_bot'];
-            let chatId = configFile.telegram.chatId;
-
-            if (opt && opt.chatId){
-                chatId = opt.chatId;
-            }
-
-            if (opt && opt.bot){
-                token = configFile.telegram.token[opt.bot];
-            }
-            else if (opt && opt.token){
-                token = opt.token;
-            }
-            
-            const url = this.url.replace(`{{token}}`, token).replace(`{{chatId}}`, chatId);
-
-            if (typeof message !== 'string'){
-                message = JSON.stringify(message);
-            }
-    
-            const resp = configFile.production ? await (await fetch(url + encodeURIComponent(message))).json() : true;
-            return resp;
+    alert: async function(message, opt={}){
+        if (!configFile.telegram.enabled){
+            return false;
         }
-        return false;
+        if (!configFile.production) {
+            return true;
+        }
+
+        const args = {
+            chat_id: configFile.telegram.chatId,
+            text: message,
+        }
+
+        if (opt.chatId){
+            args.chat_id = opt.chatId;
+        }
+
+        let token = configFile.telegram.token['@owlracle_bot'];
+
+        if (opt.bot){
+            token = configFile.telegram.token[opt.bot];
+        }
+        else if (opt.token){
+            token = opt.token;
+        }
+
+        // if send object, convert it to multiline text
+        if (typeof args.text !== 'string'){
+            args.text = Object.entries(args.text).map(([k,v]) => `${k}: *${v}*`);
+            opt.markdown = true;
+        }
+
+        // allow multiline message to be sent as an array
+        if (Array.isArray(args.text) && opt.multiLine !== false) {
+            args.text = args.text.join('\r\n');
+        }
+
+        if (opt.markdown) {
+            // formatting
+            // https://core.telegram.org/bots/api#formatting-options
+            args.parse_mode = 'MarkdownV2';
+            // telegram MD2 does not accept . character
+            args.text = args.text.replace(/\./g, "\\.");
+        }
+        
+        let url = `${this.url}/bot${token}/sendMessage`;
+
+        url = `${url}?${ new URLSearchParams(args).toString() }`;
+        return await (await fetch(url)).json();
     }
 }
 

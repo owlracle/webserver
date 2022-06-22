@@ -1,4 +1,4 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, Modal, startHeaderApiSearch, Toast } from './utils.min.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, startHeaderApiSearch, Toast } from './utils.min.js';
 
 startHeaderApiSearch();
 
@@ -97,6 +97,8 @@ const network = (symbol => {
     
         fog.addEventListener('click', () => fog.remove());
     });
+
+    // startAnim();
 
     document.querySelector("#chain").innerHTML = network.name;
 
@@ -550,10 +552,10 @@ const gasTimer = {
     counter: 100,
     element: document.querySelector('#countdown #filled'),
     cards : [ // preferences for cards
-        { name: '🛴Slow', tooltip: 'Accepted on 35% of blocks', accept: 35 },
-        { name: '🚗Standard', tooltip: 'Accepted on 60% of blocks', accept: 60 },
-        { name: '✈️Fast', tooltip: 'Accepted on 90% of blocks', accept: 90 },
-        { name: '🚀Instant', tooltip: 'Accepted on every block', accept: 100 },
+        { name: '🛴 Slow', tooltip: 'Accepted on 35% of blocks', accept: 35 },
+        { name: '🚗 Standard', tooltip: 'Accepted on 60% of blocks', accept: 60 },
+        { name: '✈️ Fast', tooltip: 'Accepted on 90% of blocks', accept: 90 },
+        { name: '🚀 Instant', tooltip: 'Accepted on every block', accept: 100 },
     ],
 
     init: function(interval, toInterval){
@@ -1417,3 +1419,31 @@ class EndpointTable {
         return;
     }
 })();
+
+function startAnim() {
+    const container = document.querySelector('#block-anim');
+    container.innerHTML = `
+        <div id="block-belt"></div>
+        <div id="tx-belt"></div>
+    `;
+
+    setInterval(() => {
+        const block = document.createElement('img');
+        block.src = 'img/eth.png';
+        block.classList.add('block');
+
+        container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
+
+        let pos = 0;
+        const move = setInterval(() => {
+            if (pos >= 350) {
+                clearInterval(move);
+                return;
+            }
+
+            pos += 2;
+            block.style.left = `${ pos + container.offsetLeft }px`;
+        }, 20);
+
+    }, 3000);
+}

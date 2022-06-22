@@ -78,34 +78,31 @@ module.exports = (app, api) => {
             timeframe = nickFrame[timeframe] || 3600;
         }
 
-        const data = [];
-        data.push(timeframe);
-        data.push(timeframe);
+        // get min timestamp
+        let [rows, error] = await db.query(`SELECT UNIX_TIMESTAMP(now()) - UNIX_TIMESTAMP(MIN(timestamp)) AS max_seconds FROM api_requests;`, []);
+        const maxSec = rows[0].max_seconds;
 
-        if (network) {
-            data.push(networkList[network].dbid);
-        }
+        const requests = [];
+        let i = 0;
+        do {
+            const sql = `SELECT timestamp, count(*) AS 'requests' FROM api_requests WHERE timestamp BETWEEN NOW() - INTERVAL ? SECOND AND NOW() - INTERVAL ? SECOND ${network ? `AND network2 = ?` : ''};`;
+            const data = [ timeframe * (i+1), timeframe * i ];
+            i++;
+            
+            if (network) {
+                data.push(networkList[network].dbid);
+            }
+    
+            // can make requests in parallel
+            requests.push(db.query(sql, data));
+        } while( timeframe * (i+1) < maxSec );
 
-        data.push(timeframe);
-
-        // remove last unfinished timeframe from chart
-        const cutLast = `UNIX_TIMESTAMP(timestamp) DIV ? != UNIX_TIMESTAMP(now()) DIV ?`;
-        const sql = `SELECT timestamp, count(*) AS 'requests' FROM api_requests WHERE ${cutLast} ${network ? `AND network2 = ?` : ''} GROUP BY UNIX_TIMESTAMP(timestamp) DIV ? ORDER BY timestamp DESC`;
-        const [rows, error] = await db.query(sql, data);
-
-        if (error) {
-            res.status(500);
-            res.send({
-                status: 500,
-                error: 'Internal Server Error',
-                message: 'Error while trying to read api requests'
-            });
-            return;
-        }
+        const responses = await Promise.all(requests);
+        const samples = responses.filter(([rows, error]) => !error && rows.length && rows[0].timestamp).map(([rows,_]) => rows[0]);
 
         res.send({
             message: 'success',
-            results: rows,
+            results: samples,
         });
     });
 

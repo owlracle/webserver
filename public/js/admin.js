@@ -190,7 +190,7 @@ const session = {
 
 session.check().then(async () => {
     await chart.init();
-    document.querySelector(`#timeframe-switcher #tf-h`).click();
+    // document.querySelector(`#timeframe-switcher #tf-h`).click();
 
     theme.onChange = () => {
         chart.setTheme(cookies.get('theme') || 'dark');

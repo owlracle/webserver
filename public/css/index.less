@@ -166,14 +166,175 @@
                 width: 350px;
                 height: 300px;
 
+                .eth { background-color: #5c5c5c; }
+                .poly { background-color: #7b62a3; }
+                .bsc { background-color: #968243; }
+                .avax { background-color: #b35757; }
+                .ftm { background-color: #6388b1; }
+
                 #block-belt {
-                    height: 50px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    overflow-x: hidden;
+                    margin-bottom: 15px;
 
                     .block {
                         height: 25px;
+                        width: 25px;
+                        margin-left: 360px;
+                        margin-right: -25px;
+                        opacity: 1;
                         position: absolute;
+                        transition: 3.5s margin-left linear, 0.3s opacity;
+                        border-radius: 3px;
+                        box-shadow: 0px 0px 3px 2px var(--chain-color);
+                        padding: 3px;
+                        box-sizing: border-box;
+
+                        &.slide {
+                            margin-left: 0;
+                        }
+
+                        &.fade {
+                            opacity: 0;
+                            background-color: white;
+                            box-shadow: 0px 0px 3px 2px white;
+                        }
                     }
                 }
+
+                #tx-belt {
+                    display: flex;
+                    justify-content: space-between;
+                    height: 100px;
+
+                    .belt {
+                        flex-basis: 0;
+                        flex-grow: 1;
+                        margin-top: 10px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-end;
+                        padding: 0 10px;
+                        box-sizing: border-box;
+    
+                        .block {
+                            height: 3px;
+                            // background-color: white;
+                            opacity: 1;
+                            margin-bottom: 2px;
+                            transition: 2s opacity, 2s background; 
+                            
+                            &.create {
+                                opacity: 0;
+                                background-color: white;
+                            }
+                        }
+
+                        .json {
+                            position: absolute;
+                            font-size: 0.5rem;
+                            background-color: #00000020;
+
+
+                            pre {
+                                margin: 0;
+                            }
+                        }
+                    }
+                }
+
+                #request-belt {
+                    margin-top: 15px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    overflow-x: hidden;
+
+                    .block {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 25px;
+                        width: 25px;
+                        margin-left: 360px;
+                        margin-right: -25px;
+                        opacity: 1;
+                        position: absolute;
+                        transition: 2s margin-left linear, 0.3s opacity, 1s margin-top ease-out;
+                        border-radius: 50px;
+                        font-family: monospace;
+                        font-size: 0.9rem;
+                        font-weight: bold;
+                        box-shadow: 0px 0px 3px 2px var(--chain-color);
+
+                        &.slide {
+                            margin-left: 0;
+                        }
+
+                        &.fade {
+                            opacity: 0;
+                        }
+                        
+                        &.back.fade {
+                            background-color: white;
+                            box-shadow: 0px 0px 3px 2px white;
+                        }
+                        
+                        &.back {
+                            margin-top: 50px;
+
+                            span {
+                                opacity: 1;
+                            }
+                        }
+
+                        span {
+                            width: 15px;
+                            height: 15px;
+                            opacity: 0;
+                            transition: 1s opacity;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        }
+                    }
+                }
+
+                .response {
+                    position: absolute;
+                    width: 60px;
+                    height: 70px;
+                    margin-top: -140px;
+                    margin-left: 0px;
+                    background-color: #00000050;
+                    border: 3px solid var(--chain-color);
+                    color: white;
+                    font-weight: bold;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    transition: 1s all, 0.5s border, 0.3s opacity ease-out;
+                    border-radius: 5px;
+                    opacity: 0.7;
+                    font-size: 0.15rem;
+
+                    &.fade {
+                        border-color: transparent;
+                        opacity: 0;
+                    }
+                    
+                    &.shrink {
+                        width: 0;
+                        height: 0;
+                        margin-left: 380px;
+                        margin-top: -0px;
+                        font-size: 0;
+                        transition: 1s all;
+                    }
+                }
+
             }
         }
 

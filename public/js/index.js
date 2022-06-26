@@ -98,7 +98,7 @@ const network = (symbol => {
         fog.addEventListener('click', () => fog.remove());
     });
 
-    // startAnim();
+    startAnim();
 
     document.querySelector("#chain").innerHTML = network.name;
 
@@ -1424,26 +1424,155 @@ function startAnim() {
     const container = document.querySelector('#block-anim');
     container.innerHTML = `
         <div id="block-belt"></div>
-        <div id="tx-belt"></div>
+        <div id="tx-belt">
+            <div class="belt"></div>
+            <div class="belt"></div>
+            <div class="belt"></div>
+            <div class="belt"></div>
+            <div class="belt"></div>
+        </div>
+        <div id="request-belt"></div>
     `;
+    const chains = ['avax', 'poly', 'eth', 'ftm', 'bsc'];
 
-    setInterval(() => {
-        const block = document.createElement('img');
-        block.src = 'img/eth.png';
-        block.classList.add('block');
+    const blockList = [];
+    const spawnTimeMin = 2000;
+    const spawnTimeMax = 500;
+    const timeAlive = 3000;
+    const blockBeltLimit = 20;
 
-        container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
+    // spawn blocks
+    const spawnChain = () => {
+        const randomSpawnTime = parseInt(Math.random() * (spawnTimeMax - spawnTimeMin)) + spawnTimeMin ;
+        setTimeout(() => {
+            const block = document.createElement('img');
+            const chosenChain = Math.floor(Math.random() * chains.length);
+            block.src = `img/${ chains[chosenChain] }.png`;
+            block.classList.add('block', 'slide', 'fade', chains[chosenChain]);
+    
+            container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
+            blockList.push({
+                element: block,
+                chain: chosenChain
+            });
 
-        let pos = 0;
-        const move = setInterval(() => {
-            if (pos >= 350) {
-                clearInterval(move);
-                return;
-            }
+            setTimeout(() => block.classList.remove('slide', 'fade'), 100);
+            
+            setTimeout(() => {
+                const block = blockList.shift();
+                block.element.classList.add('fade');
+                spawnBlock(block.chain);
+                setTimeout(() => block.element.remove(), 1000);
+                
+            }, timeAlive);
 
-            pos += 2;
-            block.style.left = `${ pos + container.offsetLeft }px`;
-        }, 20);
+            spawnChain();
+        }, randomSpawnTime);
+    }
+    spawnChain();
 
-    }, 3000);
+    // spawn txs
+    const spawnBlock = id => {
+        const block = document.createElement('div');
+        block.classList.add('block', 'create', chains[id]);
+        
+        const randomWidth = Math.floor(Math.random() * 70 + 30);
+        block.style.width = `${ randomWidth }%`;
+
+        const belt = container.querySelectorAll('#tx-belt .belt')[id];
+        belt.insertAdjacentElement('afterbegin', block);
+        setTimeout(() => block.classList.remove('create'), 100);
+
+        if (belt.querySelectorAll('.block').length >= blockBeltLimit) {
+            Array.from(belt.querySelectorAll('.block')).slice(-1)[0].remove();
+        }
+    }
+
+    for (let j=0 ; j < blockBeltLimit ; j++) {
+        for (let i=0 ; i < chains.length ; i++) {
+            spawnBlock(i);
+        }
+    }
+
+    const reqList = [];
+    // spawn requests
+    const responseSpawnIntervalMin = 1000;
+    const responseSpawnIntervalMax = 2000;
+    const responseWaitTime = 1500;
+    const responseSlideTime = 2000;
+    const spawnRequest = () => {
+        const spawnInterval = parseInt(Math.random() * (responseSpawnIntervalMax - responseSpawnIntervalMin)) + responseSpawnIntervalMin;
+        setTimeout(() => {
+            const chosenChain = Math.floor(Math.random() * chains.length);
+            const req = document.createElement('div');
+            // req.innerHTML = `<img src="img/${ chains[chosenChain] }.png">`;
+            req.innerHTML = `<span>{}</span>`;
+            req.classList.add('block', 'slide', 'fade', chains[chosenChain]);
+    
+            container.querySelector('#request-belt').insertAdjacentElement('afterbegin', req);
+            reqList.push({
+                element: req,
+                chain: chosenChain
+            });
+    
+            setTimeout(() => req.classList.remove('slide', 'fade'), 10);
+            
+            // time to complete slide
+            setTimeout(() => {
+                const req = reqList.shift();
+                const block = req.element;
+                // create reponse block
+                const res = document.createElement('div');
+                res.classList.add('response', 'fade', chains[chosenChain]);
+                res.style['margin-left'] = `${ chosenChain * 350/5 }px`;
+                res.innerHTML = `<pre><code>
+{
+    "timestamp": "0000-00-00T00:00:00",
+    "lastBlock": 00000000,
+    "avgTime": 0.000,
+    "avgTx": 0.0,
+    "avgGas": 000000.0000,
+    "baseFee": 00,
+    "speeds": [
+        {
+            "acceptance": 0.0,
+            "gasPrice": 00,
+            "estimatedFee": 0.0000
+        },
+        {
+            "acceptance": 0.0,
+            "gasPrice": 00,
+            "estimatedFee": 0.0000
+        },
+        {
+            "acceptance": 0.0,
+            "gasPrice": 00,
+            "estimatedFee": 0.0000
+        }
+    ]
+}
+</code></pre>`;
+                container.insertAdjacentElement('beforeend', res);
+
+                setTimeout(() => res.classList.remove('fade'), 100);
+                setTimeout(() => {
+                    res.classList.add('shrink', 'fade');
+                    res.removeAttribute('style');
+                    block.classList.add('back');
+
+                }, responseWaitTime - 500);
+                setTimeout(() => {
+                    res.remove();
+                    block.classList.add('slide');
+
+                    setTimeout(() => block.classList.add('fade'), responseSlideTime);
+                    setTimeout(() => block.remove(), responseSlideTime + 500);
+    
+                }, responseWaitTime);
+            }, responseSlideTime);
+
+            spawnRequest();
+        }, spawnInterval);
+    }
+    spawnRequest();
 }

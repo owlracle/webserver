@@ -6,21 +6,21 @@
 @size-1400:   ~"only screen and (min-width: 1400px)";
 @size-1600:   ~"only screen and (min-width: 1600px)";
 
-.bsc { @chain-color: #daaa10; }
-.poly { @chain-color: #7533E2; }
-.avax { @chain-color: #E84142; }
-.ftm { @chain-color: #1A7CE4; }
-.cro { @chain-color: #113e67; }
-.movr { @chain-color: #50cbc6; }
-.eth { @chain-color: #5c5c5c; }
-.ht { @chain-color: #01943f; }
-.one { @chain-color: #00d8af; }
-.celo { @chain-color: #35cf7f; }
-.fuse { @chain-color: #b3c05d; }
-.atom { @chain-color: #2f3148; }
-.juno { @chain-color: #d67f78; }
-.osmo { @chain-color: #ba07d1; }
-.aurora { @chain-color: #6ed24b; }
+.bsc { --chain-color: #a08016; }
+.poly { --chain-color: #7533E2; }
+.avax { --chain-color: #ce5959; }
+.ftm { --chain-color: #1A7CE4; }
+.cro { --chain-color: #113e67; }
+.movr { --chain-color: #1f8581; }
+.eth { --chain-color: #5c5c5c; }
+.ht { --chain-color: #01943f; }
+.one { --chain-color: #038069; }
+.celo { --chain-color: #27975d; }
+.fuse { --chain-color: #788529; }
+.atom { --chain-color: #2f3148; }
+.juno { --chain-color: #915550; }
+.osmo { --chain-color: #ba07d1; }
+.aurora { --chain-color: #488631; }
 
 @import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@1,700&family=Roboto&display=swap');
 
@@ -443,17 +443,16 @@ header {
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            padding: 0px 10px;
-            background-color: transparent;
-            border: 1px solid var(--text-dark-intense-color);
+            padding: 2px 10px;
             border-radius: 3px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s all;
             height: 35px;
+            background-color: var(--chain-color);
             
             @media @size-400 {
-                padding: 2px 10px;
+                padding: 5px 10px;
                 height: auto;
             }
 
@@ -468,97 +467,7 @@ header {
                 @media @size-400 {
                     margin-right: 5px;
                 }
-            }
-
-            &.bsc {
-                .bsc();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.poly {
-                .poly();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.avax {
-                .avax();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.ftm {
-                .ftm();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.cro {
-                .cro();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.movr {
-                .movr();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.eth {
-                .eth();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.one {
-                .one();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.celo {
-                .celo();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.ht {
-                .ht();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.fuse {
-                .fuse();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.atom {
-                .atom();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.juno {
-                .juno();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.osmo {
-                .osmo();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
-
-            &.aurora {
-                .aurora();
-                background-color: darken(@chain-color, 20%);
-                border-color: @chain-color;
-            }
+            }        
 
             .name {
                 display: none;
@@ -634,167 +543,16 @@ header {
         background-color: white;
         box-shadow: 2px 2px 5px black;
 
-        &.bsc {
-            #title, #colored {
-                .bsc();
-                background-color: @chain-color;
+        #title, #colored {
+            background-color: var(--chain-color);
 
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
+            #copy {
+                opacity: 0.7;
+                background-color: var(--chain-color);
+                transition: 0.3s all;
 
-        &.avax {
-            #title, #colored {
-                .avax();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.cro {
-            #title, #colored {
-                .cro();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.movr {
-            #title, #colored {
-                .movr();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.poly {
-            #title, #colored {
-                .poly();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.ftm {
-            #title, #colored {
-                .ftm();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.eth {
-            #title, #colored {
-                .eth();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.one {
-            #title, #colored {
-                .one();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.celo {
-            #title, #colored {
-                .celo();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.ht {
-            #title, #colored {
-                .ht();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.fuse {
-            #title, #colored {
-                .fuse();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.atom {
-            #title, #colored {
-                .atom();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.juno {
-            #title, #colored {
-                .juno();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.osmo {
-            #title, #colored {
-                .osmo();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
-                }
-            }
-        }
-
-        &.aurora {
-            #title, #colored {
-                .aurora();
-                background-color: @chain-color;
-
-                #copy {
-                    background-color: fade(@chain-color, 30%);
+                &:hover {
+                    filter: brightness(1.2);
                 }
             }
         }

@@ -165,6 +165,8 @@
             #block-anim {
                 width: 350px;
                 height: 300px;
+                margin-bottom: 300px;
+                transform: rotate(15deg) skewY(-15deg) scaleY(0.9);
 
                 .eth { background-color: #5c5c5c; }
                 .poly { background-color: #7b62a3; }
@@ -173,27 +175,41 @@
                 .ftm { background-color: #6388b1; }
 
                 #block-belt {
-                    height: 30px;
                     display: flex;
-                    align-items: center;
+                    justify-content: center;
                     overflow-x: hidden;
-                    margin-bottom: 15px;
+                    padding-top: 10px;
+                    height: 150px;
+
+                    i {
+                        height: 50px;
+                        width: 50px;
+                        font-size: 3rem;
+                        opacity: 0.5;
+                        transition: 2s text-shadow ease-out;
+                        text-shadow: 0px 0px 5px white;
+                        color: #241610;
+
+                        &.glow {
+                            text-shadow: 0px 0px 20px white;
+                        }
+                    }
 
                     .block {
                         height: 25px;
                         width: 25px;
-                        margin-left: 360px;
-                        margin-right: -25px;
+                        margin-top: 360px;
+                        margin-left: 0;
                         opacity: 1;
                         position: absolute;
-                        transition: 3.5s margin-left linear, 0.3s opacity;
+                        transition: 3.5s margin-top linear, 0.3s opacity, 1.5s margin-left;
                         border-radius: 3px;
                         box-shadow: 0px 0px 3px 2px var(--chain-color);
                         padding: 3px;
                         box-sizing: border-box;
 
                         &.slide {
-                            margin-left: 0;
+                            margin-top: 0;
                         }
 
                         &.fade {
@@ -207,24 +223,26 @@
                 #tx-belt {
                     display: flex;
                     justify-content: space-between;
-                    height: 100px;
+                    margin-top: 15px;
+                    background-image: linear-gradient(to bottom, #241610af, #30303020);
+                    border-radius: 10px;
+                    box-shadow: -3px 3px 20px #ffffff20;
+                    padding: 10px 5px;
 
                     .belt {
                         flex-basis: 0;
                         flex-grow: 1;
-                        margin-top: 10px;
                         display: flex;
                         flex-direction: column;
                         justify-content: flex-end;
-                        padding: 0 10px;
+                        padding: 0px 5px;
                         box-sizing: border-box;
     
                         .block {
-                            height: 3px;
-                            // background-color: white;
+                            height: 5px;
                             opacity: 1;
                             margin-bottom: 2px;
-                            transition: 2s opacity, 2s background; 
+                            transition: 0.5s opacity, 3s background; 
                             
                             &.create {
                                 opacity: 0;
@@ -246,11 +264,22 @@
                 }
 
                 #request-belt {
-                    margin-top: 15px;
-                    height: 30px;
                     display: flex;
-                    align-items: center;
-                    overflow-x: hidden;
+                    margin-top: 110px;
+                    justify-content: center;
+
+                    i {
+                        font-size: 3rem;
+                        opacity: 0.5;
+                        color: var(--bg-color);
+                        transition: 2s text-shadow ease-out, 2s transform;
+                        text-shadow: 0px 0px 5px white;
+                        color: #2c2c2c;
+
+                        &.glow {
+                            text-shadow: 0px 0px 20px white;
+                        }
+                    }
 
                     .block {
                         display: flex;
@@ -258,19 +287,15 @@
                         align-items: center;
                         height: 25px;
                         width: 25px;
-                        margin-left: 360px;
-                        margin-right: -25px;
+                        margin-top: -100px;
                         opacity: 1;
                         position: absolute;
-                        transition: 2s margin-left linear, 0.3s opacity, 1s margin-top ease-out;
+                        transition: 2s margin-top linear, 0.3s opacity, 1s margin-left ease-out;
                         border-radius: 50px;
-                        font-family: monospace;
-                        font-size: 0.9rem;
-                        font-weight: bold;
                         box-shadow: 0px 0px 3px 2px var(--chain-color);
 
                         &.slide {
-                            margin-left: 0;
+                            margin-top: 10px;
                         }
 
                         &.fade {
@@ -283,8 +308,6 @@
                         }
                         
                         &.back {
-                            margin-top: 50px;
-
                             span {
                                 opacity: 1;
                             }
@@ -298,16 +321,19 @@
                             display: flex;
                             justify-content: center;
                             align-items: center;
+                            font-family: monospace;
+                            font-size: 0.7rem;
+                            font-weight: bold;
+                            text-shadow: 1px 1px 3px black;
                         }
                     }
                 }
 
                 .response {
                     position: absolute;
-                    width: 60px;
-                    height: 70px;
-                    margin-top: -140px;
-                    margin-left: 0px;
+                    width: 70px;
+                    height: 100px;
+                    margin-top: -310px;
                     background-color: #00000050;
                     border: 3px solid var(--chain-color);
                     color: white;
@@ -317,8 +343,8 @@
                     align-items: center;
                     transition: 1s all, 0.5s border, 0.3s opacity ease-out;
                     border-radius: 5px;
-                    opacity: 0.7;
-                    font-size: 0.15rem;
+                    opacity: 1;
+                    font-size: 0.2rem;
 
                     &.fade {
                         border-color: transparent;
@@ -328,8 +354,7 @@
                     &.shrink {
                         width: 0;
                         height: 0;
-                        margin-left: 380px;
-                        margin-top: -0px;
+                        margin-top: -130px;
                         font-size: 0;
                         transition: 1s all;
                     }

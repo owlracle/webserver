@@ -1423,7 +1423,7 @@ class EndpointTable {
 function startAnim() {
     const container = document.querySelector('#block-anim');
     container.innerHTML = `
-        <div id="block-belt"></div>
+        <div id="block-belt"><i class="fa-solid fa-cube"></i></div>
         <div id="tx-belt">
             <div class="belt"></div>
             <div class="belt"></div>
@@ -1431,15 +1431,17 @@ function startAnim() {
             <div class="belt"></div>
             <div class="belt"></div>
         </div>
-        <div id="request-belt"></div>
+        <div id="request-belt"><i class="fa-solid fa-globe"></i></div>
     `;
     const chains = ['avax', 'poly', 'eth', 'ftm', 'bsc'];
 
     const blockList = [];
-    const spawnTimeMin = 2000;
-    const spawnTimeMax = 500;
-    const timeAlive = 3000;
+    const spawnTimeMin = 500;
+    const spawnTimeMax = 1000;
+    const timeAlive = 1500;
     const blockBeltLimit = 20;
+
+    setInterval(() => container.querySelectorAll('#request-belt i, #block-belt i').forEach(e => e.classList.toggle('glow')), 1500);
 
     // spawn blocks
     const spawnChain = () => {
@@ -1449,6 +1451,7 @@ function startAnim() {
             const chosenChain = Math.floor(Math.random() * chains.length);
             block.src = `img/${ chains[chosenChain] }.png`;
             block.classList.add('block', 'slide', 'fade', chains[chosenChain]);
+            const targetMargin = chosenChain * (700 / chains.length) - (350 - 35);
     
             container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
             blockList.push({
@@ -1456,7 +1459,10 @@ function startAnim() {
                 chain: chosenChain
             });
 
-            setTimeout(() => block.classList.remove('slide', 'fade'), 100);
+            setTimeout(() => {
+                block.classList.remove('slide', 'fade');
+                block.style['margin-left'] = `${ targetMargin }px`;
+            }, 100);
             
             setTimeout(() => {
                 const block = blockList.shift();
@@ -1496,7 +1502,7 @@ function startAnim() {
 
     const reqList = [];
     // spawn requests
-    const responseSpawnIntervalMin = 1000;
+    const responseSpawnIntervalMin = 500;
     const responseSpawnIntervalMax = 2000;
     const responseWaitTime = 1500;
     const responseSlideTime = 2000;
@@ -1505,17 +1511,20 @@ function startAnim() {
         setTimeout(() => {
             const chosenChain = Math.floor(Math.random() * chains.length);
             const req = document.createElement('div');
-            // req.innerHTML = `<img src="img/${ chains[chosenChain] }.png">`;
-            req.innerHTML = `<span>{}</span>`;
+            req.innerHTML = `<span>{⋯}</span>`;
             req.classList.add('block', 'slide', 'fade', chains[chosenChain]);
-    
+
             container.querySelector('#request-belt').insertAdjacentElement('afterbegin', req);
             reqList.push({
                 element: req,
                 chain: chosenChain
             });
     
-            setTimeout(() => req.classList.remove('slide', 'fade'), 10);
+            setTimeout(() => {
+                req.classList.remove('slide', 'fade');
+                const targetMargin = chosenChain * (700 / chains.length) - (280);
+                req.style['margin-left'] = `${ targetMargin }px`;    
+            }, 100);
             
             // time to complete slide
             setTimeout(() => {
@@ -1524,45 +1533,47 @@ function startAnim() {
                 // create reponse block
                 const res = document.createElement('div');
                 res.classList.add('response', 'fade', chains[chosenChain]);
-                res.style['margin-left'] = `${ chosenChain * 350/5 }px`;
+                const targetMargin = chosenChain * (350 / chains.length);
+                res.style['margin-left'] = `${ targetMargin }px`;    
                 res.innerHTML = `<pre><code>
 {
-    "timestamp": "0000-00-00T00:00:00",
-    "lastBlock": 00000000,
-    "avgTime": 0.000,
-    "avgTx": 0.0,
-    "avgGas": 000000.0000,
-    "baseFee": 00,
-    "speeds": [
-        {
-            "acceptance": 0.0,
-            "gasPrice": 00,
-            "estimatedFee": 0.0000
-        },
-        {
-            "acceptance": 0.0,
-            "gasPrice": 00,
-            "estimatedFee": 0.0000
-        },
-        {
-            "acceptance": 0.0,
-            "gasPrice": 00,
-            "estimatedFee": 0.0000
-        }
-    ]
+  "timestamp": "0000-00-00T00:00:00",
+  "lastBlock": 00000000,
+  "avgTime": 0.000,
+  "avgTx": 0.0,
+  "avgGas": 000000.0000,
+  "baseFee": 00,
+  "speeds": [
+    {
+      "acceptance": 0.0,
+      "gasPrice": 00,
+      "estimatedFee": 0.0000
+    },
+    {
+      "acceptance": 0.0,
+      "gasPrice": 00,
+      "estimatedFee": 0.0000
+    },
+    {
+      "acceptance": 0.0,
+      "gasPrice": 00,
+      "estimatedFee": 0.0000
+    }
+  ]
 }
 </code></pre>`;
                 container.insertAdjacentElement('beforeend', res);
 
                 setTimeout(() => res.classList.remove('fade'), 100);
                 setTimeout(() => {
+                    res.style['margin-left'] = `${ parseInt(res.style['margin-left']) + 35 }px`;    
                     res.classList.add('shrink', 'fade');
-                    res.removeAttribute('style');
                     block.classList.add('back');
-
+                    
                 }, responseWaitTime - 500);
                 setTimeout(() => {
                     res.remove();
+                    block.removeAttribute('style');
                     block.classList.add('slide');
 
                     setTimeout(() => block.classList.add('fade'), responseSlideTime);

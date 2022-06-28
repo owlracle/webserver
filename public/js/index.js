@@ -98,8 +98,6 @@ const network = (symbol => {
         fog.addEventListener('click', () => fog.remove());
     });
 
-    startAnim();
-
     document.querySelector("#chain").innerHTML = network.name;
 
     // set the right token to price fetch according to the network
@@ -1420,170 +1418,221 @@ class EndpointTable {
     }
 })();
 
-function startAnim() {
-    const container = document.querySelector('#block-anim');
-    container.innerHTML = `
-        <div id="block-belt"><i class="fa-solid fa-cube"></i></div>
-        <div id="tx-belt">
-            <div class="belt"></div>
-            <div class="belt"></div>
-            <div class="belt"></div>
-            <div class="belt"></div>
-            <div class="belt"></div>
-        </div>
-        <div id="request-belt"><i class="fa-solid fa-globe"></i></div>
-    `;
-    const chains = ['avax', 'poly', 'eth', 'ftm', 'bsc'];
+const blocksAnim = {
+    chains: ['avax', 'poly', 'eth', 'ftm', 'bsc'],
 
-    const blockList = [];
-    const spawnTimeMin = 500;
-    const spawnTimeMax = 1000;
-    const timeAlive = 1500;
-    const blockBeltLimit = 20;
+    start: function (container) {
+        this.container = container;
+        this.container.innerHTML = `
+            <div id="block-belt"><i class="fa-solid fa-cube"></i></div>
+            <div id="tx-belt">
+                <div class="belt"></div>
+                <div class="belt"></div>
+                <div class="belt"></div>
+                <div class="belt"></div>
+                <div class="belt"></div>
+            </div>
+            <div id="request-belt"><i class="fa-solid fa-globe"></i></div>
+        `;
 
-    setInterval(() => container.querySelectorAll('#request-belt i, #block-belt i').forEach(e => e.classList.toggle('glow')), 1500);
+        // set the glowing for each source glyph
+        setInterval(() => this.container.querySelectorAll('#request-belt i, #block-belt i').forEach(e => e.classList.toggle('glow')), 1500);
 
-    // spawn blocks
-    const spawnChain = () => {
-        const randomSpawnTime = parseInt(Math.random() * (spawnTimeMax - spawnTimeMin)) + spawnTimeMin ;
-        setTimeout(() => {
-            const block = document.createElement('img');
-            const chosenChain = Math.floor(Math.random() * chains.length);
-            block.src = `img/${ chains[chosenChain] }.png`;
-            block.classList.add('block', 'slide', 'fade', chains[chosenChain]);
-            const targetMargin = chosenChain * (700 / chains.length) - (350 - 35);
-    
-            container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
-            blockList.push({
-                element: block,
-                chain: chosenChain
-            });
+        // starting values for BlockTx space
+        const blockBeltLimit = 20;
+        for (let j=0 ; j < blockBeltLimit ; j++) {
+            for (let i=0 ; i < this.chains.length ; i++) {
+                new this.BlockTx(this, i, blockBeltLimit);
+            }
+        }
+
+        this.blockChainGenerator.start(this);
+        this.requestGenerator.start(this);
+    },
+
+    blockChainGenerator: {
+        start: function(parent) {
+            if (parent) this.parent = parent;
+            if (!this.running) this.run();
+            this.running = true;
+        },
+
+        stop: function() {
+            this.running = false;
+        },
+
+        // create new BlockChain each interval
+        run: function() {
+            const spawnTimeMin = 500;
+            const spawnTimeMax = 1000;
+            const randomSpawnTime = parseInt(Math.random() * (spawnTimeMax - spawnTimeMin)) + spawnTimeMin ;
 
             setTimeout(() => {
+                new this.parent.BlockChain(this.parent);
+                if (this.running) this.run();
+            }, randomSpawnTime);
+        }
+
+    },
+
+    requestGenerator: {
+        start: function(parent) {
+            if (parent) this.parent = parent;
+            if (!this.running) this.run();
+            this.running = true;
+        },
+
+        stop: function() {
+            this.running = false;
+        },
+
+        // create new requests each interval
+        run: function() {
+            const requestSpawnIntervalMin = 500;
+            const requestSpawnIntervalMax = 2000;
+            const spawnInterval = parseInt(Math.random() * (requestSpawnIntervalMax - requestSpawnIntervalMin)) + requestSpawnIntervalMin;
+        
+            setTimeout(() => {
+                new this.parent.Request(this.parent);
+                if (this.running) this.run();
+            }, spawnInterval);
+        }
+
+    },
+
+    // class for a single BlockChain = the squares
+    BlockChain: class {
+        constructor(parent) {
+            const container = parent.container;
+            const chains = parent.chains;
+
+            const timeAlive = 1500;
+
+            const block = document.createElement('img');
+            const chainId = Math.floor(Math.random() * chains.length);
+            block.src = `img/${ chains[ chainId ] }.png`;
+            block.classList.add('block', 'slide', 'fade', chains[ chainId ]);
+    
+            container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
+
+            setTimeout(() => {
+                const targetMargin = chainId * (350 / chains.length) - (350 / 2 - 35);
                 block.classList.remove('slide', 'fade');
                 block.style['margin-left'] = `${ targetMargin }px`;
             }, 100);
             
             setTimeout(() => {
-                const block = blockList.shift();
-                block.element.classList.add('fade');
-                spawnBlock(block.chain);
-                setTimeout(() => block.element.remove(), 1000);
-                
+                block.classList.add('fade');
+                new parent.BlockTx(parent, chainId);
+                setTimeout(() => block.remove(), 1000);
             }, timeAlive);
 
-            spawnChain();
-        }, randomSpawnTime);
-    }
-    spawnChain();
-
-    // spawn txs
-    const spawnBlock = id => {
-        const block = document.createElement('div');
-        block.classList.add('block', 'create', chains[id]);
-        
-        const randomWidth = Math.floor(Math.random() * 70 + 30);
-        block.style.width = `${ randomWidth }%`;
-
-        const belt = container.querySelectorAll('#tx-belt .belt')[id];
-        belt.insertAdjacentElement('afterbegin', block);
-        setTimeout(() => block.classList.remove('create'), 100);
-
-        if (belt.querySelectorAll('.block').length >= blockBeltLimit) {
-            Array.from(belt.querySelectorAll('.block')).slice(-1)[0].remove();
+            return this;
         }
-    }
+    },
 
-    for (let j=0 ; j < blockBeltLimit ; j++) {
-        for (let i=0 ; i < chains.length ; i++) {
-            spawnBlock(i);
+    BlockTx: class {
+        constructor(parent, id, limit=20) {
+            const chains = parent.chains;
+            const container = parent.container;
+
+            const block = document.createElement('div');
+            block.classList.add('block', 'create', chains[id]);
+            
+            const randomWidth = Math.floor(Math.random() * 70 + 30);
+            block.style.width = `${ randomWidth }%`;
+    
+            const belt = container.querySelectorAll('#tx-belt .belt')[id];
+            belt.insertAdjacentElement('afterbegin', block);
+            setTimeout(() => block.classList.remove('create'), 100);
+    
+            if (belt.querySelectorAll('.block').length >= limit) {
+                Array.from(belt.querySelectorAll('.block')).slice(-1)[0].remove();
+            }
         }
-    }
+    },
 
-    const reqList = [];
-    // spawn requests
-    const responseSpawnIntervalMin = 500;
-    const responseSpawnIntervalMax = 2000;
-    const responseWaitTime = 1500;
-    const responseSlideTime = 2000;
-    const spawnRequest = () => {
-        const spawnInterval = parseInt(Math.random() * (responseSpawnIntervalMax - responseSpawnIntervalMin)) + responseSpawnIntervalMin;
-        setTimeout(() => {
+    Request: class {
+        constructor(parent) {
+            const chains = parent.chains;
+            const container = parent.container;
+
             const chosenChain = Math.floor(Math.random() * chains.length);
             const req = document.createElement('div');
             req.innerHTML = `<span>{⋯}</span>`;
             req.classList.add('block', 'slide', 'fade', chains[chosenChain]);
 
             container.querySelector('#request-belt').insertAdjacentElement('afterbegin', req);
-            reqList.push({
-                element: req,
-                chain: chosenChain
-            });
     
+            // start sliding to target
             setTimeout(() => {
                 req.classList.remove('slide', 'fade');
                 const targetMargin = chosenChain * (700 / chains.length) - (280);
                 req.style['margin-left'] = `${ targetMargin }px`;    
             }, 100);
             
+            const responseWaitTime = 1500;
+            const responseSlideTime = 2000;
+        
             // time to complete slide
             setTimeout(() => {
-                const req = reqList.shift();
-                const block = req.element;
-                // create reponse block
-                const res = document.createElement('div');
-                res.classList.add('response', 'fade', chains[chosenChain]);
-                const targetMargin = chosenChain * (350 / chains.length);
-                res.style['margin-left'] = `${ targetMargin }px`;    
-                res.innerHTML = `<pre><code>
-{
-  "timestamp": "0000-00-00T00:00:00",
-  "lastBlock": 00000000,
-  "avgTime": 0.000,
-  "avgTx": 0.0,
-  "avgGas": 000000.0000,
-  "baseFee": 00,
-  "speeds": [
-    {
-      "acceptance": 0.0,
-      "gasPrice": 00,
-      "estimatedFee": 0.0000
-    },
-    {
-      "acceptance": 0.0,
-      "gasPrice": 00,
-      "estimatedFee": 0.0000
-    },
-    {
-      "acceptance": 0.0,
-      "gasPrice": 00,
-      "estimatedFee": 0.0000
-    }
-  ]
-}
-</code></pre>`;
-                container.insertAdjacentElement('beforeend', res);
+                // create response
+                const res = new parent.Response(parent, chosenChain);
 
-                setTimeout(() => res.classList.remove('fade'), 100);
+                // a little before the waitTime expires, create response
                 setTimeout(() => {
-                    res.style['margin-left'] = `${ parseInt(res.style['margin-left']) + 35 }px`;    
-                    res.classList.add('shrink', 'fade');
-                    block.classList.add('back');
-                    
+                    req.classList.add('back');
+                    res.animate();
                 }, responseWaitTime - 500);
-                setTimeout(() => {
-                    res.remove();
-                    block.removeAttribute('style');
-                    block.classList.add('slide');
 
-                    setTimeout(() => block.classList.add('fade'), responseSlideTime);
-                    setTimeout(() => block.remove(), responseSlideTime + 500);
-    
+                // start traveling back
+                setTimeout(() => {
+                    res.kill();
+
+                    req.removeAttribute('style');
+                    req.classList.add('slide');
+
+                    // kill
+                    setTimeout(() => req.classList.add('fade'), responseSlideTime);
+                    setTimeout(() => req.remove(), responseSlideTime + 500);
                 }, responseWaitTime);
             }, responseSlideTime);
+        }
+    },
 
-            spawnRequest();
-        }, spawnInterval);
-    }
-    spawnRequest();
+    Response: class {
+        static template;
+
+        constructor(parent, chainId) {
+            if (!Response.template) {
+                fetch('/eth/gas?apikey=YOUR_API_KEY').then(res => res.json().then(data => Response.template = data));
+            }
+
+            const chains = parent.chains;
+            const container = parent.container;
+
+            const res = document.createElement('div');
+            res.classList.add('response', 'fade', chains[ chainId ]);
+            const targetMargin = chainId * (350 / chains.length);
+            res.style['margin-left'] = `${ targetMargin }px`;
+            res.innerHTML = Response.template ? `<pre><code>${ JSON.stringify(Response.template, null, 2) }</code></pre>` : '';
+            container.insertAdjacentElement('beforeend', res);
+
+            setTimeout(() => res.classList.remove('fade'), 100);
+
+            this.element = res;
+            return this;
+        }
+
+        animate() {
+            const res = this.element;
+            res.style['margin-left'] = `${ parseInt(res.style['margin-left']) + 35 }px`;    
+            res.classList.add('shrink', 'fade');
+        }
+
+        kill() {
+            this.element.remove();
+        }
+    },
 }
+blocksAnim.start(document.querySelector('#block-anim'));

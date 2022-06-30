@@ -85,7 +85,7 @@
             @media only screen and (min-height: 800px) and (min-width: 900px) {
                 height: calc(100vh - 50px);
                 max-height: 1200px;
-                margin: 0;
+                margin-top: 0;
             }
 
 
@@ -97,6 +97,8 @@
                 #info {
                     display: flex;
                     flex-direction: column;
+                    width: 550px;
+                    max-width: 100%;
                     
                     #title {
                         display: flex;
@@ -157,7 +159,6 @@
                         
                         @media @size-1200 {
                             margin-left: 50px;
-                            margin-right: 50px;
                         }
                     }
 
@@ -183,13 +184,18 @@
                 #block-anim {
                     display: none;
                     width: 350px;
+                    user-select: none;
 
-                    @media @size-900 {
+                    @media only screen and (min-height: 750px) and (min-width: 900px) {
                         display: block;
-                        transform: scale(0.8);
+                        transform: scale(0.7);
                     }
-
-                    @media @size-1200 {
+                    
+                    @media only screen and (min-height: 900px) and (min-width: 900px) {
+                        transform: scale(0.7);
+                    }
+                    
+                    @media only screen and (min-height: 900px) and (min-width: 1200px) {
                         transform: none;
                     }
 
@@ -391,7 +397,7 @@
             #intro {
                 text-align: center;
                 font-size: 1.5rem;
-                margin-top: 50px;
+                // margin-top: 50px;
 
                 i {
                     color: var(--text-color);
@@ -514,7 +520,7 @@
             width: 100%;
             align-items: center;
             flex-direction: column;
-            margin-top: 30px;
+            margin-top: 60px;
 
             .row {
                 display: flex;

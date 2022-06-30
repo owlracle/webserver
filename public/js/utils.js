@@ -115,13 +115,14 @@ const theme = {
     load: function() {
         this.set(cookies.get('theme') || this.choice);
 
-        this.particles = cookies.get('particles') == 'false' ? false : true;
+        // this.particles = cookies.get('particles') == 'false' ? false : true;
+        this.particles = true;
         if (this.particles && window.outerWidth < 600){
             this.particles = false;
         }
 
-        cookies.set('particles', this.particles, { expires: { days: 365 } });
-        if (cookies.get('particles') == 'true'){
+        // cookies.set('particles', this.particles, { expires: { days: 365 } });
+        if (this.particles){
             // particles background
             new DynamicScript('https://cdn.jsdelivr.net/npm/tsparticles@1.9.2/dist/tsparticles.min.js', () => tsParticles.loadJSON('frame', `config/particles-${this.choice}.json`));
         }

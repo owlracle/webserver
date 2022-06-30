@@ -1,4 +1,4 @@
-import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, Modal, startHeaderApiSearch, Toast } from './utils.min.js';
+import { DynamicScript, theme, cookies, wallet, price, api, Tooltip, network as Network, recaptcha, fadeIn, infoMessageModal, startHeaderApiSearch, Toast } from './utils.min.js';
 
 startHeaderApiSearch();
 
@@ -75,7 +75,7 @@ const network = (symbol => {
 
     let netName = network.longName || network.name;
     netName = netName.slice(-1) == 's' ? `${netName}'` : `${netName}'s`;
-    document.querySelector('#title #network-name').innerHTML = netName;
+    document.querySelector('#info #network-name').innerHTML = netName;
 
     // network button action
     obj.addEventListener('click', function() {
@@ -184,17 +184,6 @@ const network = (symbol => {
 
 theme.load();
 document.querySelector('#theme').addEventListener('click' , () => theme.toggle());
-
-if (window.outerWidth < 600){
-    document.querySelector('#toggle-bg').remove();
-}
-else {
-    document.querySelector('#toggle-bg').addEventListener('click' , () => {
-        cookies.set('particles', cookies.get('particles') == 'false', { expires: { days: 365 } });
-        theme.load();
-    });
-    new Tooltip(document.querySelector('#toggle-bg'), 'Toggle background animation', { delay: 1000, createEvent: 'mouseenter' });
-}
 
 
 // create price chart
@@ -548,12 +537,11 @@ const gasTimer = {
     interval: 10000, // interval between every request
     toInterval: 100, // interval between timer updates
     counter: 100,
-    element: document.querySelector('#countdown #filled'),
     cards : [ // preferences for cards
-        { name: '🛴Slow', tooltip: 'Accepted on 35% of blocks', accept: 35 },
-        { name: '🚗Standard', tooltip: 'Accepted on 60% of blocks', accept: 60 },
-        { name: '✈️Fast', tooltip: 'Accepted on 90% of blocks', accept: 90 },
-        { name: '🚀Instant', tooltip: 'Accepted on every block', accept: 100 },
+        { name: '🛴 Slow', tooltip: 'Accepted on 35% of blocks', accept: 35 },
+        { name: '🚗 Standard', tooltip: 'Accepted on 60% of blocks', accept: 60 },
+        { name: '✈️ Fast', tooltip: 'Accepted on 90% of blocks', accept: 90 },
+        { name: '🚀 Instant', tooltip: 'Accepted on every block', accept: 100 },
     ],
 
     init: function(interval, toInterval){
@@ -576,6 +564,7 @@ const gasTimer = {
                     <div class="left">${card.name} ${card.tooltip ? '<i class="far fa-question-circle"></i>' : ''}</div>
                     <div class="right" title="Change this card"><i class="fas fa-edit"></i></div>
                 </div>
+                <div class="timer"><div class="filled"></div></div>
                 <div class="body">
                     <div class="gwei"><i class="fas fa-spin fa-cog"></i></div>
                     <div class="usd"></div>
@@ -583,6 +572,7 @@ const gasTimer = {
             </div>`;
             container.insertAdjacentHTML('beforeend', dom);
         });
+        this.element = container.querySelectorAll('.timer .filled');
 
         container.querySelectorAll('.gas i.fa-question-circle').forEach((e,i) => new Tooltip(e, this.cards[i].tooltip));
         container.querySelectorAll('.gas i.fa-edit').forEach((e,i) => {
@@ -690,7 +680,7 @@ const gasTimer = {
     countDown: function() {
         setTimeout(() => {
             this.counter--;
-            this.element.style.width = `${this.counter / (this.interval / this.toInterval) * 100}%`;
+            this.element.forEach(e => e.style.width = `${this.counter / (this.interval / this.toInterval) * 100}%`);
         
             if (this.counter <= 0){
                 this.counter = this.interval / this.toInterval;
@@ -1417,3 +1407,222 @@ class EndpointTable {
         return;
     }
 })();
+
+const blocksAnim = {
+    chains: ['avax', 'poly', 'eth', 'ftm', 'bsc'],
+
+    start: function (container) {
+        this.container = container;
+        this.container.innerHTML = `
+            <div id="block-belt"><i class="fa-solid fa-cube"></i></div>
+            <div id="tx-belt">
+                <div class="belt"></div>
+                <div class="belt"></div>
+                <div class="belt"></div>
+                <div class="belt"></div>
+                <div class="belt"></div>
+            </div>
+            <div id="request-belt"><i class="fa-solid fa-globe"></i></div>
+        `;
+
+        // set the glowing for each source glyph
+        setInterval(() => this.container.querySelectorAll('#request-belt i, #block-belt i').forEach(e => e.classList.toggle('glow')), 1500);
+
+        // starting values for BlockTx space
+        const blockBeltLimit = 20;
+        for (let j=0 ; j < blockBeltLimit ; j++) {
+            for (let i=0 ; i < this.chains.length ; i++) {
+                new this.BlockTx(this, i, blockBeltLimit);
+            }
+        }
+
+        this.blockChainGenerator.start(this);
+        this.requestGenerator.start(this);
+    },
+
+    blockChainGenerator: {
+        start: function(parent) {
+            if (parent) this.parent = parent;
+            if (!this.running) this.run();
+            this.running = true;
+        },
+
+        stop: function() {
+            this.running = false;
+        },
+
+        // create new BlockChain each interval
+        run: function() {
+            const spawnTimeMin = 500;
+            const spawnTimeMax = 1000;
+            const randomSpawnTime = parseInt(Math.random() * (spawnTimeMax - spawnTimeMin)) + spawnTimeMin ;
+
+            setTimeout(() => {
+                new this.parent.BlockChain(this.parent);
+                if (this.running) this.run();
+            }, randomSpawnTime);
+        }
+
+    },
+
+    requestGenerator: {
+        start: function(parent) {
+            if (parent) this.parent = parent;
+            if (!this.running) this.run();
+            this.running = true;
+        },
+
+        stop: function() {
+            this.running = false;
+        },
+
+        // create new requests each interval
+        run: function() {
+            const requestSpawnIntervalMin = 500;
+            const requestSpawnIntervalMax = 2000;
+            const spawnInterval = parseInt(Math.random() * (requestSpawnIntervalMax - requestSpawnIntervalMin)) + requestSpawnIntervalMin;
+        
+            setTimeout(() => {
+                new this.parent.Request(this.parent);
+                if (this.running) this.run();
+            }, spawnInterval);
+        }
+
+    },
+
+    // class for a single BlockChain = the squares
+    BlockChain: class {
+        constructor(parent) {
+            const container = parent.container;
+            const chains = parent.chains;
+
+            const timeAlive = 1500;
+
+            const block = document.createElement('img');
+            const chainId = Math.floor(Math.random() * chains.length);
+            block.src = `img/${ chains[ chainId ] }.png`;
+            block.classList.add('block', 'slide', 'fade', chains[ chainId ]);
+    
+            container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
+
+            setTimeout(() => {
+                const targetMargin = chainId * (350 / chains.length) - (350 / 2 - 35);
+                block.classList.remove('slide', 'fade');
+                block.style['margin-left'] = `${ targetMargin }px`;
+            }, 100);
+            
+            setTimeout(() => {
+                block.classList.add('fade');
+                new parent.BlockTx(parent, chainId);
+                setTimeout(() => block.remove(), 1000);
+            }, timeAlive);
+
+            return this;
+        }
+    },
+
+    BlockTx: class {
+        constructor(parent, id, limit=20) {
+            const chains = parent.chains;
+            const container = parent.container;
+
+            const block = document.createElement('div');
+            block.classList.add('block', 'create', chains[id]);
+            
+            const randomWidth = Math.floor(Math.random() * 70 + 30);
+            block.style.width = `${ randomWidth }%`;
+    
+            const belt = container.querySelectorAll('#tx-belt .belt')[id];
+            belt.insertAdjacentElement('afterbegin', block);
+            setTimeout(() => block.classList.remove('create'), 100);
+    
+            if (belt.querySelectorAll('.block').length >= limit) {
+                Array.from(belt.querySelectorAll('.block')).slice(-1)[0].remove();
+            }
+        }
+    },
+
+    Request: class {
+        constructor(parent) {
+            const chains = parent.chains;
+            const container = parent.container;
+
+            const chosenChain = Math.floor(Math.random() * chains.length);
+            const req = document.createElement('div');
+            req.innerHTML = `<span>{⋯}</span>`;
+            req.classList.add('block', 'slide', 'fade', chains[chosenChain]);
+
+            container.querySelector('#request-belt').insertAdjacentElement('afterbegin', req);
+    
+            // start sliding to target
+            setTimeout(() => {
+                req.classList.remove('slide', 'fade');
+                const targetMargin = chosenChain * (700 / chains.length) - (280);
+                req.style['margin-left'] = `${ targetMargin }px`;    
+            }, 100);
+            
+            const responseWaitTime = 1500;
+            const responseSlideTime = 2000;
+        
+            // time to complete slide
+            setTimeout(() => {
+                // create response
+                const res = new parent.Response(parent, chosenChain);
+
+                // a little before the waitTime expires, create response
+                setTimeout(() => {
+                    req.classList.add('back');
+                    res.animate();
+                }, responseWaitTime - 500);
+
+                // start traveling back
+                setTimeout(() => {
+                    res.kill();
+
+                    req.removeAttribute('style');
+                    req.classList.add('slide');
+
+                    // kill
+                    setTimeout(() => req.classList.add('fade'), responseSlideTime);
+                    setTimeout(() => req.remove(), responseSlideTime + 500);
+                }, responseWaitTime);
+            }, responseSlideTime);
+        }
+    },
+
+    Response: class {
+        static template;
+
+        constructor(parent, chainId) {
+            if (!Response.template) {
+                fetch('/eth/gas?apikey=YOUR_API_KEY').then(res => res.json().then(data => Response.template = data));
+            }
+
+            const chains = parent.chains;
+            const container = parent.container;
+
+            const res = document.createElement('div');
+            res.classList.add('response', 'fade', chains[ chainId ]);
+            const targetMargin = chainId * (350 / chains.length);
+            res.style['margin-left'] = `${ targetMargin }px`;
+            res.innerHTML = Response.template ? `<pre><code>${ JSON.stringify(Response.template, null, 2) }</code></pre>` : '';
+            container.insertAdjacentElement('beforeend', res);
+
+            setTimeout(() => res.classList.remove('fade'), 100);
+
+            this.element = res;
+            return this;
+        }
+
+        animate() {
+            const res = this.element;
+            res.style['margin-left'] = `${ parseInt(res.style['margin-left']) + 35 }px`;    
+            res.classList.add('shrink', 'fade');
+        }
+
+        kill() {
+            this.element.remove();
+        }
+    },
+}
+blocksAnim.start(document.querySelector('#block-anim'));

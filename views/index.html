@@ -5,16 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta name="description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse.">
-    <meta name="keywords" content="gas price api, binance smart chain, avalanche, polygon, ethereum, fantom, moonriver, cronos, harmony, celo, heco, fuse, crypto, harmony, heco, celo, fuse, ETH, MATIC, FTM, AVAX, BNB, MOVR, CRO, HT , defi, gas, gas fee, gas price, oracle, bsc, gas api">
+    <meta name="description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse, Aurora.">
+    <meta name="keywords" content="gas price api, binance smart chain, avalanche, polygon, ethereum, fantom, moonriver, cronos, harmony, celo, heco, fuse, crypto, harmony, heco, celo, fuse, aurora, ETH, MATIC, FTM, AVAX, BNB, MOVR, CRO, HT , defi, gas, gas fee, gas price, oracle, bsc, gas api">
     <meta name="robots" content="index, follow">
     <meta property="og:image" content="https://owlracle.info/img/owl.webp">
     <meta property="og:title" content="Owlracle - Multichain Gas Oracle">
     <meta property="og:url" content="https://owlracle.info">
-    <meta property="og:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse.">
+    <meta property="og:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse, Aurora.">
     <meta property="og:site_name" content="owlracle.info">
     <meta name="twitter:image" content="https://owlracle.info/img/owl.webp">
-    <meta name="twitter:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse.">
+    <meta name="twitter:description" content="Multichain gas price fee tracker API for BSC, Polygon, Fantom, Avalanche, Ethereum, Moonriver, Cronos, Harmony, Celo, Heco, Fuse, Aurora.">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Owlracle - Multichain Gas Oracle">
     <meta name="twitter:site" content="https://owlracle.info">
@@ -40,33 +40,37 @@
 
     <div id="frame">
         <div id="content">
-            <div id="toggle-bg"><i class="fas fa-fan"></i></div>
-
-            <div id="splash">
-                <div id="title">
-                    <img src="img/owl.webp" alt="Polygon Fantom BSC Ethereum Avalanche Moonriver Cronos Harmony Heco Celo Fuse Gas price fee tracker API">
-                    <h1 id="text">
-                        <span>
-                            <span class="subtitle" id="network-name">{{networkName}}'s</span>
-                            <div id="time-sign"></div>
-                        </span>
-                        <span id="site-name">OWLRACLE</span>
-                        <span class="subtitle">The multichain Gas tracker API</span>
-                    </h1>
+            <div id="section-1">
+                <div id="splash" class="row">
+                    <div id="info">
+                        <div id="title">
+                            <img src="img/owl.webp" alt="Polygon Fantom BSC Ethereum Avalanche Moonriver Cronos Harmony Heco Celo Fuse Aurora Gas price fee tracker API">
+                            <h1 id="text">
+                                <span>
+                                    <span class="subtitle" id="network-name">{{networkName}}'s</span>
+                                    <div id="time-sign"></div>
+                                </span>
+                                <span id="site-name">OWLRACLE</span>
+                                <span class="subtitle">The multichain Gas tracker API</span>
+                            </h1>
+                        </div>
+                        <p>Owlracle provides statistical information about <b>gas prices</b> for multiple chains. We can help you save <b>time</b> and <b>money</b> by suggesting the optimal gas-related values before sending your transactions.</p>
+                        <div id="button-container">
+                            <a class="button-main" href="/docs"><i class="fa-solid fa-code"></i>Integrate your app</a>
+                            <a class="button-main" href="/products"><i class="fa-regular fa-lightbulb"></i>Explore our solutions</a>
+                        </div>
+                    </div>
+    
+                    <div id="block-anim"></div>
                 </div>
 
-                <div id="block-anim"></div>
+                <div class="row">
+                    <p id="intro">Owlracle says you should pay no more than this for <b>Gas</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
+                    <div id="gas-container"></div>
+                </div>
+
             </div>
-    
-            <p id="intro">Owlracle says you should pay no more than this for <b>Gas</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
-    
-            <div id="gas-container"></div>
-    
-            <div id="countdown-container">
-                <span>Refreshing in</span>
-                <div id="countdown"><div id="filled"></div></div>
-            </div>
-    
+
             <div id="chart-container">
                 <div class="row">
                     <div id="timeframe-switcher">
@@ -190,7 +194,7 @@
                 href="https://discord.gg/zYS4f8eRbC" target="_blank" rel="noopener">Discord</a> server.</p>
         </div>
 
-        <div class="section" id="section-1">
+        <!-- <div class="section" id="section-2">
             <div class="col text left">
                 <div class="box">
                     <h2>Integrate Owlracle with your app using our API</h2>
@@ -206,7 +210,7 @@
             </div>
         </div>
 
-        <div class="section" id="section-2">
+        <div class="section" id="section-3">
             <div class="col video">
                 <video autoplay muted loop>
                     <source src="img/extension.mp4" type="video/mp4">
@@ -223,7 +227,7 @@
             </div>
         </div>
 
-        <div class="section" id="section-3">
+        <div class="section" id="section-4">
             <div class="col text ;eft">
                 <div class="box">
                     <h2>Make Owlracle's bots work for you</h2>
@@ -236,7 +240,7 @@
             <div class="col video">
                 <img src="img/owl.png">
             </div>
-        </div>
+        </div> -->
 
 
     </div>

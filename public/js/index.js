@@ -75,7 +75,7 @@ const network = (symbol => {
 
     let netName = network.longName || network.name;
     netName = netName.slice(-1) == 's' ? `${netName}'` : `${netName}'s`;
-    document.querySelector('#title #network-name').innerHTML = netName;
+    document.querySelector('#info #network-name').innerHTML = netName;
 
     // network button action
     obj.addEventListener('click', function() {
@@ -184,17 +184,6 @@ const network = (symbol => {
 
 theme.load();
 document.querySelector('#theme').addEventListener('click' , () => theme.toggle());
-
-if (window.outerWidth < 600){
-    document.querySelector('#toggle-bg').remove();
-}
-else {
-    document.querySelector('#toggle-bg').addEventListener('click' , () => {
-        cookies.set('particles', cookies.get('particles') == 'false', { expires: { days: 365 } });
-        theme.load();
-    });
-    new Tooltip(document.querySelector('#toggle-bg'), 'Toggle background animation', { delay: 1000, createEvent: 'mouseenter' });
-}
 
 
 // create price chart
@@ -548,7 +537,6 @@ const gasTimer = {
     interval: 10000, // interval between every request
     toInterval: 100, // interval between timer updates
     counter: 100,
-    element: document.querySelector('#countdown #filled'),
     cards : [ // preferences for cards
         { name: '🛴 Slow', tooltip: 'Accepted on 35% of blocks', accept: 35 },
         { name: '🚗 Standard', tooltip: 'Accepted on 60% of blocks', accept: 60 },
@@ -576,6 +564,7 @@ const gasTimer = {
                     <div class="left">${card.name} ${card.tooltip ? '<i class="far fa-question-circle"></i>' : ''}</div>
                     <div class="right" title="Change this card"><i class="fas fa-edit"></i></div>
                 </div>
+                <div class="timer"><div class="filled"></div></div>
                 <div class="body">
                     <div class="gwei"><i class="fas fa-spin fa-cog"></i></div>
                     <div class="usd"></div>
@@ -583,6 +572,7 @@ const gasTimer = {
             </div>`;
             container.insertAdjacentHTML('beforeend', dom);
         });
+        this.element = container.querySelectorAll('.timer .filled');
 
         container.querySelectorAll('.gas i.fa-question-circle').forEach((e,i) => new Tooltip(e, this.cards[i].tooltip));
         container.querySelectorAll('.gas i.fa-edit').forEach((e,i) => {
@@ -690,7 +680,7 @@ const gasTimer = {
     countDown: function() {
         setTimeout(() => {
             this.counter--;
-            this.element.style.width = `${this.counter / (this.interval / this.toInterval) * 100}%`;
+            this.element.forEach(e => e.style.width = `${this.counter / (this.interval / this.toInterval) * 100}%`);
         
             if (this.counter <= 0){
                 this.counter = this.interval / this.toInterval;

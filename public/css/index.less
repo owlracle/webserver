@@ -199,11 +199,11 @@
                         transform: none;
                     }
 
-                    .eth { background-color: #5c5c5c; }
-                    .poly { background-color: #7b62a3; }
-                    .bsc { background-color: #968243; }
-                    .avax { background-color: #b35757; }
-                    .ftm { background-color: #6388b1; }
+                    .eth { --chain-color: #5c5c5c; }
+                    .poly { --chain-color: #7b62a3; }
+                    .bsc { --chain-color: #968243; }
+                    .avax { --chain-color: #b35757; }
+                    .ftm { --chain-color: #6388b1; }
     
                     #block-belt {
                         display: flex;
@@ -227,26 +227,61 @@
                         }
     
                         .block {
-                            height: 25px;
-                            width: 25px;
-                            margin-top: 360px;
-                            margin-left: 0;
-                            opacity: 1;
+                            display: flex;
                             position: absolute;
-                            transition: 3.5s margin-top linear, 0.3s opacity, 1.5s margin-left;
-                            border-radius: 3px;
-                            box-shadow: 0px 0px 3px 2px var(--chain-color);
-                            padding: 3px;
-                            box-sizing: border-box;
-    
-                            &.slide {
-                                margin-top: 0;
+                            animation: chain-slide-y 1.5s linear;
+                            opacity: 0;
+                            transform: none;
+                            
+                            &.hidden {
+                                animation: none;
+                                display: none;
+
+                                img {
+                                    animation: none;
+                                }
                             }
-    
-                            &.fade {
+                            
+                            img {
+                                height: 25px;
+                                width: 25px;
+                                box-sizing: border-box;
+                                padding: 3px;
+                                animation: chain-slide-x 1.5s ease-out;
+                                border-radius: 3px;
+                                box-shadow: 0px 0px 3px 2px var(--chain-color);
+                                background-color: var(--chain-color);
+
+                                @keyframes chain-slide-x {
+                                    80% {
+                                        background-color: var(--chain-color);
+                                        box-shadow: 0px 0px 3px 2px var(--chain-color);
+                                    }
+        
+                                    90% {
+                                        background-color: white;
+                                        box-shadow: 0px 0px 3px 2px white;
+                                    }
+        
+                                    100% {
+                                        transform: translateX(var(--left-pos));
+                                    }
+                                }
+                            }
+                        }
+
+                        @keyframes chain-slide-y {
+                            20% {
+                                opacity: 1;
+                            }
+                            
+                            80% {
+                                opacity: 1;
+                            }
+
+                            100% {
+                                transform: translateY(160px);
                                 opacity: 0;
-                                background-color: white;
-                                box-shadow: 0px 0px 3px 2px white;
                             }
                         }
                     }
@@ -268,16 +303,24 @@
                             justify-content: flex-end;
                             padding: 0px 5px;
                             box-sizing: border-box;
-        
+                            
                             .block {
                                 height: 5px;
-                                opacity: 1;
+                                width: var(--left-pos);
                                 margin-bottom: 2px;
-                                transition: 0.5s opacity, 3s background; 
+                                opacity: 1;
+                                background-color: var(--chain-color);
+                                animation: tx-fade 3s;
                                 
-                                &.create {
-                                    opacity: 0;
-                                    background-color: white;
+                                @keyframes tx-fade {
+                                    0% {
+                                        background-color: white;
+                                        opacity: 0;
+                                    }
+
+                                    30% {
+                                        opacity: 1;
+                                    }
                                 }
                             }
     
@@ -313,41 +356,26 @@
                         }
     
                         .block {
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            height: 25px;
-                            width: 25px;
-                            margin-top: -100px;
-                            opacity: 1;
+                            opacity: 0;
                             position: absolute;
-                            transition: 2s margin-top linear, 0.3s opacity, 1s margin-left ease-out;
-                            border-radius: 50px;
-                            box-shadow: 0px 0px 3px 2px var(--chain-color);
-    
-                            &.slide {
-                                margin-top: 10px;
-                            }
-    
-                            &.fade {
-                                opacity: 0;
-                            }
-                            
-                            &.back.fade {
-                                background-color: white;
-                                box-shadow: 0px 0px 3px 2px white;
-                            }
-                            
-                            &.back {
+                            animation: request-slide-y 5s linear;
+                            transform: none;
+
+                            &.hidden {
+                                animation: none;
+                                display: none;
+
                                 span {
-                                    opacity: 1;
+                                    animation: none;
                                 }
                             }
-    
+                            
                             span {
-                                width: 15px;
-                                height: 15px;
-                                opacity: 0;
+                                width: 25px;
+                                height: 25px;
+                                padding: 5px;
+                                box-sizing: border-box;
+                                border-radius: 50px;
                                 transition: 1s opacity;
                                 display: flex;
                                 justify-content: center;
@@ -355,39 +383,114 @@
                                 font-family: monospace;
                                 font-size: 0.7rem;
                                 font-weight: bold;
-                                text-shadow: 1px 1px 3px black;
+                                text-shadow: 1px 1px 3px transparent;
+                                color: transparent; 
+                                animation: request-slide-x 5s ease-out;
+                                transform: none;
+                                opacity: 1;
+                                box-shadow: 0px 0px 3px 2px var(--chain-color);
+                                background-color: var(--chain-color);
+                                
+                                @keyframes request-slide-x {
+                                    20% {
+                                        transform: translateX(var(--left-pos));
+                                    }
+
+                                    35% {
+                                        opacity: 1;
+                                    }
+
+                                    50% {
+                                        color: transparent;
+                                        text-shadow: 1px 1px 3px transparent;
+                                    }
+                                    
+                                    70% {
+                                        transform: translateX(var(--left-pos));
+                                        opacity: 1;
+                                        color: white;
+                                        text-shadow: 1px 1px 3px black;
+                                    }
+                                    
+                                    90% {
+                                        transform: translateX(0);
+                                    }
+                                    
+                                    95% {
+                                        box-shadow: 0px 0px 3px 2px var(--chain-color);
+                                        background-color: var(--chain-color);            
+                                    }
+                                    
+                                    100% {
+                                        opacity: 1;
+                                        box-shadow: 0px 0px 3px 2px white;
+                                        background-color: white;
+                                    }
+                                }
+                            }
+
+                            @keyframes request-slide-y {
+                                5% {
+                                    opacity: 1;
+                                }
+                                
+                                35% {
+                                    transform: translateY(-100px);
+                                }
+
+                                70% {
+                                    transform: translateY(-100px);
+                                }
+
+                                100% {
+                                    transform: translateY(0px);
+                                    opacity: 1;
+                                }
                             }
                         }
                     }
     
                     .response {
                         position: absolute;
-                        width: 70px;
-                        height: 100px;
-                        margin-top: -310px;
                         background-color: #00000050;
-                        border: 3px solid var(--chain-color);
                         color: white;
                         font-weight: bold;
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        transition: 1s all, 0.5s border, 0.3s opacity ease-out;
                         border-radius: 5px;
-                        opacity: 1;
+                        margin-top: -310px;
+                        opacity: 0;
+                        width: 70px;
+                        height: 100px;
                         font-size: 0.15rem;
-    
-                        &.fade {
-                            border-color: transparent;
-                            opacity: 0;
+                        border: 3px solid transparent;
+                        animation: response-animate 1.5s 1.8s;
+                        transform: translateX(var(--left-pos));
+
+                        &.hidden {
+                            animation: none;
+                            display: none;
                         }
-                        
-                        &.shrink {
-                            width: 0;
-                            height: 0;
-                            margin-top: -130px;
-                            font-size: 0;
-                            transition: 1s all;
+    
+                        @keyframes response-animate {
+                            35% {
+                                opacity: 1;
+                                border-color: var(--chain-color);
+                            }
+
+                            70% {
+                                opacity: 1;
+                                font-size: 0.15rem;
+                                transform: translate(var(--left-pos), 0) scale(1);
+                            }
+                            
+                            100% {
+                                opacity: 0;
+                                border-color: var(--chain-color);
+                                font-size: 0;
+                                transform: translate(var(--left-pos), 130px) scale(0);
+                            }
                         }
                     }
     

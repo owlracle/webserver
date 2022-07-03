@@ -1441,6 +1441,8 @@ const blocksAnim = {
     },
 
     blockChainGenerator: {
+        blocks: [],
+
         start: function(parent) {
             if (parent) this.parent = parent;
             if (!this.running) this.run();
@@ -1455,10 +1457,24 @@ const blocksAnim = {
         run: function() {
             const spawnTimeMin = 500;
             const spawnTimeMax = 1000;
-            const randomSpawnTime = parseInt(Math.random() * (spawnTimeMax - spawnTimeMin)) + spawnTimeMin ;
+            const randomSpawnTime = parseInt(Math.random() * (spawnTimeMax - spawnTimeMin)) + spawnTimeMin;
 
             setTimeout(() => {
-                new this.parent.BlockChain(this.parent);
+                const chainId = Math.floor(Math.random() * this.parent.chains.length);
+
+                if (!this.blocks[chainId]) {
+                    this.blocks[chainId] = [ new this.parent.BlockChain(this.parent, chainId) ];
+                }
+                else {
+                    const dead = this.blocks[chainId].find(e => !e.alive);
+                    if (dead) {
+                        dead.run();
+                    }
+                    else {
+                        this.blocks[chainId].push( new this.parent.BlockChain(this.parent, chainId) );
+                    }
+                }
+
                 if (this.running) this.run();
             }, randomSpawnTime);
         }
@@ -1466,6 +1482,8 @@ const blocksAnim = {
     },
 
     requestGenerator: {
+        list: [],
+
         start: function(parent) {
             if (parent) this.parent = parent;
             if (!this.running) this.run();
@@ -1483,8 +1501,30 @@ const blocksAnim = {
             const spawnInterval = parseInt(Math.random() * (requestSpawnIntervalMax - requestSpawnIntervalMin)) + requestSpawnIntervalMin;
         
             setTimeout(() => {
-                new this.parent.Request(this.parent);
+                const chainId = Math.floor(Math.random() * this.parent.chains.length);
+
+                if (!this.list[chainId]) {
+                    this.list[chainId] = [{
+                        request: new this.parent.Request(this.parent, chainId),
+                        response: new this.parent.Response(this.parent, chainId),
+                    }];
+                }
+                else {
+                    const dead = this.list[chainId].find(e => !e.request.alive);
+                    if (dead) {
+                        dead.request.run();
+                        dead.response.run();
+                    }
+                    else {
+                        this.list[chainId].push({
+                            request: new this.parent.Request(this.parent, chainId), 
+                            response: new this.parent.Response(this.parent, chainId),
+                        });
+                    }
+                }
+
                 if (this.running) this.run();
+
             }, spawnInterval);
         }
 
@@ -1492,32 +1532,48 @@ const blocksAnim = {
 
     // class for a single BlockChain = the squares
     BlockChain: class {
-        constructor(parent) {
+        constructor(parent, chainId=false) {
+            this.parent = parent;
             const container = parent.container;
             const chains = parent.chains;
 
-            const timeAlive = 1500;
+            this.timeAlive = 1500;
 
-            const block = document.createElement('img');
-            const chainId = Math.floor(Math.random() * chains.length);
-            block.src = `img/${ chains[ chainId ] }.png`;
-            block.classList.add('block', 'slide', 'fade', chains[ chainId ]);
+            const block = document.createElement('div');
+            this.element = block;
+
+            if (chainId === false) {
+                chainId = Math.floor(Math.random() * chains.length);
+            }
+
+            this.chain = chainId;
+            const img = document.createElement('img');
+            img.src = `img/${ chains[ chainId ] }.png`;
+            block.classList.add('block', chains[ chainId ]);
     
+            block.appendChild(img);
             container.querySelector('#block-belt').insertAdjacentElement('afterbegin', block);
 
-            setTimeout(() => {
-                const targetMargin = chainId * (350 / chains.length) - (350 / 2 - 35);
-                block.classList.remove('slide', 'fade');
-                block.style['margin-left'] = `${ targetMargin }px`;
-            }, 100);
+            const targetMargin = chainId * (350 / chains.length) - (350 / 2 - 35);
+            block.style.setProperty('--left-pos', `${ targetMargin }px`);
             
-            setTimeout(() => {
-                block.classList.add('fade');
-                new parent.BlockTx(parent, chainId);
-                setTimeout(() => block.remove(), 1000);
-            }, timeAlive);
+            this.run();
 
             return this;
+        }
+
+        run() {
+            this.element.classList.remove('hidden');
+            this.alive = true;
+            setTimeout(() => {
+                new this.parent.BlockTx(this.parent, this.chain);
+                this.kill();
+            }, this.timeAlive);
+        }
+
+        kill() {
+            this.element.classList.add('hidden');
+            this.alive = false;
         }
     },
 
@@ -1527,15 +1583,14 @@ const blocksAnim = {
             const container = parent.container;
 
             const block = document.createElement('div');
-            block.classList.add('block', 'create', chains[id]);
+            block.classList.add('block', chains[id]);
             
             const randomWidth = Math.floor(Math.random() * 70 + 30);
-            block.style.width = `${ randomWidth }%`;
+            block.style.setProperty('--left-pos', `${ randomWidth }%`);
     
             const belt = container.querySelectorAll('#tx-belt .belt')[id];
             belt.insertAdjacentElement('afterbegin', block);
-            setTimeout(() => block.classList.remove('create'), 100);
-    
+            
             if (belt.querySelectorAll('.block').length >= limit) {
                 Array.from(belt.querySelectorAll('.block')).slice(-1)[0].remove();
             }
@@ -1543,50 +1598,42 @@ const blocksAnim = {
     },
 
     Request: class {
-        constructor(parent) {
+        constructor(parent, chosenChain=false) {
             const chains = parent.chains;
             const container = parent.container;
+            this.parent = parent;
 
-            const chosenChain = Math.floor(Math.random() * chains.length);
+            if (chosenChain === false) {
+                chosenChain = Math.floor(Math.random() * chains.length);
+            }
+            this.chain = chosenChain;
             const req = document.createElement('div');
-            req.innerHTML = `<span>{⋯}</span>`;
-            req.classList.add('block', 'slide', 'fade', chains[chosenChain]);
+            const inner = document.createElement('span');
+            inner.innerHTML = `{⋯}`;
+            req.classList.add('block', chains[chosenChain]);
+            this.element = req;
 
+            req.appendChild(inner);
             container.querySelector('#request-belt').insertAdjacentElement('afterbegin', req);
     
             // start sliding to target
-            setTimeout(() => {
-                req.classList.remove('slide', 'fade');
-                const targetMargin = chosenChain * (700 / chains.length) - (280);
-                req.style['margin-left'] = `${ targetMargin }px`;    
-            }, 100);
+            const targetMargin = chosenChain * (350 / chains.length) - (350/2 - 35);
             
-            const responseWaitTime = 1500;
-            const responseSlideTime = 2000;
-        
-            // time to complete slide
-            setTimeout(() => {
-                // create response
-                const res = new parent.Response(parent, chosenChain);
+            req.style.setProperty('--left-pos', `${ targetMargin }px`);
+            
+            this.timeAlive = 5000;
+            this.run();
+        }
 
-                // a little before the waitTime expires, create response
-                setTimeout(() => {
-                    req.classList.add('back');
-                    res.animate();
-                }, responseWaitTime - 500);
+        run() {
+            this.element.classList.remove('hidden');
+            this.alive = true;
+            setTimeout(() => this.kill(), this.timeAlive);
+        }
 
-                // start traveling back
-                setTimeout(() => {
-                    res.kill();
-
-                    req.removeAttribute('style');
-                    req.classList.add('slide');
-
-                    // kill
-                    setTimeout(() => req.classList.add('fade'), responseSlideTime);
-                    setTimeout(() => req.remove(), responseSlideTime + 500);
-                }, responseWaitTime);
-            }, responseSlideTime);
+        kill() {
+            this.element.classList.add('hidden');
+            this.alive = false;
         }
     },
 
@@ -1594,34 +1641,40 @@ const blocksAnim = {
         static template;
 
         constructor(parent, chainId) {
-            if (!Response.template) {
-                fetch('/eth/gas?apikey=YOUR_API_KEY').then(res => res.json().then(data => Response.template = data));
-            }
-
             const chains = parent.chains;
             const container = parent.container;
 
             const res = document.createElement('div');
-            res.classList.add('response', 'fade', chains[ chainId ]);
+            res.classList.add('response', chains[ chainId ]);
             const targetMargin = chainId * (350 / chains.length);
-            res.style['margin-left'] = `${ targetMargin }px`;
-            res.innerHTML = Response.template ? `<pre><code>${ JSON.stringify(Response.template, null, 2) }</code></pre>` : '';
+            res.style.setProperty('--left-pos', `${ targetMargin }px`);
+            this.element = res;
+
+            if (Response.template) {
+                res.innerHTML = `<pre><code>${ JSON.stringify(Response.template, null, 2) }</code></pre>`;
+            }
+            else {
+                fetch('/eth/gas?apikey=YOUR_API_KEY').then(res => res.json().then(data => {
+                    Response.template = data;
+                    this.element.innerHTML = `<pre><code>${ JSON.stringify(Response.template, null, 2) }</code></pre>`;
+                }));
+            }
+            
             container.insertAdjacentElement('beforeend', res);
 
-            setTimeout(() => res.classList.remove('fade'), 100);
-
-            this.element = res;
+            this.run();
             return this;
         }
 
-        animate() {
-            const res = this.element;
-            res.style['margin-left'] = `${ parseInt(res.style['margin-left']) + 35 }px`;    
-            res.classList.add('shrink', 'fade');
+        run() {
+            this.element.classList.remove('hidden');
+            this.alive = true;
+            setTimeout(() => this.kill(), 3500);
         }
 
         kill() {
-            this.element.remove();
+            this.element.classList.add('hidden');
+            this.alive = false;
         }
     },
 }

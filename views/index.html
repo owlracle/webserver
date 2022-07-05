@@ -39,37 +39,40 @@
     {{> header}}
 
     <div id="frame">
-        <div id="left-space" class="ad vertical hidden"></div>
-        <div id="content">
-            <div id="section-1">
-                <div id="splash" class="row">
-                    <div id="info">
-                        <div id="title">
-                            <img src="img/owl.webp" alt="Polygon Fantom BSC Ethereum Avalanche Moonriver Cronos Harmony Heco Celo Fuse Aurora Gas price fee tracker API">
-                            <h1 id="text">
-                                <span>
-                                    <span class="subtitle" id="network-name">{{networkName}}'s</span>
-                                    <div id="time-sign"></div>
-                                </span>
-                                <span id="site-name">OWLRACLE</span>
-                                <span class="subtitle">The multichain Gas tracker API</span>
-                            </h1>
-                        </div>
-                        <p>Owlracle provides statistical information about <b>gas prices</b> for multiple chains. We can help you save <b>time</b> and <b>money</b> by suggesting the optimal gas-related values before sending your transactions.</p>
-                        <div id="button-container">
-                            <a class="button-main" href="/docs"><i class="fa-solid fa-code"></i>Integrate your app</a>
-                            <a class="button-main" href="/products"><i class="fa-regular fa-lightbulb"></i>Explore our solutions</a>
-                        </div>
+        <div id="section-1" class="section">
+            <div id="splash" class="row">
+                <div id="info">
+                    <div id="title">
+                        <img src="img/owl.webp" alt="Polygon Fantom BSC Ethereum Avalanche Moonriver Cronos Harmony Heco Celo Fuse Aurora Gas price fee tracker API">
+                        <h1 id="text">
+                            <span>
+                                <span class="subtitle" id="network-name">{{networkName}}'s</span>
+                                <div id="time-sign"></div>
+                            </span>
+                            <span id="site-name">OWLRACLE</span>
+                            <span class="subtitle">The multichain Gas tracker API</span>
+                        </h1>
                     </div>
-    
-                    <div id="block-anim"></div>
+                    <p>Owlracle provides statistical information about <b>gas prices</b> for multiple chains. We can help you save <b>time</b> and <b>money</b> by suggesting the optimal gas-related values before sending your transactions.</p>
+                    <div id="button-container">
+                        <a class="button-main" href="/docs"><i class="fa-solid fa-code"></i>Integrate your app</a>
+                        <a class="button-main" href="/products"><i class="fa-regular fa-lightbulb"></i>Explore our solutions</a>
+                    </div>
                 </div>
 
-                <div class="row">
-                    <p id="intro">Owlracle says you should pay no more than this for <b>Gas</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
-                    <div id="gas-container"></div>
-                </div>
+                <div id="block-anim"></div>
+            </div>
 
+            <div class="row">
+                <p id="intro">Owlracle says you should pay no more than this for <b>Gas</b> on <span id="chain"></span> network: <a href="#faq-title"><sup><i class="far fa-question-circle"></i></sup></a></p>
+                <div id="gas-container"></div>
+            </div>
+
+        </div>
+        <div id="section-2" class="section">
+            <div id="info">
+                <h2>Gas Historical Data</h2>
+                <p>We also collect and record gas historical data, so you can grasp how congested the network is/was at any given moment.</p>
             </div>
             <div id="chart-container">
                 <div class="row">
@@ -93,6 +96,66 @@
                     <button id="fee"><span class="mark"></span>Fee</button>
                 </div>
             </div>
+        </div>
+
+        <div class="section" id="section-3">
+            <div id="info" class="col">
+                <div id="box">
+                    <h2>Integrate with our API</h2>
+                    <p>Use our endpoints when building your app or bot transactions and never overpay or get stuck transactions again.</p>
+                    <div id="button-container">
+                        <a class="button-main" href="/docs"><i class="fa-solid fa-book"></i>Read our docs</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col video">
+                <video autoplay muted loop>
+                    <source src="img/coding.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+
+        <div class="section" id="section-4">
+            <div id="corousel-container" class="col">
+            </div>
+            <div id="info" class="col">
+                <h2>Owlracle Browser Extension</h2>
+                <p>Use our endpoints when building your app or bot transactions and never overpay or get stuck transactions again.</p>
+            </div>
+            <div id="buttons-col" class="col">
+                <a href="https://chrome.google.com/webstore/detail/owlracle-gas-price-tracke/gnedoldjklhjjhmcfpilokboppbceclh" target="_blank">
+                    <div class="browser">
+                        <div id="title"><span></span><span></span><span></span></div>
+                        <div id="bar">
+                            <i class="fa-solid fa-angle-left"></i>
+                            <i class="fa-solid fa-angle-right"></i>
+                            <i class="fa-solid fa-arrow-rotate-right"></i>
+                            <i class="fa-solid fa-house"></i>
+                            <span id="url"></span>
+                        </div>
+                        <div id="body"><img src="img/chrome.png"></div>
+                    </div>                    
+                    <span class="button"><i class="fa-brands fa-chrome"></i>Get from Chrome Web Store</span>
+                </a>
+                <a class="button" href="https://microsoftedge.microsoft.com/addons/detail/owlracle-gas-price-tracke/abfaclffknadhdmfojckfkkcfakcngfd" target="_blank">
+                    <div class="browser">
+                        <div id="title"><span></span><span></span><span></span></div>
+                        <div id="bar">
+                            <i class="fa-solid fa-angle-left"></i>
+                            <i class="fa-solid fa-angle-right"></i>
+                            <i class="fa-solid fa-arrow-rotate-right"></i>
+                            <i class="fa-solid fa-house"></i>
+                            <span id="url"></span>
+                        </div>
+                        <div id="body"><img src="img/edge.png"></div>
+                    </div>                    
+                    <span class="button"><i class="fa-brands fa-edge"></i>Get from Microsoft Edge Addons</span>
+                </a>
+            </div>
+        </div>
+        
+        <div id="content" class="section">
 
             <p>If you are a software developer, and want to integrate your application with our gas oracle, you can use our endpoints.</p>
     
@@ -194,23 +257,7 @@
                 href="https://discord.gg/zYS4f8eRbC" target="_blank" rel="noopener">Discord</a> server.</p>
         </div>
 
-        <!-- <div class="section" id="section-2">
-            <div class="col text left">
-                <div class="box">
-                    <h2>Integrate Owlracle with your app using our API</h2>
-                    <span>Deliver the best value to your users with an API built by devs, for devs.</span>
-                    <button class="button-main"><i class="fa-solid fa-book"></i>Read our docs</button>
-                </div>
-            </div>
-            <div class="col video">
-                <video autoplay muted loop>
-                    <source src="img/coding.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-        </div>
-
-        <div class="section" id="section-3">
+        <!-- <div class="section" id="section-3">
             <div class="col video">
                 <video autoplay muted loop>
                     <source src="img/extension.mp4" type="video/mp4">
@@ -225,9 +272,9 @@
                     <button class="button-main"><i class="fa-brands fa-edge"></i>Edge extension</button>
                 </div>
             </div>
-        </div>
+        </div> -->
 
-        <div class="section" id="section-4">
+        <!-- <div class="section" id="section-4">
             <div class="col text ;eft">
                 <div class="box">
                     <h2>Make Owlracle's bots work for you</h2>

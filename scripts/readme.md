@@ -74,3 +74,17 @@ mysql
 ```
 sudo timedatectl set-timezone UTC
 ```
+
+## Fetch old blocks
+
+* Run `history.js` from oracle workspace. Check file to see args. It will build files for blocks.
+
+```
+node history.js -n ethereum -s 4 -t 35 -b 8787668
+```
+
+* Run app.js with `-o NETWORK FROMBLOCK` args. It will request oracle files and insert into db.
+
+```
+node app.js -o eth 8787668
+```

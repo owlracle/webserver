@@ -1402,6 +1402,11 @@ const api = {
 
     // get old blocks
     getOldData: async function(reqnetwork, fromblock, toblock) {
+        if (!networkList[reqnetwork]) {
+            console.log('Wrong network');
+            return;
+        }
+
         network = networkList[reqnetwork].name;
         limit = 1000;
         let startTime;

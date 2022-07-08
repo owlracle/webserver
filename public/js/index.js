@@ -14,6 +14,12 @@ document.querySelectorAll('.template-var').forEach(e => {
 recaptcha.setKey(templateVar.recaptchakey);
 
 
+// load livejs if on dev mode
+if (templateVar.production === 'false') {
+    new DynamicScript('https://livejs.com/live.js');
+}
+
+
 // set session id token
 const session = {
     get: async function(){
@@ -1679,3 +1685,4 @@ const blocksAnim = {
     },
 }
 blocksAnim.start(document.querySelector('#block-anim'));
+

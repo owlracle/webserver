@@ -89,6 +89,7 @@ function indexRoute(req, res) {
         recaptchakey: configFile.recaptcha.key,
         network: network,
         networkName: (network && (s => s[0].toUpperCase() + s.slice(1))((networkList[network] || networkList.bsc).name)) || 'Multichain',
+        production: configFile.production,
     });
 }
 

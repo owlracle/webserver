@@ -1228,12 +1228,19 @@ const api = {
         });
 
         if (!tx.result || !tx.result.hash){
-            return { error: {
+            const e = { error: {
                 status: 404,
                 error: 'Not Found',
                 message: 'The informed transaction could not be found.',
                 serverMessage: tx,
             }};
+            telegram.alert({
+                message: 'Error updating credit',
+                error: e,
+                tx: transactionHash,
+                apiKey: id,
+            });
+            return e;
         }
 
         data.credit_recharges = {};
@@ -1324,7 +1331,13 @@ const api = {
             return await checkNew() || await loopSearch() || await fallback();
         })();
 
-        if (priceThen.error){
+        if (!priceThen || priceThen.error){
+            telegram.alert({
+                message: 'Error updating credit',
+                error: priceThen,
+                tx: transactionHash,
+                apiKey: id,
+            });
             return priceThen;
         }
         

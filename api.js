@@ -1427,6 +1427,7 @@ const api = {
         const getBatch = async fromblock => {
             try{
                 let result = await oracle.getOldBLocks(network, fromblock, limit);
+                // console.log(result, fromblock);
                 if (!result || !result.length) {
                     return false;
                 }
@@ -1440,14 +1441,15 @@ const api = {
                 }
 
                 // first get all single instances for each time
-                let tokenPrice = Object.fromEntries(result.filter(e => e.timestamp).map(data => {
+                this.tokenPrice = Object.fromEntries(result.filter(e => e.timestamp).map(data => {
                     const d = new Date(data.timestamp.slice(-1)[0] * 1000);
                     const formattedDate = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
-                    return [ formattedDate, null ];
+                    return [ formattedDate, this.tokenPrice && this.tokenPrice[formattedDate] ? this.tokenPrice[formattedDate] : null ];
                 }));
+                // console.log(this.tokenPrice);
 
                 // then make a request for each singular time
-                Object.keys(tokenPrice).forEach(e => {
+                Object.keys(this.tokenPrice).forEach(e => {
                     const fetchPrice = async (date, resolve) => {
                         try {
                             let tokenPrice = await (await fetch(`https://api.coingecko.com/api/v3/coins/${networkList[reqnetwork].cgid}/history?date=${date}&localization=false`)).json();
@@ -1461,10 +1463,12 @@ const api = {
                         }                            
                     };
 
-                    tokenPrice[e] = new Promise(async resolve => await fetchPrice(e, resolve));
+                    if (!this.tokenPrice[e]) {
+                        this.tokenPrice[e] = new Promise(async resolve => await fetchPrice(e, resolve));
+                    }
                 });
 
-                tokenPrice = Object.fromEntries((await Promise.all(Object.values(tokenPrice))).map((e,i) => [Object.keys(tokenPrice)[i], e]));
+                this.tokenPrice = Object.fromEntries((await Promise.all(Object.values(this.tokenPrice))).map((e,i) => [Object.keys(this.tokenPrice)[i], e]));
 
                 result = result.map(data => {
                     if (data.minGwei){
@@ -1485,7 +1489,7 @@ const api = {
                         const dbInfo = {
                             network2: networkList[reqnetwork].dbid,
                             last_block: data.lastBlock,
-                            token_price: tokenPrice[formattedDate],
+                            token_price: this.tokenPrice[formattedDate],
                             avg_gas: avgGas,
                             open: data.minGwei[0],
                             close: data.minGwei.slice(-1)[0],
@@ -1512,9 +1516,9 @@ const api = {
                 buffer = [];
             }
 
-            // if (prevBlock < toblock){
-            //     return buffer;
-            // }
+            if (prevBlock < toblock){
+                return buffer;
+            }
 
             const result = await getBatch(prevBlock);
             if (!result) {

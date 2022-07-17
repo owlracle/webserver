@@ -1236,8 +1236,9 @@ const api = {
             }};
             telegram.alert({
                 message: 'Error updating credit',
-                error: e,
+                error: JSON.stringify(e),
                 tx: transactionHash,
+                network: networkList[network].symbol,
                 apiKey: id,
             });
             return e;
@@ -1334,8 +1335,9 @@ const api = {
         if (!priceThen || priceThen.error){
             telegram.alert({
                 message: 'Error updating credit',
-                error: priceThen,
+                error: JSON.stringify(priceThen),
                 tx: transactionHash,
+                network: networkList[network].symbol,
                 apiKey: id,
             });
             return priceThen;

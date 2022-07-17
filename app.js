@@ -67,7 +67,7 @@ process.argv.forEach((val, index, array) => {
     // -o network fromBlock
     if ((val == '-o' || val == '--get-old') && array[index+1]){
         console.log('Getting old blocks');
-        api.getOldData(array[index+1], array[index+2]);
+        api.getOldData(array[index+1], array[index+2], array[index+3]);
     }
 });
 

@@ -288,33 +288,36 @@ const network = {
         avax: { symbol: 'avax', name: 'Avalanche', token: 'AVAX', id: 43114, explorer: {
             icon: 'https://snowtrace.io/images/favicon.ico', href: 'https://snowtrace.io', name: 'SnowTrace', apiAvailable: true,
         }, rpc: 'https://api.avax.network/ext/bc/C/rpc',  },
-        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', id: 250, explorer: {
-            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
-        }, rpc: 'https://rpc.ftm.tools/',  },
         poly: { symbol: 'poly', name: 'Polygon', token: 'MATIC', id: 137, explorer: {
             icon: 'https://polygonscan.com/images/favicon.ico', href: 'https://polygonscan.com', name: 'PolygonScan', apiAvailable: true,
         }, rpc: 'https://polygon-rpc.com',  },
         cro: { symbol: 'cro', name: 'Cronos', token: 'CRO', id: 25, explorer: {
             icon: 'https://cronoscan.com/images/favicon.ico', href: 'https://cronoscan.com/', name: 'Cronoscan', apiAvailable: true,
         }, rpc: 'https://evm-cronos.crypto.org',  },
-        one: { symbol: 'one', name: 'Harmony', longName: 'Harmony One', token: 'ONE', id: 166660000, explorer: {
-            icon: 'https://explorer.harmony.one/favicon.ico', href: 'https://explorer.harmony.one', name: 'Harmony Explorer', apiAvailable: false,
-        }, rpc: 'https://api.s0.t.hmny.io/',  },
-        celo: { symbol: 'celo', name: 'Celo', token: 'CELO', id: 42220, explorer: {
-            icon: 'https://avatars.githubusercontent.com/u/37552875?s=200&v=4', href: 'https://explorer.celo.org', name: 'Celo Explorer', apiAvailable: false,
-        }, rpc: 'https://forno.celo.org',  },
-        ht: { symbol: 'ht', name: 'Heco', token: 'HT', id: 128, explorer: {
-            icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
-        }, rpc: 'https://http-mainnet.hecochain.com',  },
-        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
-            icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
-        }, rpc: 'https://rpc.moonriver.moonbeam.network',  },
-        fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
-            icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
-        }, rpc: 'https://rpc.fuse.io',  },
+        ftm: { symbol: 'ftm', name: 'Fantom', token: 'FTM', id: 250, explorer: {
+            icon: 'https://ftmscan.com/images/favicon.png', href: 'https://ftmscan.com', name: 'FtmScan', apiAvailable: true,
+        }, rpc: 'https://rpc.ftm.tools/',  },
+        arb: { symbol: 'arb', name: 'Arbitrum', token: 'ETH', id: 42161, explorer: {
+            icon: 'https://arbiscan.io/images/favicon.ico', href: 'https://arbiscan.io', name: 'Arbitrum (ETH) Blockchain Explorer', apiAvailable: true,
+        }, rpc: 'https://arb1.arbitrum.io/rpc',  },
         aurora: { symbol: 'aurora', name: 'Aurora', token: 'ETH', id: 1313161554, explorer: {
             icon: 'https://aurorascan.dev/images/favicon.ico', href: 'https://aurorascan.dev/', name: 'Aurora Block Explorer', apiAvailable: true,
         }, rpc: 'https://mainnet.aurora.dev',  },
+        movr: { symbol: 'movr', name: 'Moonriver', token: 'MOVR', id: 1285, explorer: {
+            icon: 'https://moonriver.moonscan.io/images/favicon.ico', href: 'https://moonriver.moonscan.io/', name: 'MoonScan', apiAvailable: true,
+        }, rpc: 'https://rpc.moonriver.moonbeam.network',  },
+        ht: { symbol: 'ht', name: 'Heco', token: 'HT', id: 128, explorer: {
+            icon: 'https://hecoinfo.com/favicon.ico', href: 'https://hecoinfo.com', name: 'HecoInfo', apiAvailable: false,
+        }, rpc: 'https://http-mainnet.hecochain.com',  },
+        celo: { symbol: 'celo', name: 'Celo', token: 'CELO', id: 42220, explorer: {
+            icon: 'https://avatars.githubusercontent.com/u/37552875?s=200&v=4', href: 'https://explorer.celo.org', name: 'Celo Explorer', apiAvailable: false,
+        }, rpc: 'https://forno.celo.org',  },
+        one: { symbol: 'one', name: 'Harmony', longName: 'Harmony One', token: 'ONE', id: 166660000, explorer: {
+            icon: 'https://explorer.harmony.one/favicon.ico', href: 'https://explorer.harmony.one', name: 'Harmony Explorer', apiAvailable: false,
+        }, rpc: 'https://api.s0.t.hmny.io/',  },
+        fuse: { symbol: 'fuse', name: 'Fuse', token: 'FUSE', id: 122, explorer: {
+            icon: 'https://explorer.fuse.io/images/favicon-543fd97558f89019d8ee94144a7e46c7.ico?vsn=d', href: 'https://explorer.fuse.io/', name: 'Fuse Explorer', apiAvailable: false,
+        }, rpc: 'https://rpc.fuse.io',  },
         atom: { symbol: 'atom', name: 'Cosmos', token: 'ATOM', explorer: {
             icon: 'https://www.mintscan.io/favicon.ico', href: 'https://www.mintscan.io/cosmos', name: 'Mintscan', apiAvailable: false,
         }, nonevm: true, unit: 'µATOM', disabled: true },

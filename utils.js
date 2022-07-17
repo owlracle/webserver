@@ -124,6 +124,7 @@ const networkList = {
     juno: { name: 'juno', token: 'JUNO', cgid: 'juno-network', dbid: 13, disabled: true },
     osmo: { name: 'osmosis', token: 'OSMO', cgid: 'osmosis', dbid: 14, disabled: true },
     aurora: { name: 'aurora', token: 'ETH', cgid: 'ethereum', dbid: 15 },
+    arb: { name: 'arbitrum', token: 'ETH', cgid: 'ethereum', dbid: 16 },
 };
 // use this to get cg's token list
 // https://api.coingecko.com/api/v3/coins/list

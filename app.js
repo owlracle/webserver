@@ -64,6 +64,7 @@ process.argv.forEach((val, index, array) => {
         args.alerts = false;
         console.log('Will not check for alerts');
     }
+    // -o network fromBlock
     if ((val == '-o' || val == '--get-old') && array[index+1]){
         console.log('Getting old blocks');
         api.getOldData(array[index+1], array[index+2]);
@@ -88,6 +89,7 @@ function indexRoute(req, res) {
         recaptchakey: configFile.recaptcha.key,
         network: network,
         networkName: (network && (s => s[0].toUpperCase() + s.slice(1))((networkList[network] || networkList.bsc).name)) || 'Multichain',
+        production: configFile.production,
     });
 }
 

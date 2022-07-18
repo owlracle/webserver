@@ -102,7 +102,7 @@
             <div id="info" class="col">
                 <div id="box">
                     <h2>Integrate with our API</h2>
-                    <p>Use our endpoints when building your app or bot transactions and never overpay or get stuck transactions again.</p>
+                    <p>Use our endpoints when building your app or bot. Never overpay or get stuck transactions again.</p>
                     <div id="button-container">
                         <a class="button-main" href="/docs"><i class="fa-solid fa-book"></i>Read our docs</a>
                     </div>
@@ -117,41 +117,61 @@
         </div>
 
         <div class="section" id="section-4">
-            <div id="corousel-container" class="col">
+            <div id="carousel-container" class="col">
+                <div id="photo-container">
+                    <img src="img/ss-test.png">
+                    <img class="active" src="img/ss-test.png">
+                    <img src="img/ss-test.png">
+                </div>
+                <div id="bullet-container">
+                    <div class="bullet"></div>
+                    <div class="bullet active"></div>
+                    <div class="bullet"></div>
+                    <div class="bullet"></div>
+                    <div class="bullet"></div>
+                </div>
             </div>
             <div id="info" class="col">
-                <h2>Owlracle Browser Extension</h2>
-                <p>Use our endpoints when building your app or bot transactions and never overpay or get stuck transactions again.</p>
-            </div>
-            <div id="buttons-col" class="col">
-                <a href="https://chrome.google.com/webstore/detail/owlracle-gas-price-tracke/gnedoldjklhjjhmcfpilokboppbceclh" target="_blank">
-                    <div class="browser">
-                        <div id="title"><span></span><span></span><span></span></div>
-                        <div id="bar">
-                            <i class="fa-solid fa-angle-left"></i>
-                            <i class="fa-solid fa-angle-right"></i>
-                            <i class="fa-solid fa-arrow-rotate-right"></i>
-                            <i class="fa-solid fa-house"></i>
-                            <span id="url"></span>
-                        </div>
-                        <div id="body"><img src="img/chrome.png"></div>
-                    </div>                    
-                    <span class="button"><i class="fa-brands fa-chrome"></i>Get from Chrome Web Store</span>
-                </a>
-                <a class="button" href="https://microsoftedge.microsoft.com/addons/detail/owlracle-gas-price-tracke/abfaclffknadhdmfojckfkkcfakcngfd" target="_blank">
-                    <div class="browser">
-                        <div id="title"><span></span><span></span><span></span></div>
-                        <div id="bar">
-                            <i class="fa-solid fa-angle-left"></i>
-                            <i class="fa-solid fa-angle-right"></i>
-                            <i class="fa-solid fa-arrow-rotate-right"></i>
-                            <i class="fa-solid fa-house"></i>
-                            <span id="url"></span>
-                        </div>
-                        <div id="body"><img src="img/edge.png"></div>
-                    </div>                    
-                    <span class="button"><i class="fa-brands fa-edge"></i>Get from Microsoft Edge Addons</span>
-                </a>
+                <div>
+                    <h2>Owlracle Browser Extension</h2>
+                    <div id="text">
+                        <p>What you would expect, and more:</p>
+                        <ul>
+                            <li>Gas prices, history, API key lookup. All Owlracle information, just a click away.</li>
+                            <li><b>Tx advisor: Automatically receive our gas recommendations right into every Metamask tx confirmation window. You will never need to look and type gas price again.</b></li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="buttons-container" class="row">
+                    <a href="https://chrome.google.com/webstore/detail/owlracle-gas-price-tracke/gnedoldjklhjjhmcfpilokboppbceclh" target="_blank">
+                        <div class="browser">
+                            <div id="title"><span></span><span></span><span></span></div>
+                            <div id="bar">
+                                <i class="fa-solid fa-angle-left"></i>
+                                <i class="fa-solid fa-angle-right"></i>
+                                <i class="fa-solid fa-arrow-rotate-right"></i>
+                                <i class="fa-solid fa-house"></i>
+                                <span id="url"></span>
+                            </div>
+                            <div id="body"><img src="img/chrome.png"></div>
+                        </div>                    
+                        <span class="button"><i class="fa-brands fa-chrome"></i>Get from Chrome Web Store</span>
+                    </a>
+                    <a class="button" href="https://microsoftedge.microsoft.com/addons/detail/owlracle-gas-price-tracke/abfaclffknadhdmfojckfkkcfakcngfd" target="_blank">
+                        <div class="browser">
+                            <div id="title"><span></span><span></span><span></span></div>
+                            <div id="bar">
+                                <i class="fa-solid fa-angle-left"></i>
+                                <i class="fa-solid fa-angle-right"></i>
+                                <i class="fa-solid fa-arrow-rotate-right"></i>
+                                <i class="fa-solid fa-house"></i>
+                                <span id="url"></span>
+                            </div>
+                            <div id="body"><img src="img/edge.png"></div>
+                        </div>                    
+                        <span class="button"><i class="fa-brands fa-edge"></i>Get from Microsoft Edge Addons</span>
+                    </a>
+                </div>
             </div>
         </div>
         
@@ -296,6 +316,7 @@
     <input type="hidden" id="guestlimit" class="template-var" value="{{guestlimit}}">
     <input type="hidden" id="recaptchakey" class="template-var" value="{{recaptchakey}}">
     <input type="hidden" id="network" class="template-var" value="{{network}}">
+    <input type="hidden" id="production" class="template-var" value="{{production}}">
 </body>
 
 </html>

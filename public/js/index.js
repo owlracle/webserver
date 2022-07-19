@@ -1684,3 +1684,75 @@ const blocksAnim = {
     },
 }
 blocksAnim.start(document.querySelector('#block-anim'));
+
+
+const carousel = {
+    init: function(container, opt={}) {
+        this.container = container;
+        this.images = (images => !images || !images.length ? [] : images.map(e => {
+            const element = document.createElement('img');
+            element.src = e;
+            return element;
+        }))(opt.images);
+        this.index = 3;
+
+        this.render();
+        container.querySelectorAll('#bullet-container .bullet')[ this.index ].classList.add('active');
+
+        container.querySelector('#slide .left').addEventListener('click', () => this.slide('left'));
+        container.querySelector('#slide .right').addEventListener('click', () => this.slide('right'));
+        container.querySelectorAll('#bullet-container .bullet').forEach((e,i) => e.addEventListener('click', () => this.slide(i)));
+        this.renewInterval();
+    },
+    
+    render: function() {
+        this.container.querySelectorAll('.item img').forEach((e,i) => {
+            e.src = this.images[ (this.index + i) % this.images.length ].src;
+        });
+    },
+
+    renewInterval: function(newInt=5000) {
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
+        this.interval = setInterval(() => this.slide('right'), newInt);
+    },
+
+    slide: function(pos='right') {
+        if (this.sliding) {
+            return;
+        }
+        this.sliding = true;
+
+        const relativePos = pos == 'right' || pos == 'left' ? pos : pos > this.index ? 'right' : pos < this.index ? 'left' : false;
+
+        if (!relativePos) {
+            return;
+        }
+
+        const allItems = this.container.querySelectorAll('.item');
+        allItems.forEach(e => e.classList.add(`slide-${ relativePos }`));
+
+        this.container.querySelectorAll('#bullet-container .bullet')[ this.index ].classList.remove('active');
+
+        if (relativePos == 'left') {
+            this.index = this.index <= 0 ? this.images.length - 1 : this.index - 1;
+        }
+        else if (relativePos == 'right') {
+            this.index = this.index >= this.images.length - 1 ? 0 : this.index + 1;
+        }
+
+        this.container.querySelectorAll('#bullet-container .bullet')[ this.index ].classList.add('active');
+
+        this.renewInterval(10000);
+
+        setTimeout(() => allItems.forEach(e => {
+            this.render();
+            e.classList.remove(`slide-${ relativePos }`);
+            this.sliding = false;
+        }), 1000);
+    },
+}
+carousel.init(document.querySelector('#carousel-container'), {
+    images: Array(5).fill(0).map((_,i) => `img/carousel-extension-${i}.png`)
+});

@@ -566,7 +566,8 @@
 
     #section-2 {
         background-color: var(--bg-intense-color);
-        border-top: 1px solid var(--border-color);
+        border: solid var(--border-color);
+        border-width: 1px 0 1px 0;
         width: 100%;
         display: flex;
         justify-content: center;
@@ -738,7 +739,8 @@
     
     #section-3 {
         width: 100%;
-        border-bottom: 1px solid var(--border-color);
+        border: solid var(--border-color);
+        border-width: 1px 0 1px 0;
         background-color: #1f1e1f;
         color: var(--text-dark-color);
         min-height: 70vh;    
@@ -1031,6 +1033,184 @@
                                 margin-right: 10px;
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    #section-5 {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+
+        #content {
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            
+            #brands-container {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                margin-top: 50px;
+
+                .brand {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 3rem;
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 100%;
+                    background-color: #8d8d8d;
+
+                    &.active { background-color: var(--brand-color); }
+
+                    &.twitter { --brand-color: #1d9bef; }
+                    &.discord { --brand-color: #5662f6; }
+                    &.telegram { --brand-color: #259cd8; }
+                }
+            }
+
+            #info {
+                text-align: center;
+                margin-top: 40px;
+
+                h2 {
+                    font-size: 2.2rem;
+                }
+
+                p {
+                    font-size: 1.5rem;
+                    line-height: 1.9rem;
+                }
+
+            }
+
+            #box-container {
+                display: flex;
+                justify-content: center;
+                margin-top: 60px;
+
+                .box {
+                    display: none;
+                    
+                    &.active {
+                        display: flex;
+                    }
+
+                    &.twitter {
+                        width: 400px;
+                        border-radius: 15px;
+                        background-color: #15202b;
+                        color: white;
+                        box-shadow: 1px 1px 5px #00000070;
+                        
+    
+                        #left {
+                            flex-shrink: 0;
+                            width: 75px;
+                            margin-top: 25px;
+                            display: flex;
+                            justify-content: center;
+    
+                            span {
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                background-color: white;
+                                border-radius: 100%;
+                                width: 45px;
+                                height: 45px;
+    
+                                img {
+                                    width: 35px;
+                                    height: 35px;
+                                }
+                            }
+    
+                        }
+    
+                        #right {
+                            flex-grow: 1;
+    
+                            #text {
+                                height: 70px;
+                                border-bottom: 1px solid #ffffff30;
+                                margin-right: 20px;
+                                text-align: left;
+                                padding-top: 30px;
+    
+                                .highlight {
+                                    color: #1c94e5;
+                                }
+                            }
+        
+                            #button-container {
+                                display: flex;
+                                justify-content: flex-end;
+                                margin: 10px 20px 10px;
+    
+                                button {
+                                    border: none;
+                                    color: white;
+                                    background-color: #1d9bef;
+                                    border-radius: 25px;
+                                    padding: 8px 25px;
+                                    font-size: 1.1rem;
+                                    font-weight: bold;
+                                }
+                            }
+                        }
+    
+                    }
+
+                    &.telegram {
+                        background-color: #17212b;
+                        color: white;
+                        flex-direction: column;
+                        box-shadow: 1px 1px 5px #00000070;
+                        
+                        #chat {
+                            background-color: #0e1621;
+                            border: solid #17212b;
+                            box-sizing: border-box;
+                            border-width: 0 3px 0 3px;
+                            width: 100%;
+                            height: 30px;
+                        }
+
+                        #ui {
+                            display: flex;
+                            padding: 0 10px;
+                            box-sizing: border-box;
+                            
+                            div {
+                                display: flex;
+                                box-sizing: border-box;
+                                padding: 10px 10px;
+                            }
+
+                            i {
+                                color: #ffffff30;
+                                font-size: 1.5rem;
+                            }
+
+                            #text {
+                                justify-content: flex-start;
+                                padding-right: 50px;
+                                min-width: 300px;
+    
+                            }
+        
+                            #send i { color: #6399fc6b; }
+                        }
+
                     }
                 }
             }

@@ -915,7 +915,7 @@ const faq = {
         [`How do you predict the gas fee?`,
         `We scan the last N (default 200) blocks and check the minimum gas accepted on a transaction for each block. Then we calculate how much gas you should pay to be accepted on X% (varying by speed) of these blocks.`],
         [`I like your service. When will you come to my favorite network?`,
-        `We are constantly evaluating the benefits of adding new networks to our oracle. In general, we try to priorize networks with a good amount of monthly transactions and/or trending ones. If you feel we are missing a promising network, feel free to <a href="https://discord.gg/RhWmhSnPnM" target="_blank" rel="noopener">contact us</a> and share your opinion.`],
+        `We are constantly evaluating the benefits of adding new networks to our oracle. In general, we try to priorize networks with a good amount of monthly transactions and/or trending ones. If you feel we are missing a promising network, feel free to <a href="/discord-feature" target="_blank" rel="noopener">contact us</a> and share your opinion.`],
         [`I like your website, but I wish there was a more convenient tool. Like a browser extension.`,
         `Weel, there is! You can go to Chrome Web Store and download our <a href="/extension" target="_blank" rel="noopener">extension</a>. It is super easy, one click and you get gas/history from your favorite network.`],
         [`I would love to get Owlracle's predictions on my community group. Do you have anything for that?`,
@@ -1386,7 +1386,7 @@ class EndpointTable {
         cookies.delete('pending-tx-recharge');
 
         if (confirm.error) {
-            new Toast(`Sorry! I could not verify your recharge. Go to our <a href="https://discord.gg/bHckPMw3Qu" target="_blank" aria-label="discord server" rel="noopener">Discord server</a> and inform the tx hash so I can make things right for you.`, { timeOut: 10000, position: 'center' });
+            new Toast(`Sorry! I could not verify your recharge. Go to our <a href="/discord-support" target="_blank" aria-label="discord server" rel="noopener">Discord server</a> and inform the tx hash so I can make things right for you.`, { timeOut: 10000, position: 'center' });
             return;
         }
 
@@ -1408,7 +1408,7 @@ class EndpointTable {
             return;
         }
 
-        new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="https://discord.gg/bHckPMw3Qu" target="_blank" aria-label="discord server" rel="noopener">Discord server</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
+        new Toast(`🦉 Something want wrong while updating your credit. Please go to our <a href="/discord-support" target="_blank" aria-label="discord server" rel="noopener">Discord server</a> and inform us about this issue.`, { timeOut: 10000, position: 'center' });
         return;
     }
 })();

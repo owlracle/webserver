@@ -188,6 +188,24 @@ app.get('/twitterbot', (req, res) => {
 });
 
 
+// discord general chat
+app.get('/discord-general', (req, res) => {
+    res.redirect('https://discord.gg/zYS4f8eRbC');
+});
+
+
+// discord support channel
+app.get('/discord-support', (req, res) => {
+    res.redirect('https://discord.gg/bHckPMw3Qu');
+});
+
+
+// discord feature request channel
+app.get('/discord-feature', (req, res) => {
+    res.redirect('https://discord.gg/RhWmhSnPnM');
+});
+
+
 app.use(express.static(__dirname + '/public/'));
 
 app.listen(port, () => {

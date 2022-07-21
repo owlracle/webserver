@@ -1053,6 +1053,10 @@
             align-items: center;
             flex-direction: column;
             
+            .twitter { --brand-color: #1d9bef; }
+            .discord { --brand-color: #5662f6; }
+            .telegram { --brand-color: #259cd8; }
+
             #brands-container {
                 width: 100%;
                 display: flex;
@@ -1063,17 +1067,28 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    font-size: 3rem;
-                    width: 80px;
-                    height: 80px;
+                    font-size: 3.5rem;
+                    width: 100px;
+                    height: 100px;
                     border-radius: 100%;
                     background-color: #8d8d8d;
+                    transition: 1s all ease-out;
+                    box-shadow: 0px 0px 5px var(--brand-color);
+                    transform: scale(0.5);
+                    color: white;
+                    cursor: pointer;
 
-                    &.active { background-color: var(--brand-color); }
+                    &:hover {
+                        background-color: var(--brand-color);
+                        transform: scale(0.6);
+                        filter: grayscale(75%);
+                    }
 
-                    &.twitter { --brand-color: #1d9bef; }
-                    &.discord { --brand-color: #5662f6; }
-                    &.telegram { --brand-color: #259cd8; }
+                    &.active {
+                        background-color: var(--brand-color);
+                        transform: none;
+                        filter: none;
+                    }
                 }
             }
 
@@ -1089,28 +1104,31 @@
                     font-size: 1.5rem;
                     line-height: 1.9rem;
                 }
-
             }
 
             #box-container {
                 display: flex;
                 justify-content: center;
+                align-items: flex-start;
+                height: 250px;
                 margin-top: 60px;
 
                 .box {
                     display: none;
+                    box-shadow: 0px 0px 5px 3px var(--brand-color);
+                    opacity: 1;
+                    animation: none;
                     
                     &.active {
                         display: flex;
+                        animation: box-anim 1s;
                     }
 
                     &.twitter {
-                        width: 400px;
+                        width: 450px;
                         border-radius: 15px;
                         background-color: #15202b;
                         color: white;
-                        box-shadow: 1px 1px 5px #00000070;
-                        
     
                         #left {
                             flex-shrink: 0;
@@ -1133,7 +1151,6 @@
                                     height: 35px;
                                 }
                             }
-    
                         }
     
                         #right {
@@ -1156,7 +1173,7 @@
                                 justify-content: flex-end;
                                 margin: 10px 20px 10px;
     
-                                button {
+                                .button {
                                     border: none;
                                     color: white;
                                     background-color: #1d9bef;
@@ -1164,6 +1181,12 @@
                                     padding: 8px 25px;
                                     font-size: 1.1rem;
                                     font-weight: bold;
+                                    cursor: pointer;
+                                    transition: 0.3s all;
+
+                                    &:hover {
+                                        filter: brightness(0.8);
+                                    }
                                 }
                             }
                         }
@@ -1174,21 +1197,79 @@
                         background-color: #17212b;
                         color: white;
                         flex-direction: column;
-                        box-shadow: 1px 1px 5px #00000070;
+                        border-radius: 3px;
                         
                         #chat {
                             background-color: #0e1621;
-                            border: solid #17212b;
                             box-sizing: border-box;
-                            border-width: 0 3px 0 3px;
                             width: 100%;
-                            height: 30px;
+                            display: flex;
+                            border-radius: 3px 3px 0 0;
+                            padding-top: 25px;
+                            padding-bottom: 15px;
+
+                            #left {
+                                flex-shrink: 0;
+                                width: 75px;
+                                margin-top: 25px;
+                                display: flex;
+                                justify-content: center;
+                                align-items: flex-end;
+        
+                                span {
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    background-color: white;
+                                    border-radius: 100%;
+                                    width: 40px;
+                                    height: 40px;
+        
+                                    img {
+                                        width: 30px;
+                                        height: 30px;
+                                    }
+                                }
+                            }
+
+                            #right {
+                                flex-grow: 1;
+        
+                                #text {
+                                    background-color: #2b5278;
+                                    padding: 5px 10px;
+                                    border-radius: 5px;
+                                    width: 250px;
+                                    color: #ffffffb9;
+
+                                    .highlight {
+                                        color: #4ba4ff;
+                                    }
+                                }
+            
+                                #button {
+                                    display: inline-flex;
+                                    border-radius: 5px;
+                                    background-color: #243344;
+                                    cursor: pointer;
+                                    transition: 0.3s all;
+                                    color: #ffffffb9;
+                                    padding: 10px 20px;
+                                    margin-top: 5px;
+                                    font-weight: bold;
+
+                                    &:hover {
+                                        filter: brightness(1.2);
+                                    }
+                                }
+                            }
                         }
 
                         #ui {
                             display: flex;
                             padding: 0 10px;
                             box-sizing: border-box;
+                            border-radius: 0 0 3px 3px;
                             
                             div {
                                 display: flex;
@@ -1211,6 +1292,112 @@
                             #send i { color: #6399fc6b; }
                         }
 
+                    }
+
+                    &.discord {
+                        background-color: #36393f;
+                        color: white;
+                        flex-direction: column;
+                        border-radius: 3px;
+                        border-radius: 3px;
+                        
+                        #chat {
+                            box-sizing: border-box;
+                            width: 500px;
+                            display: flex;
+                            padding-top: 15px;
+
+                            #left {
+                                flex-shrink: 0;
+                                width: 75px;
+                                margin-top: 5px;
+                                display: flex;
+                                justify-content: center;
+                                align-items: flex-start;
+        
+                                img {
+                                    width: 30px;
+                                    height: 30px;
+                                }
+                            }
+
+                            #right {
+                                flex-grow: 1;
+        
+                                #text {
+                                    color: #ffffffb9;
+                                    margin-right: 20px;
+
+                                    .highlight {
+                                        color: #4ba4ff;
+                                    }
+                                }
+
+                                #nick {
+                                    color: #52b162;
+                                    font-weight: bold;
+                                    margin-bottom: 5px;
+                                }
+            
+                                #button {
+                                    display: inline-flex;
+                                    border-radius: 5px;
+                                    background-color: #5462ea;
+                                    cursor: pointer;
+                                    transition: 0.3s all;
+                                    color: #ffffff;
+                                    padding: 10px 20px;
+                                    margin-top: 10px;
+
+                                    &:hover {
+                                        filter: brightness(0.8);
+                                    }
+                                }
+                            }
+                        }
+
+                        #ui {
+                            background-color: #40444b;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 0 10px;
+                            box-sizing: border-box;
+                            border-radius: 5px;
+                            margin: 20px 15px;
+                            
+                            div {
+                                display: flex;
+                                box-sizing: border-box;
+                                padding: 10px 10px;
+                            }
+
+                            i {
+                                color: #ffffff30;
+                                font-size: 1.5rem;
+                            }
+
+                            #text {
+                                justify-content: flex-start;
+                                flex-grow: 1;
+                                padding-right: 50px;
+                            }
+                        }
+
+                    }
+
+                    @keyframes box-anim {
+                        0% {
+                            opacity: 0;
+                            transform: translate(var(--left-pos), -400px) scale(0.3) ;
+                        }
+                        30% {
+                            opacity: 1;
+                        }
+                        100% {
+                            opacity: 1;
+                            transform: translate(0, 0) scale(1);
+                        }
                     }
                 }
             }

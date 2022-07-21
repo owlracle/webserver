@@ -1756,3 +1756,38 @@ const carousel = {
 carousel.init(document.querySelector('#carousel-container'), {
     images: Array(5).fill(0).map((_,i) => `img/carousel-extension-${i}.png`)
 });
+
+const brandCarousel = {
+    auto: true,
+
+    init: function (container) {
+        this.container = container;
+        this.brands = container.querySelector('#brands-container');
+        this.boxes = container.querySelector('#box-container');
+        
+        this.boxes.querySelectorAll('.box').forEach((e,i) => e.style.setProperty('--left-pos', `${ i * 50 - 50 }%`));
+        this.brands.querySelectorAll('.brand').forEach((e,i) => e.addEventListener('click', () => {
+            this.auto = false;
+            this.switch(i);
+        }));
+        
+        this.switch(0);
+    },
+
+    switch: function(index) {
+        this.index = index === undefined ? (this.index + 1) % 3 : index;
+
+        this.brands.querySelectorAll('.brand').forEach(e => e.classList.remove('active'));
+        this.brands.querySelectorAll('.brand')[this.index].classList.add('active');
+
+        this.boxes.querySelectorAll('.box').forEach(e => e.classList.remove('active'));
+        this.boxes.querySelectorAll('.box')[this.index].classList.add('active');
+
+        setTimeout(() => {
+            if (this.auto) {
+                this.switch();
+            }
+        }, 10000);
+    }
+};
+brandCarousel.init(document.querySelector('#section-5'));

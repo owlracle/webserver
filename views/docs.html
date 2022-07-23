@@ -1,84 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Owlracle - Multichain Gas Oracle </title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <meta name="robots" content="noindex">
-
-    <link rel="shortcut icon" href="img/favicon.ico">
-    <link rel="canonical" href="https://owlracle.info">
-    
-    <link rel="stylesheet" href="css/index.css">
-
-    <style>
-        h2 {
-            text-align: center;
-        }
-        #content {
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        #social {
-                display: flex;
-                width: 130px;
-                justify-content: space-between;
-                flex-direction: row;
-        }
-
-        #social i {
-            font-size: 2rem;
-            color: var(--text-dark-color);
-        }
-
-        #social i:hover {
-            opacity: 0.8;
-        }
-
-        body #frame #content #title img {
-            box-shadow: none;
-        }
-    </style>
-
-    <script defer>
-        class DynamicScript {
-            constructor(url, onload) {
-                const script = document.createElement('script');
-                script.onload = onload;
-                script.src = url;
-                script.async = true;
-                
-                document.head.appendChild(script);
-            }
-        }
-
-        new DynamicScript('https://kit.fontawesome.com/c1a16f97ec.js');
-        const particles = new DynamicScript('https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js', () => particlesJS.load('frame', `config/particles-${document.body.classList.contains('dark') ? 'dark' : 'light'}.json`));
-    </script>
 </head>
 
-<body class="dark">
+<body>
     <div id="frame">
-        <div id="content">
-            <div id="title">
-                <img src="img/egg.png" alt="Owlracle logo">
-                <div>
-                    <h1>OWLRACLE</h1>
-                    <h2>The multichain Gas Oracle</h2>
-                </div>
-            </div>
-            <h1>Get ready! We are coming to your favorite network. Soon.</h1>
-            <div id="social">
-                <div class="item"><a href="https://github.com/owlracle" target="_blank" aria-label="github" rel="noopener"><i class="fa-brands fa-github"></i></a></div>
-                <div class="item"><a href="/discord-general" target="_blank" aria-label="discord" rel="noopener"><i class="fa-brands fa-discord"></i></a></div>
-                <div class="item"><a href="https://t.me/owlracle" target="_blank" aria-label="telegram" rel="noopener"><i class="fa-brands fa-telegram"></i></a></div>
-                <div class="item"><a href="https://twitter.com/owlracleapi" target="_blank" aria-label="twitter" rel="noopener"><i class="fa-brands fa-twitter"></i></a></div>
-                <div class="item"><a href="https://medium.com/@owlracleapi" target="_blank" aria-label="medium" rel="noopener"><i class="fa-brands fa-medium"></i></a></div>
-            </div>
+        <div id="content" class="section">
+
+            <p>If you are a software developer, and want to integrate your application with our gas oracle, you can use our endpoints.</p>
+    
+            <h2 id="endpoint-gas">Gas fee estimation</h2>
+    
+            <div id="url-gas" class="url"></div>
+    
+            <p>Retrieve gas for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
+
+            <p>Owlracle scans recent past blocks (<code class="code inline">blocks</code> param) to build an estimative of required gas fee to be paid. It looks for the minimum gas accepted on a transaction for every scanned block (based on the chosen <code class="code inline">percentile</code>). Then it shows you the minimum gas you should pay to be accepted on a percentage of your choice (<code class="code inline">accept</code> param) of those blocks.</p>
+
+            <div id="table-gas"></div>
+
+
+            <h2>Gas history</h2>
+
+            <div id="url-history" class="url"></div>
+    
+            <p>Retrieve the price history for gas, token price and fee for <b><span class="chain-name"></span></b> network. If you prefer another network, replace <code class="code inline"><span class="chain-symbol"></span></code> for the corresponding network symbol. Check our <a href="#network-btn">header</a> for the supported network list.</p>
+
+            <p>The API will return an array of <a href="https://www.investopedia.com/terms/c/candlestick.asp" target="_blank" rel="noopener nofollow">candlesticks</a> built from aggregate data of the requested timeframe. The array is ordered from decreasing timestamps.</p>
+
+            <div id="table-history"></div>
+
+    
+            <h2 id="api-keys-sec">API keys</h2>
+    
+            <p>When you access our endpoints, it is reccomended that you use an API key. You can request our data up to <code class="code inline request-limit"></code> times per hour for free. After reaching that limit, you can continue to make requests either waiting a few minutes or using your api credit. You can also make requests without an api key for testing purposes, up to <code class="code inline guest-limit"></code> times per hour.</p>
+    
+            <h3>Profile window</h3>
+    
+            <p>You can use the button below or the <a href="#search">header section</a> of this page to create new API keys, get information, logs, update, or even recharge your key should you need to use more than the free limit per hour.</p>
+    
+            <div id="apikey-container"><button id="manage-apikey" class="button-main"><i class="fas fa-key"></i>Manage API keys</button></div>
+            
+            <p>Please keep in mind that you should use your API key in your server's code, never in the front-end code, mainly because of these two reasons:
+    
+            <ul>
+                <li>Front-end code is publicly readable, even if obfuscated. Thus, writing your keys in the source-code will EXPOSE them.</li>
+                <li>If used in the front-end, every user request will trigger a call to our endpoints. Depending on your app's traffic, that will make your API key consume the free calls per hour quickly, and beyond that your api credit.</li>
+            </ul>
+                
+            <p>You can make your calls to our endpoints in your server code, save the result in a file or database, then every time your users request the information you can send the cached result. Remember to schedule calls to our endpoints at regular intervals to make sure your cached data is always up-to-date.</p>
+    
+            <h3>API Credit</h3>
+
+            <p>After reaching the free request limit (<code class="code inline request-limit"></code> requests in the last hour), each new request will subtract $<code class="code inline request-cost"></code> USD from your API account.</p>
+            
+            <p>Any time you want to recharge your API credit, you can use the same <a href="#manage-apikey">Manage API keys</a> button above or the header to open the <a href="?action=recharge">Recharge key</a> tab. You will be asked to connect your wallet using <a href="https://metamask.io/" target="_blank" rel="noopener">Metamask</a> extension. This window will let you transfer to Owlracle's wallet any amount of <span class="token-name"></span> while using the <span class="chain-name"></span> network. The amount transferred will be converted to USD and credited in your account. After the transfer confirmation, our server will update your API credit automatically. Keep in mind that the amount credited may vary depending of the token exchange rate.</p>
+
+            <p id="nav-network"><b>WARNING: Deposits on <span class="chain-name"></span> network will not be credited automatically. You may either make a deposit using the same wallet on another supported network, or <a href="/discord-support" target="_blank" aria-label="telegram" rel="noopener">reach us on Discord</a> providing your transaction hash.</b></p>
+            
+    
+            <h3>API key information</h3>
+    
+            <div id="url-keys" class="url"></div>
+
+            <p>Request information about your API key.</p>
+    
+            <div id="table-keys"></div>
+
+            <h3>API key credit recharge history</h3>
+    
+            <p>Get information about every api recharge.</p>
+    
+            <div id="url-credit" class="url"></div>
+
+            <p>On a success, the result will be a JSON containing <code class="code inline">message</code> and <code class="code inline">results</code> fields. The <code class="code inline">results</code> field is an array containing information about each API recharge transaction, where each element is an Object with the following fields:</p>
+            
+            <div id="table-credit"></div>
+    
+    
+            <h3>API key usage log</h3>
+            
+            <p>Get information about your API key usage.</p>
+    
+            <div id="url-logs" class="url"></div>
+                    
+            <p>You can pass the optional arguments <code class="code inline">fromtime</code> and <code class="code inline">totime</code>to set the time range of your search.</p>
+    
+            <div id="table-logs"></div>
         </div>
     </div>
 </body>
